@@ -1,0 +1,127 @@
+import React, { useState } from "react";
+
+const Subscription = () => {
+  const [selectedPlan, setSelectedPlan] = useState(); // Track selected plan
+
+  const plans = [
+    {
+      name: "BASIC",
+      price: "Free",
+      features: [
+        "Access to Daily Goals Only ",
+        "Limited support",
+        "Dark/Light Mode",
+      ],
+    },
+    {
+      name: "INTERMEDIATE",
+      price: "₹750/month",
+      features: [
+        "Access upto Weekly Goals",
+        "Set Theme as your wish",
+        "By coupons,buy the nathan lights",
+        "Progress",
+      ],
+    },
+    {
+      name: "ADVANCED",
+      price: "₹1550/month",
+      features: [
+        "Remainders,Push Notification",
+        "support team",
+        "Access to all premium content",
+        "Rewards with high products as coupons",
+        "Streak Tracking"
+      ],
+    },
+  ];
+
+  const showFeatures = (planName) => {
+    // Set the selected plan to show its features
+    setSelectedPlan(planName);
+  };
+
+  const handleSubscribe = (planName) => {
+    console.log(`Redirecting to payment page for the ${planName} plan...`);
+    // Replace with actual navigation when the payment page is implemented
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center bg-purple-200 p-8">
+      {/* Moving Advertisement */}
+      <div className="w-full bg-black text-white py-2 flex items-center justify-center">
+        <div className="text-xl font-bold animate-marquee">
+          🎉 Special Offer: Get 50% off on your first 3 months! 🎉
+        </div>
+      </div>
+
+      <h1 className="text-4xl py-15 font-semibold text-gray-800 mt-8">Choose Your Plan</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-8 max-w-7xl">
+        {plans.map((plan, index) => (
+          <div
+            key={index}
+            className="p-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
+          >
+            <h2 className="text-2xl font-semibold mb-3">{plan.name}</h2>
+            <p className="text-lg mb-6">{plan.price}</p>
+            <button
+              onClick={() => showFeatures(plan.name)}
+              className="bg-white text-gray-800 px-6 py-2 rounded-md hover:bg-gray-200 transition-all duration-300"
+            >
+              View Features
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Display features of the selected plan */}
+      {selectedPlan && (
+        <div className="mt-8 bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl text-center">
+          <h2 className="text-2xl font-semibold mb-4">
+            Features of {selectedPlan} Plan
+          </h2>
+          <ul className="list-disc list-inside text-lg text-gray-700">
+            {plans
+              .find((plan) => plan.name === selectedPlan)
+              .features.map((feature, index) => (
+                <li key={index}>{feature}</li>
+              ))}
+          </ul>
+          <button
+            onClick={() => handleSubscribe(selectedPlan)}
+            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-all duration-300"
+          >
+            Subscribe Now
+          </button>
+          <button
+            onClick={() => setSelectedPlan(null)}
+            className="mt-4 ml-4 bg-gray-800 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-all duration-300"
+          >
+            Close
+          </button>
+        </div>
+      )}
+
+      {/* Add CSS for the marquee animation */}
+      <style jsx>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+
+        .animate-marquee {
+          display: inline-block;
+          white-space: nowrap;
+          animation: marquee 10s linear infinite;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default Subscription;
