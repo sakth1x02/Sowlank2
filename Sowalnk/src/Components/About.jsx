@@ -4,7 +4,7 @@ const About = () => {
   return (
     <div className="min-h-screen bg-white text-gray-800 py-10">
       <div className="container mx-auto px-6 space-y-10">
-        {/* Header */}
+       
         <div className="text-center">
           <h1 className="text-5xl font-bold text-violet-700 mb-6">
             About Sowalnk
@@ -14,7 +14,7 @@ const About = () => {
           </p>
         </div>
 
-        {/* Mission */}
+  
         <section className="bg-violet-200 p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-violet-700 mb-4">Our Mission</h2>
           <p className="text-lg leading-relaxed">
@@ -22,7 +22,7 @@ const About = () => {
           </p>
         </section>
 
-        {/* Vision */}
+       
         <section className="bg-violet-200 p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-violet-700 mb-4">Our Vision</h2>
           <p className="text-lg leading-relaxed">
@@ -30,7 +30,7 @@ const About = () => {
           </p>
         </section>
 
-        {/* About the Creator */}
+     
         <section className="bg-violet-200 p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-violet-700 mb-4">About the Creator</h2>
           <p className="text-lg leading-relaxed">
@@ -38,7 +38,7 @@ const About = () => {
           </p>
         </section>
 
-        {/* What We Do */}
+      
         <section className="bg-violet-200 p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-violet-700 mb-4">What We Do</h2>
           <p className="text-lg leading-relaxed mb-4">
@@ -52,7 +52,7 @@ const About = () => {
           </ul>
         </section>
 
-        {/* Call to Action */}
+      
         <section className="text-center">
           <h2 className="text-3xl font-bold text-violet-700 mb-4">Join Us on Our Journey</h2>
           <p className="text-lg mb-6">
