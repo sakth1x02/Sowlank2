@@ -1,23 +1,45 @@
 import React from "react";
 import { useState } from "react";
-import { Menu , X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const { intermediateMember, advanceMember } = useSelector(
+    (state) => state.ui
+  ); // Get the state from the store
   const menuItems = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/dailytask',label: 'Daily Task' },
-    { path: '/weekly', label: 'Weekly Task' },
-    { path: '/monthly', label: 'Monthly Task' },
-    { path: '/yearly', label: 'Yearly Task' },
-    { path: '/completed-task', label: 'Completed Task' },
-    { path: '/upcoming-task', label: 'Upcoming Task' },
-    { path: '/overdue-task', label: 'Overdue Task' },
-    { path: '/reminders', label: 'Reminders' },
-    { path: '/coupons', label: 'Coupons' },
-    { path: '/settings', label: 'Settings' }
+    { path: "/dashboard", label: "Dashboard" },
+    { path: "/dailytask", label: "Daily Task" },
+    {
+      path: "/weekly",
+      label: "Weekly Task",
+      className: advanceMember
+        ? ""
+        : "hidden" && intermediateMember
+        ? ""
+        : "hidden",
+    },
+    {
+      path: "/monthly",
+      label: "Monthly Task",
+      className: advanceMember
+        ? ""
+        : "hidden" && intermediateMember
+        ? ""
+        : "hidden",
+    },
+    {
+      path: "/yearly",
+      label: "Yearly Task",
+      className: advanceMember === true ? "" : "hidden",
+    },
+    { path: "/completed-task", label: "Completed Task" },
+    { path: "/upcoming-task", label: "Upcoming Task" },
+    { path: "/overdue-task", label: "Overdue Task" },
+    { path: "/reminders", label: "Reminders" },
+    { path: "/coupons", label: "Coupons" },
+    { path: "/settings", label: "Settings" },
   ];
 
   return (
@@ -25,7 +47,7 @@ const Sidebar = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-700 lg:hidden"
-        aria-label={isOpen ? 'Close menu' : 'Open menu'}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? (
           <X className="h-6 w-6 text-white" />
@@ -36,7 +58,7 @@ const Sidebar = () => {
 
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 z-40`}
       >
         <div className="flex flex-col h-full">
@@ -47,14 +69,14 @@ const Sidebar = () => {
           <nav className="flex-1 overflow-y-auto">
             <ul className="py-4">
               {menuItems.map((item) => (
-                <li key={item.path} className="px-4 py-2">
+                <li key={item.path} className={`px-4  py-2 ${item.className}`}>
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      `flex items-center  px-4 py-2 rounded-lg transition-colors duration-200 ${
                         isActive
-                          ? 'bg-gray-700 text-white font-medium'
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          ? "bg-gray-700 text-white font-medium"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
                       }`
                     }
                     onClick={() => setIsOpen(false)}
