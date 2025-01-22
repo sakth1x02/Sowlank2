@@ -13,41 +13,38 @@ import DailyTask from "./Components/dailyTask";
 import WeeklyTask from "./Components/WeeklyTask";
 import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";
-
+import Ranking from "./Components/Ranking.jsx";
 const App = () => {
   return (
     <>
-    <BrowserRouter>
-    <div className="flex">
+      <BrowserRouter>
+        <div className="flex">
           <Sidebar />
           <div className="flex-grow">
-      <Routes>
-        
-        <Route path="/" element={<Layout/>}>
-          <Route index element={<LandingPage />} />
-          <Route path="about" element={<About />} />
-          <Route path="features" element={<Feature />} />
-          <Route path="pricing" element={<Subscription />} />
-          <Route path="login" element={< Login/>} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="dashboard" element={<Dashboard1 />} />
-          <Route path="dailytask" element={<DailyTask />} />
-          <Route path="weekly" element={<WeeklyTask  />} />
-          <Route path="monthly" element={<MonthlyTask />} />
-          <Route path="taskchart" element={<TaskChart />} />
-          
-        </Route>
-      </Routes>
-      </div>
-      </div>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<LandingPage />} />
+                <Route path="about" element={<About />} />
+                <Route path="features" element={<Feature />} />
+                <Route path="pricing" element={<Subscription />} />
+                <Route path="login" element={<Login />} />
+                <Route path="signup" element={<Signup />} />
+                <Route path="dashboard" element={<Dashboard1 />} />
+                <Route path="dailytask" element={<DailyTask />} />
+                <Route path="weekly" element={<WeeklyTask />} />
+                <Route path="monthly" element={<MonthlyTask />} />
+                <Route path="taskchart" element={<TaskChart />} />
+                <Route path="rankings" element={<Ranking />} />
+              </Route>
+            </Routes>
+          </div>
+        </div>
       </BrowserRouter>
-      </>
+    </>
   );
 };
 
 export default App;
-
-
 
 // import React from 'react'
 // import Dashboard1 from './Components/Dashboard1'
@@ -61,7 +58,6 @@ export default App;
 //       <Route path="/" element={<Dashboard1 />} />
 
 //       </Routes>
-
 
 //       </BrowserRouter>
 //     </div>

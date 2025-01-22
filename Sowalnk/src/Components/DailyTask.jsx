@@ -46,6 +46,7 @@ function DailyTask() {
     resetForm();
   };
 
+  // console.log(tasks);
   const resetForm = () => {
     setTaskName("");
     setPriority("");
@@ -63,7 +64,7 @@ function DailyTask() {
       );
     }
   };
-  
+
   const calculateProgress = (start, end) => {
     const currentTime = new Date();
     const startTime = new Date(currentTime.toDateString() + " " + start);
@@ -83,14 +84,14 @@ function DailyTask() {
       return "#4CAF50";
     }
     if (progress === 100 && !isCompleted) {
-      return "#FF0000"; 
+      return "#FF0000";
     }
     const colors = ["#6DA951", "#4CAF50", "#FFA33C", "#FC7033", "#FA4032"];
     return colors[Math.floor(progress / 20)] || "#FA4032";
   };
 
   const toggleCompletionHandler = (taskId) => {
-    toggleCompletion(taskId); 
+    toggleCompletion(taskId);
 
     const task = tasks.find((task) => task.id === taskId);
     if (task) {
@@ -110,8 +111,8 @@ function DailyTask() {
           if (currentTime >= startTime && currentTime <= endTime) {
             return {
               ...task,
-              isCompleted: true, 
-              progress: 100, 
+              isCompleted: true,
+              progress: 100,
             };
           }
         }
@@ -124,7 +125,7 @@ function DailyTask() {
     const interval = setInterval(() => {
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
-          if (task.isCompleted) return task; 
+          if (task.isCompleted) return task;
 
           const progress = calculateProgress(task.startTime, task.endTime);
           return {
@@ -137,7 +138,7 @@ function DailyTask() {
     return () => clearInterval(interval);
   }, []);
   const handleDelete = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId)); 
+    setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
   const checkIfTaskExceededTime = (task) => {
@@ -151,6 +152,23 @@ function DailyTask() {
       (task) => task.isCompleted && task.date === formattedYesterday
     );
     setYesterdaysTasks(completedTasks);
+  }, [tasks]);
+  useEffect(() => {
+    try {
+      const savedTasks = localStorage.getItem("tasks");
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks));
+        console.log("Tasks loaded from localStorage:", JSON.parse(savedTasks));
+      }
+    } catch (error) {
+      console.error("Failed to load tasks from localStorage:", error);
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    console.log("Tasks saved to localStorage:", tasks);
   }, [tasks]);
 
   const isTaskStarted = (task) => {
@@ -290,7 +308,6 @@ function DailyTask() {
           Today's Tasks
         </h2>
         <div className="overflow-x-auto">
-         
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-[#674188] text-white">
@@ -349,9 +366,9 @@ function DailyTask() {
                     <input
                       type="checkbox"
                       checked={task.isCompleted}
-                      onChange={() => toggleCompletionHandler(task.id)} 
+                      onChange={() => toggleCompletionHandler(task.id)}
                       disabled={
-                        task.isCompleted || 
+                        task.isCompleted ||
                         !isTaskStarted(task) ||
                         new Date() >
                           new Date(`${formattedDate} ${task.endTime}`)
@@ -365,7 +382,9 @@ function DailyTask() {
                   <td className="px-4 py-2 text-center">
                     <input
                       type="file"
-                      onChange={(e) => handleFileChange(task.id, e.target.files[0])}
+                      onChange={(e) =>
+                        handleFileChange(task.id, e.target.files[0])
+                      }
                       className="text-sm"
                     />
                     {task.proofOfWork && (

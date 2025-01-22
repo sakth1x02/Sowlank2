@@ -37,6 +37,15 @@ const Sidebar = () => {
     { path: "/completed-task", label: "Completed Task" },
     { path: "/upcoming-task", label: "Upcoming Task" },
     { path: "/overdue-task", label: "Overdue Task" },
+    {
+      path: "/rankings",
+      label: "Power Ranking",
+      className: advanceMember
+        ? ""
+        : "hidden" && intermediateMember
+        ? ""
+        : "hidden",
+    },
     { path: "/reminders", label: "Reminders" },
     { path: "/coupons", label: "Coupons" },
     { path: "/settings", label: "Settings" },
