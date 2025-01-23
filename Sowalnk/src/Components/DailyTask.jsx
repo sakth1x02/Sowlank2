@@ -18,7 +18,6 @@ function DailyTask() {
     day: "numeric",
     year: "numeric",
   });
-
   const formattedYesterday = yesterday.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -26,23 +25,52 @@ function DailyTask() {
     year: "numeric",
   });
 
-  const handleAddTask = () => {
-    if (taskName.trim() === "" || !startTime || !endTime || !priority) return;
+  const handleAddTask = async () => {
+    if (taskName.trim() === "" || !startTime || !endTime || !priority) {
+      console.error("Missing required fields");
+      return;
+    }
+
+    if (
+      tasks.some(
+        (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
+      )
+    ) {
+      alert("This task already exists!");
+      resetForm();
+      return;
+    }
 
     const newTask = {
-      id: Date.now(),
       taskName,
-      priority,
+      priority: priority.toLowerCase(),
       startTime,
       endTime,
       date: formattedDate,
       progress: 0,
       isCompleted: false,
-      proofOfWork: "",
+      proofOfWork: "this is proof of work",
       hasExceededTime: false,
     };
 
-    setTasks([...tasks, newTask]);
+    try {
+      const response = await fetch("http://localhost:1000/api/v1/task/daily", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTask),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add task: ${response.statusText}`);
+      }
+
+      await response.json();
+      // console.log("Task added successfully:", result.data);
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
     resetForm();
   };
 
@@ -95,7 +123,7 @@ function DailyTask() {
 
     const task = tasks.find((task) => task.id === taskId);
     if (task) {
-      syncTaskCompletion(task.id, !task.isCompleted);
+      // syncTaskCompletion(task.id, !task.isCompleted);
     }
   };
 
@@ -104,7 +132,7 @@ function DailyTask() {
 
     setTasks((prevTasks) =>
       prevTasks.map((task) => {
-        if (task.id === taskId) {
+        if (task._id === taskId) {
           const startTime = new Date(`${formattedDate} ${task.startTime}`);
           const endTime = new Date(`${formattedDate} ${task.endTime}`);
 
@@ -120,6 +148,33 @@ function DailyTask() {
       })
     );
   };
+
+  //get all data from the database
+  const fetchData = async () => {
+    try {
+      const response = await fetch("http://localhost:1000/api/v1/task/daily");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+      }
+      const result = await response.json();
+      setTasks((prevTasks) => {
+        // const newTasks = Array.isArray(result) ? result : result.data;
+        const uniqueTasks = [
+          ...prevTasks,
+          ...result.filter(
+            (newTask) => !prevTasks.some((task) => task._id === newTask._id)
+          ),
+        ];
+        return uniqueTasks;
+      });
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+  // console.log(tasks);
+  useEffect(() => {
+    fetchData();
+  }, [tasks]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -138,7 +193,7 @@ function DailyTask() {
     return () => clearInterval(interval);
   }, []);
   const handleDelete = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    setTasks(tasks.filter((task) => task._id !== taskId));
   };
 
   const checkIfTaskExceededTime = (task) => {
@@ -152,23 +207,6 @@ function DailyTask() {
       (task) => task.isCompleted && task.date === formattedYesterday
     );
     setYesterdaysTasks(completedTasks);
-  }, [tasks]);
-  useEffect(() => {
-    try {
-      const savedTasks = localStorage.getItem("tasks");
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-        console.log("Tasks loaded from localStorage:", JSON.parse(savedTasks));
-      }
-    } catch (error) {
-      console.error("Failed to load tasks from localStorage:", error);
-    }
-  }, []);
-
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    console.log("Tasks saved to localStorage:", tasks);
   }, [tasks]);
 
   const isTaskStarted = (task) => {
@@ -324,7 +362,7 @@ function DailyTask() {
             <tbody className="bg-[#F0C1E1]">
               {tasks.map((task) => (
                 <tr
-                  key={task.id}
+                  key={task._id}
                   className={`border-t ${
                     task.isCompleted ? "bg-green-100" : "bg-white"
                   }`}
@@ -366,7 +404,7 @@ function DailyTask() {
                     <input
                       type="checkbox"
                       checked={task.isCompleted}
-                      onChange={() => toggleCompletionHandler(task.id)}
+                      onChange={() => toggleCompletionHandler(task._id)}
                       disabled={
                         task.isCompleted ||
                         !isTaskStarted(task) ||
@@ -401,7 +439,7 @@ function DailyTask() {
 
                   <td className="px-4 py-2 text-center">
                     <button
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => handleDelete(task._id)}
                       className="py-1 px-2 rounded-md bg-red-500 text-white"
                       disabled={checkIfTaskExceededTime(task)}
                     >
