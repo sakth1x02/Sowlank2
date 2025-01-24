@@ -3,11 +3,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
-//This is options for cookies to not accessible on client side
-const options = {
-  httpOnly: true,
-  secure: true,
-};
 const dailyTaskController = {
   // Create a new task
   createTask: asyncHandler(async (req, res) => {
@@ -65,6 +60,25 @@ const dailyTaskController = {
     }
   }),
 
+  // Toggle task completion status
+  toggleTaskCompletion: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const task = await DailyTask.findById(id);
+
+    if (!task) {
+      throw new ApiError(404, "Task not found");
+    }
+
+    task.isCompleted = !task.isCompleted;
+    task.progress = task.isCompleted ? 100 : 0;
+    await task.save();
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Task status updated successfully", task));
+  }),
+
   // // Get a task by ID
   // getTaskById: async (req, res) => {
   //   try {
@@ -107,24 +121,24 @@ const dailyTaskController = {
   // },
 
   // // Delete a task by ID
-  // deleteTask: async (req, res) => {
-  //   try {
-  //     const { id } = req.params;
-  //     const deletedTask = await DailyTask.findByIdAndDelete(id);
+  deleteTask: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedTask = await DailyTask.findByIdAndDelete(id);
 
-  //     if (!deletedTask) {
-  //       return res.status(404).json({ message: "Task not found" });
-  //     }
+      if (!deletedTask) {
+        return res.status(404).json({ message: "Task not found" });
+      }
 
-  //     res
-  //       .status(200)
-  //       .json({ message: "Task deleted successfully", task: deletedTask });
-  //   } catch (error) {
-  //     res
-  //       .status(500)
-  //       .json({ message: "Error deleting task", error: error.message });
-  //   }
-  // },
+      res
+        .status(200)
+        .json({ message: "Task deleted successfully", task: deletedTask });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error deleting task", error: error.message });
+    }
+  },
 };
 
 export { dailyTaskController };
