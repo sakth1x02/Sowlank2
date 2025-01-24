@@ -142,7 +142,23 @@ function WeeklyTask() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
+  const Dashboard = ({ tasks }) => {
+    if (!tasks) return <p>Loading...</p>;
+    return (
+      <div className="p-5 rounded-lg">
+        <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
+        <div>
+          <p>Total Tasks: {tasks.length}</p>
+          <p>
+            Completed Tasks: {tasks.filter((task) => task.isCompleted).length}
+          </p>
+          <p>
+            Pending Tasks: {tasks.filter((task) => !task.isCompleted).length}
+          </p>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto flex space-x-4 mb-6">
@@ -221,7 +237,7 @@ function WeeklyTask() {
         </div>
       </div>
 
-      <div className="mt-6 max-w-4xl mx-auto rounded-lg shadow-lg p-6 bg-[#F0C1E1]">
+      <div className="my-6 max-w-4xl mx-auto rounded-lg shadow-lg p-6 bg-[#F0C1E1]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse table-auto">
             <thead>
@@ -272,7 +288,9 @@ function WeeklyTask() {
                   <td className="px-4 py-2 text-center">
                     <input
                       type="file"
-                      onChange={(e) => handleFileChange(task.id, e.target.files[0])}
+                      onChange={(e) =>
+                        handleFileChange(task.id, e.target.files[0])
+                      }
                       className="text-sm"
                     />
                     {task.proofOfWork && (
@@ -299,6 +317,12 @@ function WeeklyTask() {
             </tbody>
           </table>
         </div>
+      </div>
+      <div
+        className="max-w-4xl mx-auto mb-6"
+        style={{ backgroundColor: "#F0C1E1" }}
+      >
+        <Dashboard tasks={tasks} />
       </div>
     </div>
   );

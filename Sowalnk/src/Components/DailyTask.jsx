@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+// import { useDispatch, useSelector } from "react-redux";
 function DailyTask() {
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
@@ -7,7 +7,7 @@ function DailyTask() {
   const [endTime, setEndTime] = useState("");
   const [yesterdaysTasks, setYesterdaysTasks] = useState([]);
   const [tasks, setTasks] = useState([]);
-
+  // const dispatch=use
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
@@ -49,7 +49,7 @@ function DailyTask() {
       date: formattedDate,
       progress: 0,
       isCompleted: false,
-      proofOfWork: "this is proof of work",
+      proofOfWork: "",
       hasExceededTime: false,
     };
 
@@ -119,36 +119,56 @@ function DailyTask() {
   };
 
   const toggleCompletionHandler = (taskId) => {
+    // console.log(taskId);
     toggleCompletion(taskId);
 
-    const task = tasks.find((task) => task.id === taskId);
-    if (task) {
-      // syncTaskCompletion(task.id, !task.isCompleted);
+    // const task = tasks.find((task) => task.id === taskId);
+    // if (task) {
+    //   // syncTaskCompletion(task.id, !task.isCompleted);
+    // }
+  };
+
+  const toggleCompletion = async (taskId) => {
+    try {
+      // Perform the async operation outside of setTasks
+      const response = await fetch(
+        `http://localhost:1000/api/v1/task/daily/${taskId}/toggle`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update task: ${response.statusText}`);
+      }
+
+      const updatedTask = await response.json();
+      setTasks((prevTasks) => {
+        if (!Array.isArray(prevTasks)) return [];
+        return prevTasks.map((task) => {
+          if (task._id === taskId) {
+            const currentTime = new Date();
+            const startTime = new Date(`${formattedDate} ${task.startTime}`);
+            const endTime = new Date(`${formattedDate} ${task.endTime}`);
+
+            if (currentTime >= startTime && currentTime <= endTime) {
+              return {
+                ...task,
+                isCompleted: updatedTask.data.isCompleted,
+                progress: updatedTask.data.progress,
+              };
+            }
+          }
+          return task;
+        });
+      });
+    } catch (error) {
+      console.error("Error updating task:", error);
     }
   };
-
-  const toggleCompletion = (taskId) => {
-    const currentTime = new Date();
-
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task._id === taskId) {
-          const startTime = new Date(`${formattedDate} ${task.startTime}`);
-          const endTime = new Date(`${formattedDate} ${task.endTime}`);
-
-          if (currentTime >= startTime && currentTime <= endTime) {
-            return {
-              ...task,
-              isCompleted: true,
-              progress: 100,
-            };
-          }
-        }
-        return task;
-      })
-    );
-  };
-
   //get all data from the database
   const fetchData = async () => {
     try {
@@ -158,7 +178,7 @@ function DailyTask() {
       }
       const result = await response.json();
       setTasks((prevTasks) => {
-        // const newTasks = Array.isArray(result) ? result : result.data;
+        Array.isArray(prevTasks) ? [...prevTasks] : [];
         const uniqueTasks = [
           ...prevTasks,
           ...result.filter(
@@ -171,7 +191,6 @@ function DailyTask() {
       console.error("Error fetching tasks:", error);
     }
   };
-  // console.log(tasks);
   useEffect(() => {
     fetchData();
   }, [tasks]);
@@ -192,13 +211,37 @@ function DailyTask() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-  const handleDelete = (taskId) => {
-    setTasks(tasks.filter((task) => task._id !== taskId));
+  const handleDelete = async (taskId) => {
+    try {
+      // Call the API to delete the task
+      const response = await fetch(
+        `http://localhost:1000/api/v1/task/daily/${taskId}/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete task: ${response.statusText}`);
+      }
+
+      // Remove the task from the state after a successful deletion
+      // setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+      fetchData();
+      window.location.reload();
+      console.log("Task deleted successfully");
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   const checkIfTaskExceededTime = (task) => {
     const taskEndTime = new Date(`${formattedDate} ${task.endTime}`);
     const currentTime = new Date();
+
     return taskEndTime < currentTime && !task.isCompleted;
   };
 
@@ -206,7 +249,7 @@ function DailyTask() {
     const completedTasks = tasks.filter(
       (task) => task.isCompleted && task.date === formattedYesterday
     );
-    setYesterdaysTasks(completedTasks);
+    setYesterdaysTasks(completedTasks || []);
   }, [tasks]);
 
   const isTaskStarted = (task) => {
@@ -215,6 +258,7 @@ function DailyTask() {
     return currentTime >= startTime;
   };
   const Dashboard = ({ tasks }) => {
+    if (!tasks) return <p>Loading...</p>;
     return (
       <div className="p-5 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
@@ -261,7 +305,7 @@ function DailyTask() {
           <div className="space-y-4 mb-6">
             <input
               type="text"
-              value={taskName}
+              value={taskName || ""}
               onChange={(e) => setTaskName(e.target.value)}
               className="w-full p-3 border rounded-md border-gray-300"
               placeholder="Task Name"
@@ -270,7 +314,7 @@ function DailyTask() {
               <div className="w-full lg:w-1/3">
                 <label className="block text-black">Priority</label>
                 <select
-                  value={priority}
+                  value={priority || ""}
                   onChange={(e) => setPriority(e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md"
                 >
@@ -360,94 +404,99 @@ function DailyTask() {
               </tr>
             </thead>
             <tbody className="bg-[#F0C1E1]">
-              {tasks.map((task) => (
-                <tr
-                  key={task._id}
-                  className={`border-t ${
-                    task.isCompleted ? "bg-green-100" : "bg-white"
-                  }`}
-                >
-                  <td className="px-4 py-2 text-center text-black">
-                    {task.taskName}
-                  </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task.priority}
-                  </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task.startTime}
-                  </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task.endTime}
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="relative w-[120%] h-6 rounded-full bg-gray-300 text-center">
-                      <div
-                        className="h-full rounded-full"
+              {tasks &&
+                tasks.map((task) => (
+                  <tr
+                    key={task._id}
+                    className={`border-t ${
+                      task.isCompleted ? "bg-green-100" : "bg-white"
+                    }`}
+                  >
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.taskName}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.priority}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.startTime}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.endTime}
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="relative w-[120%] h-6 rounded-full bg-gray-300 text-center">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${task.progress}%`,
+                            backgroundColor: getProgressColor(
+                              task.progress,
+                              task.isCompleted
+                            ),
+                          }}
+                        ></div>
+                        <span className="absolute right-2 top-1 text-xs font-semibold text-white">
+                          {task.progress === 100
+                            ? task.isCompleted
+                              ? "Completed"
+                              : "Incomplete"
+                            : `${task.progress}%`}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={task.isCompleted}
+                        onChange={() => toggleCompletionHandler(task._id)}
+                        disabled={
+                          task.isCompleted ||
+                          !isTaskStarted(task) ||
+                          new Date() >
+                            new Date(`${formattedDate} ${task.endTime}`)
+                        }
                         style={{
-                          width: `${task.progress}%`,
-                          backgroundColor: getProgressColor(
-                            task.progress,
-                            task.isCompleted
-                          ),
+                          transform: "scale(1.5)",
                         }}
-                      ></div>
-                      <span className="absolute right-2 top-1 text-xs font-semibold text-white">
-                        {task.progress === 100
-                          ? task.isCompleted
-                            ? "Completed"
-                            : "Incomplete"
-                          : `${task.progress}%`}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={task.isCompleted}
-                      onChange={() => toggleCompletionHandler(task._id)}
-                      disabled={
-                        task.isCompleted ||
-                        !isTaskStarted(task) ||
-                        new Date() >
-                          new Date(`${formattedDate} ${task.endTime}`)
-                      }
-                      style={{
-                        transform: "scale(1.5)",
-                      }}
-                    />
-                  </td>
+                      />
+                    </td>
 
-                  <td className="px-4 py-2 text-center">
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleFileChange(task.id, e.target.files[0])
-                      }
-                      className="text-sm"
-                    />
-                    {task.proofOfWork && (
-                      <a
-                        href={task.proofOfWork}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
+                    <td className="px-4 py-2 text-center">
+                      <input
+                        type="file"
+                        onChange={(e) =>
+                          handleFileChange(task.id, e.target.files[0])
+                        }
+                        className="text-sm"
+                      />
+                      {task.proofOfWork && (
+                        <a
+                          href={task.proofOfWork}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline"
+                        >
+                          View Proof
+                        </a>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        onClick={() => handleDelete(task._id)}
+                        className={`py-1 px-2 rounded-md bg-red-500 text-white ${
+                          checkIfTaskExceededTime(task)
+                            ? "cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={checkIfTaskExceededTime(task)}
                       >
-                        View Proof
-                      </a>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      onClick={() => handleDelete(task._id)}
-                      className="py-1 px-2 rounded-md bg-red-500 text-white"
-                      disabled={checkIfTaskExceededTime(task)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
