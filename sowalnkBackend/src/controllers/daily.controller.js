@@ -1,8 +1,6 @@
 import { DailyTask } from "../models/daily.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-
 const dailyTaskController = {
   // Create a new task
   createTask: asyncHandler(async (req, res) => {
@@ -30,12 +28,8 @@ const dailyTaskController = {
         date,
       });
 
-      const savedTask = await newTask.save();
-      res
-        .status(201)
-        .json(
-          new ApiResponse(200, "Task created successFull", { task: savedTask })
-        );
+      await newTask.save();
+      res.status(200).json(newTask);
     } catch (error) {
       if (error.name === "ValidationError") {
         const errors = Object.values(error.errors).map((err) => err.message);
@@ -57,6 +51,7 @@ const dailyTaskController = {
       res
         .status(500)
         .json({ message: "Error fetching tasks", error: error.message });
+      //here i resolve issue because the apiResponse utility i used i think there is some issue....
     }
   }),
 
@@ -74,9 +69,7 @@ const dailyTaskController = {
     task.progress = task.isCompleted ? 100 : 0;
     await task.save();
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, "Task status updated successfully", task));
+    res.status(200).json(task);
   }),
 
   // // Get a task by ID

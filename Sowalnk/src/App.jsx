@@ -9,7 +9,7 @@ import Layout from "./Components/Layout";
 import Login from "./Components/Login";
 import Dashboard1 from "./Components/Dashboard1";
 import Sidebar from "./Components/Sidebar";
-import DailyTask from "./Components/dailyTask";
+import DailyTask from "./Components/DailyTask";
 import WeeklyTask from "./Components/WeeklyTask";
 import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";

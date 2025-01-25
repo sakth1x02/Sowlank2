@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from "react";
-// import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchTasks,
+  addTask,
+  toggleTaskCompletion,
+  deleteTask,
+} from "../store/task-slice";
+import { calculateTaskProgress } from "../store/task-slice";
 function DailyTask() {
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [yesterdaysTasks, setYesterdaysTasks] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  // const dispatch=use
+  // const [tasks, setTasks] = useState([]);
+  const dispatch = useDispatch();
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
+
+  const { dailyTask } = useSelector((state) => state.task);
 
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "short",
@@ -32,7 +41,7 @@ function DailyTask() {
     }
 
     if (
-      tasks.some(
+      dailyTask.some(
         (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
       )
     ) {
@@ -52,29 +61,10 @@ function DailyTask() {
       proofOfWork: "",
       hasExceededTime: false,
     };
-
-    try {
-      const response = await fetch("http://localhost:1000/api/v1/task/daily", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTask),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to add task: ${response.statusText}`);
-      }
-
-      await response.json();
-      // console.log("Task added successfully:", result.data);
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
+    dispatch(addTask(newTask));
     resetForm();
   };
 
-  // console.log(tasks);
   const resetForm = () => {
     setTaskName("");
     setPriority("");
@@ -83,30 +73,15 @@ function DailyTask() {
   };
 
   const handleFileChange = (taskId, file) => {
-    if (file) {
-      const fileURL = URL.createObjectURL(file);
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId ? { ...task, proofOfWork: fileURL } : task
-        )
-      );
-    }
+    // if (file) {
+    //   const fileURL = URL.createObjectURL(file);
+    //   setTasks((prevTasks) =>
+    //     prevTasks.map((task) =>
+    //       task.id === taskId ? { ...task, proofOfWork: fileURL } : task
+    //     )
+    //   );
+    // }
   };
-
-  const calculateProgress = (start, end) => {
-    const currentTime = new Date();
-    const startTime = new Date(currentTime.toDateString() + " " + start);
-    const endTime = new Date(currentTime.toDateString() + " " + end);
-
-    if (currentTime < startTime) return 0;
-    if (currentTime > endTime) return 100;
-
-    const totalDuration = endTime - startTime;
-    const timePassed = currentTime - startTime;
-
-    return Math.round((timePassed / totalDuration) * 100);
-  };
-
   const getProgressColor = (progress, isCompleted) => {
     if (isCompleted && progress === 100) {
       return "#4CAF50";
@@ -119,123 +94,18 @@ function DailyTask() {
   };
 
   const toggleCompletionHandler = (taskId) => {
-    // console.log(taskId);
-    toggleCompletion(taskId);
-
-    // const task = tasks.find((task) => task.id === taskId);
-    // if (task) {
-    //   // syncTaskCompletion(task.id, !task.isCompleted);
-    // }
+    dispatch(toggleTaskCompletion(taskId));
   };
-
-  const toggleCompletion = async (taskId) => {
-    try {
-      // Perform the async operation outside of setTasks
-      const response = await fetch(
-        `http://localhost:1000/api/v1/task/daily/${taskId}/toggle`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to update task: ${response.statusText}`);
-      }
-
-      const updatedTask = await response.json();
-      setTasks((prevTasks) => {
-        if (!Array.isArray(prevTasks)) return [];
-        return prevTasks.map((task) => {
-          if (task._id === taskId) {
-            const currentTime = new Date();
-            const startTime = new Date(`${formattedDate} ${task.startTime}`);
-            const endTime = new Date(`${formattedDate} ${task.endTime}`);
-
-            if (currentTime >= startTime && currentTime <= endTime) {
-              return {
-                ...task,
-                isCompleted: updatedTask.data.isCompleted,
-                progress: updatedTask.data.progress,
-              };
-            }
-          }
-          return task;
-        });
-      });
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
-  //get all data from the database
-  const fetchData = async () => {
-    try {
-      const response = await fetch("http://localhost:1000/api/v1/task/daily");
-      if (!response.ok) {
-        throw new Error(`Failed to fetch tasks: ${response.statusText}`);
-      }
-      const result = await response.json();
-      setTasks((prevTasks) => {
-        Array.isArray(prevTasks) ? [...prevTasks] : [];
-        const uniqueTasks = [
-          ...prevTasks,
-          ...result.filter(
-            (newTask) => !prevTasks.some((task) => task._id === newTask._id)
-          ),
-        ];
-        return uniqueTasks;
-      });
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  };
-  useEffect(() => {
-    fetchData();
-  }, [tasks]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => {
-          if (task.isCompleted) return task;
-
-          const progress = calculateProgress(task.startTime, task.endTime);
-          return {
-            ...task,
-            progress,
-          };
-        })
-      );
+      dispatch(calculateTaskProgress());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
   const handleDelete = async (taskId) => {
-    try {
-      // Call the API to delete the task
-      const response = await fetch(
-        `http://localhost:1000/api/v1/task/daily/${taskId}/delete`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete task: ${response.statusText}`);
-      }
-
-      // Remove the task from the state after a successful deletion
-      // setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
-      fetchData();
-      window.location.reload();
-      console.log("Task deleted successfully");
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
+    dispatch(deleteTask(taskId));
   };
 
   const checkIfTaskExceededTime = (task) => {
@@ -246,11 +116,15 @@ function DailyTask() {
   };
 
   useEffect(() => {
-    const completedTasks = tasks.filter(
+    const completedTasks = dailyTask.filter(
       (task) => task.isCompleted && task.date === formattedYesterday
     );
     setYesterdaysTasks(completedTasks || []);
-  }, [tasks]);
+  }, []);
+
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch]);
 
   const isTaskStarted = (task) => {
     const currentTime = new Date();
@@ -404,10 +278,10 @@ function DailyTask() {
               </tr>
             </thead>
             <tbody className="bg-[#F0C1E1]">
-              {tasks &&
-                tasks.map((task) => (
+              {dailyTask &&
+                dailyTask.map((task, index) => (
                   <tr
-                    key={task._id}
+                    key={index}
                     className={`border-t ${
                       task.isCompleted ? "bg-green-100" : "bg-white"
                     }`}
@@ -505,7 +379,7 @@ function DailyTask() {
         className="max-w-4xl mx-auto mb-6"
         style={{ backgroundColor: "#F0C1E1" }}
       >
-        <Dashboard tasks={tasks} />
+        <Dashboard tasks={dailyTask} />
       </div>
     </div>
   );

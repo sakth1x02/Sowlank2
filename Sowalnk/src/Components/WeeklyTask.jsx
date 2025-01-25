@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
-
+import { useSelector } from "react-redux";
 function WeeklyTask() {
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
+  const { dailyTask } = useSelector((state) => state.task);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -142,18 +142,24 @@ function WeeklyTask() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-  const Dashboard = ({ tasks }) => {
-    if (!tasks) return <p>Loading...</p>;
+  const Dashboard = () => {
+    if (!dailyTask) return <p>Loading...</p>;
     return (
       <div className="p-5 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
         <div>
-          <p>Total Tasks: {tasks.length}</p>
+          <p>Total Tasks: {Math.floor(dailyTask.length / 7)}</p>
           <p>
-            Completed Tasks: {tasks.filter((task) => task.isCompleted).length}
+            Completed Tasks:{" "}
+            {Math.floor(
+              dailyTask.filter((task) => task.isCompleted).length / 7
+            )}
           </p>
           <p>
-            Pending Tasks: {tasks.filter((task) => !task.isCompleted).length}
+            Pending Tasks:{" "}
+            {Math.floor(
+              dailyTask.filter((task) => !task.isCompleted).length / 7
+            )}
           </p>
         </div>
       </div>
@@ -322,7 +328,7 @@ function WeeklyTask() {
         className="max-w-4xl mx-auto mb-6"
         style={{ backgroundColor: "#F0C1E1" }}
       >
-        <Dashboard tasks={tasks} />
+        <Dashboard />
       </div>
     </div>
   );
