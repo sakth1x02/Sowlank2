@@ -43,9 +43,18 @@ const taskSlice = createSlice({
   reducers: {
     calculateTaskProgress(state) {
       state.dailyTask = state.dailyTask.map((task) => {
-        if (task.isCompleted) return task;
-        const progress = calculateProgress(task.startTime, task.endTime);
+        if (task?.isCompleted) return task;
+        const progress = calculateProgress(task?.startTime, task?.endTime);
         return { ...task, progress };
+      });
+    },
+    setDailyTaskProofWork(state, action) {
+      state.dailyTask = state.dailyTask.map((task) => {
+        if (task._id === action.payload.taskId) {
+          return { ...task, proofOfWork: action.payload.fileURL };
+        } else {
+          return task;
+        }
       });
     },
   },
@@ -70,5 +79,6 @@ const taskSlice = createSlice({
       });
   },
 });
-export const { calculateTaskProgress } = taskSlice.actions;
+export const { calculateTaskProgress, setDailyTaskProofWork } =
+  taskSlice.actions;
 export default taskSlice.reducer;

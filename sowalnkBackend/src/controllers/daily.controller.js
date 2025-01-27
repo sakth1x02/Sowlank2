@@ -1,6 +1,8 @@
 import { DailyTask } from "../models/daily.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
+import { uploadOnCloudinary } from "../utils/uploadOnCloud.js";
+import fs from "fs";
 const dailyTaskController = {
   // Create a new task
   createTask: asyncHandler(async (req, res) => {
@@ -70,6 +72,34 @@ const dailyTaskController = {
     await task.save();
 
     res.status(200).json(task);
+  }),
+
+  uploadFileController: asyncHandler(async (req, res) => {
+    const file = req.file;
+    const { id } = req.params;
+    if (!file) {
+      throw new ApiError(400, "Image Proof is Not Found");
+    }
+    try {
+      const uploadResult = await uploadOnCloudinary(file.path);
+      fs.unlinkSync(file.path);
+
+      if (!uploadResult) {
+        return res.status(500).json({ message: "Upload to Cloudinary failed" });
+      }
+      const task = await DailyTask.findById(id);
+      if (!task) {
+        throw new ApiError(404, "Task not found the given data");
+      }
+
+      task.proofOfWork = uploadResult.url;
+      await task.save();
+
+      res.status(200).json(task);
+    } catch (err) {
+      console.error("Error uploading file:", err);
+      res.status(500).json({ message: "File upload failed" });
+    }
   }),
 
   // // Get a task by ID
