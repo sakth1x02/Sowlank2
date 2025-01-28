@@ -1,31 +1,49 @@
-import React, { useState } from 'react';
-import { Mail, Lock } from 'lucide-react';
-
+import React, { useState } from "react";
+import { Mail, Lock } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle login logic here
-    console.log('Login attempt with:', { email, password });
+    console.log("Login attempt with:", { email, password });
+
+    try {
+      await axios.post("http://localhost:1000/api/v1/user/login", {
+        email,
+        password,
+      });
+      alert("User registered successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Error during registration:", error);
+      alert("Error registering user");
+    }
   };
 
   const handleGoogleSignIn = () => {
     // Handle Google sign in logic
-    console.log('Google sign in clicked');
+    console.log("Google sign in clicked");
   };
 
   const handleEmailSignIn = () => {
     // Handle Email sign in logic
-    console.log('Email sign in clicked');
+    console.log("Email sign in clicked");
   };
 
   return (
     <div className="flex-1 relative min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 ">
-      <div className="max-w-md w-full "> {/* Changed space-y-8 to space-y-6 */}
+      <div className="max-w-md w-full ">
+        {" "}
+        {/* Changed space-y-8 to space-y-6 */}
         <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900"> {/* Changed mt-6 to mt-2 */}
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
+            {" "}
+            {/* Changed mt-6 to mt-2 */}
             Sign in to your account
           </h2>
         </div>
@@ -77,7 +95,10 @@ const Login = () => {
 
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <a
+                href="#"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Forgot your password?
               </a>
             </div>
@@ -92,14 +113,15 @@ const Login = () => {
             </button>
           </div>
         </form>
-
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+              <span className="px-2 bg-gray-50 text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -118,15 +140,14 @@ const Login = () => {
             </button>
           </div>
         </div>
-
         <p className="mt-2 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a 
-  href="/signup" 
-  className="underline transition duration-200 ease-in-out text-[#6C3483] hover:text-indigo-600 focus:text-indigo-600"
->
-  Sign Up
-</a>
+          Don't have an account?{" "}
+          <a
+            href="/signup"
+            className="underline transition duration-200 ease-in-out text-[#6C3483] hover:text-indigo-600 focus:text-indigo-600"
+          >
+            Sign Up
+          </a>
         </p>
       </div>
     </div>

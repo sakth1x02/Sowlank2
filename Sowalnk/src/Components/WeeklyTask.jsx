@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import WeeksInMonth from "./WeeksInMonth";
 import { useSelector } from "react-redux";
 function WeeklyTask() {
   const [tasks, setTasks] = useState([]);
@@ -9,10 +10,19 @@ function WeeklyTask() {
   const { dailyTask } = useSelector((state) => state.task);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const firstDayOfWeek = new Date(today);
   firstDayOfWeek.setDate(today.getDate() - today.getDay());
   firstDayOfWeek.setHours(0, 0, 0, 0);
+
+  // Calculate week number
+  const getWeekNumber = (date) => {
+    const startOfYear = new Date(date.getFullYear(), 0, 1); // First day of the year
+    const daysSinceStart = Math.floor(
+      (date - startOfYear) / (1000 * 60 * 60 * 24)
+    );
+    return Math.ceil((daysSinceStart + startOfYear.getDay() + 1) / 7); // Calculate week number
+  };
+  const currentWeekNumber = getWeekNumber(today);
 
   const lastDayOfWeek = new Date(firstDayOfWeek);
   lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
@@ -24,6 +34,7 @@ function WeeklyTask() {
     day: "numeric",
     year: "numeric",
   });
+  // console.log(firstDayOfWeek, lastDayOfWeek);
 
   const formattedEndOfWeek = lastDayOfWeek.toLocaleDateString("en-US", {
     weekday: "short",
@@ -130,7 +141,6 @@ function WeeklyTask() {
     if (progress < 100) return "#FC7033";
     return "#FA4032";
   };
-
   useEffect(() => {
     const interval = setInterval(() => {
       setTasks((prevTasks) =>
@@ -143,24 +153,29 @@ function WeeklyTask() {
     return () => clearInterval(interval);
   }, []);
   const Dashboard = () => {
-    if (!dailyTask) return <p>Loading...</p>;
+    const totalTask = Math.floor(dailyTask.length / 7);
+    const completedTask = Math.floor(
+      dailyTask.filter((task) => task.isCompleted).length / 7
+    );
+    const pendingTask = Math.floor(
+      dailyTask.filter((task) => !task.isCompleted).length / 7
+    );
     return (
       <div className="p-5 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
-        <div>
-          <p>Total Tasks: {Math.floor(dailyTask.length / 7)}</p>
-          <p>
-            Completed Tasks:{" "}
-            {Math.floor(
-              dailyTask.filter((task) => task.isCompleted).length / 7
-            )}
-          </p>
-          <p>
-            Pending Tasks:{" "}
-            {Math.floor(
-              dailyTask.filter((task) => !task.isCompleted).length / 7
-            )}
-          </p>
+        <div className="space-y-5">
+          <WeeksInMonth
+            year={today.getFullYear()}
+            month={today.getMonth()}
+            weekIndx={currentWeekNumber}
+            completedTask={completedTask}
+          />
+
+          <div className="p-2 mt-5">
+            <p>Total Tasks: {totalTask}</p>
+            <p>Completed Tasks: {completedTask}</p>
+            <p>Pending Tasks: {pendingTask}</p>
+          </div>
         </div>
       </div>
     );
@@ -174,7 +189,8 @@ function WeeklyTask() {
           </h1>
           <div className="flex justify-between items-center pb-2">
             <h2 className="text-xl font-semibold text-[#2e2e2e]">
-              Week: {formattedStartOfWeek} - {formattedEndOfWeek}
+              Week {currentWeekNumber} : {formattedStartOfWeek} -{" "}
+              {formattedEndOfWeek}
             </h2>
           </div>
 

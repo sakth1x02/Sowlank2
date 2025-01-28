@@ -18,7 +18,6 @@ function DailyTask() {
   const [endTime, setEndTime] = useState("");
   const [yesterdaysTasks, setYesterdaysTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
-  // const [tasks, setTasks] = useState([]);
   const dispatch = useDispatch();
   const today = new Date();
   const yesterday = new Date(today);
@@ -79,11 +78,6 @@ function DailyTask() {
 
   const handleFileChange = async (taskId, file) => {
     if (!file) return;
-    // if (file) {
-    //   const fileURL = URL.createObjectURL(file);
-    //   dispatch(setDailyTaskProofWork({ taskId, fileURL }));
-
-    // }
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -160,7 +154,6 @@ function DailyTask() {
   };
 
   const Dashboard = ({ tasks }) => {
-    if (!tasks) return <p>Loading...</p>;
     return (
       <div className="p-5 rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
@@ -449,7 +442,7 @@ function DailyTask() {
         className="max-w-4xl mx-auto mb-6"
         style={{ backgroundColor: "#F0C1E1" }}
       >
-        <Dashboard tasks={dailyTask} />
+        <Dashboard tasks={filteredTasks} />
       </div>
     </div>
   );

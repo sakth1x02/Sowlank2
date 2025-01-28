@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { User, Mail, Lock, Phone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import axios from "axios";
+import { User, Mail, Lock, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -19,12 +19,12 @@ const Signup = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -33,19 +33,20 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.name.trim()) newErrors.name = "Name is required";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!emailRegex.test(formData.email)) newErrors.email = 'Invalid email format';
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!emailRegex.test(formData.email))
+      newErrors.email = "Invalid email format";
 
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
 
     const phoneRegex = /^\d{10}$/;
-    if (!formData.phone) newErrors.phone = 'Phone number is required';
+    if (!formData.phone) newErrors.phone = "Phone number is required";
     else if (!phoneRegex.test(formData.phone))
-      newErrors.phone = 'Invalid phone number (10 digits required)';
+      newErrors.phone = "Invalid phone number (10 digits required)";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -56,12 +57,12 @@ const Signup = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        await axios.post('http://localhost:3001/add-user', formData);
-        alert('User registered successfully!');
-        navigate('/login');
+        await axios.post("http://localhost:1000/api/v1/user/signup", formData);
+        alert("User registered successfully!");
+        navigate("/login");
       } catch (error) {
-        console.error('Error during registration:', error);
-        alert('Error registering user');
+        console.error("Error during registration:", error);
+        alert("Error registering user");
       }
     }
   };
@@ -69,10 +70,12 @@ const Signup = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow">
-        <h2 className="mb-6 text-2xl font-bold text-center">Create an Account</h2>
+        <h2 className="mb-6 text-2xl font-bold text-center">
+          Create an Account
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <User className="absolute mt-2 ml-2" />
+          <div className="flex gap-3">
+            <User className=" mt-2 ml-2" />
             <input
               type="text"
               name="name"
@@ -83,8 +86,8 @@ const Signup = () => {
             />
             {errors.name && <p className="text-red-500">{errors.name}</p>}
           </div>
-          <div>
-            <Mail className="absolute mt-2 ml-2" />
+          <div className="flex gap-3">
+            <Mail className=" mt-2 ml-2" />
             <input
               type="email"
               name="email"
@@ -95,8 +98,8 @@ const Signup = () => {
             />
             {errors.email && <p className="text-red-500">{errors.email}</p>}
           </div>
-          <div>
-            <Lock className="absolute mt-2 ml-2" />
+          <div className="flex gap-3">
+            <Lock className=" mt-2 ml-2" />
             <input
               type="password"
               name="password"
@@ -105,10 +108,12 @@ const Signup = () => {
               placeholder="Password"
               className="w-full px-4 py-2 border rounded-md"
             />
-            {errors.password && <p className="text-red-500">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500">{errors.password}</p>
+            )}
           </div>
-          <div>
-            <Lock className="absolute mt-2 ml-2" />
+          <div className="flex gap-3">
+            <Lock className=" mt-2 ml-2" />
             <input
               type="password"
               name="confirmPassword"
@@ -117,10 +122,12 @@ const Signup = () => {
               placeholder="Confirm Password"
               className="w-full px-4 py-2 border rounded-md"
             />
-            {errors.confirmPassword && <p className="text-red-500">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && (
+              <p className="text-red-500">{errors.confirmPassword}</p>
+            )}
           </div>
-          <div>
-            <Phone className="absolute mt-2 ml-2" />
+          <div className="flex gap-3">
+            <Phone className=" mt-2 ml-2" />
             <input
               type="tel"
               name="phone"

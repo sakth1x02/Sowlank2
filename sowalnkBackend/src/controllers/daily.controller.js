@@ -4,7 +4,6 @@ import { ApiError } from "../utils/apiError.js";
 import { uploadOnCloudinary } from "../utils/uploadOnCloud.js";
 import fs from "fs";
 const dailyTaskController = {
-  // Create a new task
   createTask: asyncHandler(async (req, res) => {
     try {
       const { taskName, priority, startTime, endTime, date } = req.body;
