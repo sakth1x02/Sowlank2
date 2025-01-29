@@ -1,66 +1,63 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchTasks } from "../store/task-slice";
+import WeeksInMonth from "./WeeksInMonth.jsx";
 const DailyGoals = () => {
-  const dailyTasks = [
-    "1. Reading",
-    "2. Listening to Music",
-    "3. Exercise",
-    "4. Meditate",
-    "5. Write Journal",
-  ];
-
-  const tasks = [
-    "Plan the week",
-    "Finish project",
-    "Attend meeting",
-    "Workout",
-    "Read a book",
-  ]; // Example tasks for the weekly section
-
-  const days = ["M", "T", "W", "T", "F", "S", "S"];
-  const dailyToday = new Date().getDay(); // Current day index (0-6)
-
-  // State to track task completion for the day
-  const [dailyTaskCompletion, setDailyTaskCompletion] = useState(
-    Array(dailyTasks.length).fill(false)
-  );
-
-  // State to track daily status for each task and day
-  const [dailyDayStatus, setDailyDayStatus] = useState(
-    dailyTasks.map(() => Array(7).fill(false))
-  );
-
-  // State to track weekly task completion status
-  const [dayStatus, setDayStatus] = useState(
-    tasks.map(() => Array(7).fill(false)) // Weekly status for each task
-  );
-
-  // Toggle daily task completion
-  const toggleDailyTaskCompletion = (taskIndex) => {
-    setDailyTaskCompletion((prevState) => {
-      const newState = [...prevState];
-      newState[taskIndex] = !newState[taskIndex];
-      return newState;
-    });
+  const { dailyTask } = useSelector((state) => state.task);
+  const dispatch = useDispatch();
+  const [daysWithData, setDaysWithData] = useState([]);
+  const today = new Date();
+  const getWeekNumber = (date) => {
+    const startOfYear = new Date(date.getFullYear(), 0, 1);
+    const daysSinceStart = Math.floor(
+      (date - startOfYear) / (1000 * 60 * 60 * 24)
+    );
+    return Math.ceil((daysSinceStart + startOfYear.getDay() + 1) / 7);
   };
+  const currentWeekNumber = getWeekNumber(today);
 
-  // Handle day-specific task completion for daily tasks
-  const handleDailyDayClick = (taskIndex, dayIndex) => {
-    setDailyDayStatus((prevState) => {
-      const newState = [...prevState];
-      newState[taskIndex][dayIndex] = !newState[taskIndex][dayIndex];
-      return newState;
-    });
-  };
+  // Logic for filter isComplete and unique day or date
+  const completedTasks = dailyTask.filter((task) => task.isCompleted);
+  const uniqueWeekdays = new Set(
+    completedTasks.map((task) => new Date(task.date).getDay())
+  );
+  // console.log(uniqueWeekdays);
+  const completedTask = uniqueWeekdays.size >= 7;
 
-  // Handle day-specific task completion for weekly tasks
-  const handleDayClick = (taskIndex, dayIndex) => {
-    setDayStatus((prevState) => {
-      const newState = [...prevState];
-      newState[taskIndex][dayIndex] = !newState[taskIndex][dayIndex];
-      return newState;
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - today.getDay());
+
+    const dates = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      return date;
     });
-  };
+
+    const jsDayAbbreviations = ["S", "M", "T", "W", "T", "F", "S"];
+
+    const daysData = dates.map((date) => {
+      const dayAbbrev = jsDayAbbreviations[date.getDay()];
+      const tasksForDate = dailyTask.filter((task) => {
+        const taskDate = new Date(task.date);
+        return taskDate.toDateString() === date.toDateString();
+      });
+
+      return {
+        date,
+        dayAbbrev,
+        taskCount: tasksForDate,
+        hasCompleted: tasksForDate.some((task) => task.isCompleted),
+      };
+    });
+
+    setDaysWithData(daysData);
+  }, [dailyTask]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -70,22 +67,31 @@ const DailyGoals = () => {
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-gray-700">Daily Goals</h2>
           <div className="space-y-2">
-            {dailyTasks.map((task, taskIndex) => (
-              <div key={taskIndex} className="flex items-center">
+            {dailyTask.map((task, taskIndex) => (
+              <div key={task._id} className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={dailyTaskCompletion[taskIndex]}
-                  onChange={() => toggleDailyTaskCompletion(taskIndex)}
-                  className="mr-2 cursor-pointer"
+                  checked={task?.isCompleted || false}
+                  onChange={() => {}}
+                  className="mr-2 cursor-pointer "
+                  style={{
+                    transform: "scale(1.5)",
+                  }}
                 />
                 <span
                   className={`text-lg ${
-                    dailyTaskCompletion[taskIndex]
-                      ? "line-through text-gray-800"
-                      : "text-gray-700"
+                    task?.isCompleted ? "line- text-gray-800" : "text-gray-700"
                   }`}
                 >
-                  {task}
+                  <div className="gap-4 flex">
+                    <div>{task.taskName}</div>
+                    <div>
+                      {new Date(task.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                  </div>
                 </span>
               </div>
             ))}
@@ -94,45 +100,69 @@ const DailyGoals = () => {
 
         {/* Daily Calendar */}
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
-          <h2 className="text-xl font-bold mb-4 text-gray-700">Daily Calendar</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-700">
+            Daily Calendar
+          </h2>
           <div className="grid grid-cols-7 gap-4 text-center">
-            {days.map((day, dayIndex) => (
-              <div key={dayIndex}>
-                <h3
-                  className={`text-sm font-bold ${
-                    dayIndex === dailyToday ? "text-blue-600" : "text-gray-500"
-                  }`}
-                >
-                  {day}
-                </h3>
-                <div className="flex flex-col items-center space-y-2 mt-2">
-                  {dailyTasks.map((_, taskIndex) => (
-                    <input
-                      key={taskIndex}
-                      type="checkbox"
-                      checked={dailyDayStatus[taskIndex][dayIndex]}
-                      onChange={() => handleDailyDayClick(taskIndex, dayIndex)}
-                      disabled={
-                        !dailyTaskCompletion[taskIndex] ||
-                        dayIndex !== dailyToday
-                      }
-                      className={`h-6 w-6 ${
-                        dailyDayStatus[taskIndex][dayIndex]
-                          ? "bg-green-200"
-                          : "bg-gray-200"
+            {daysWithData.map(
+              ({ dayAbbrev, taskCount, hasCompleted, date }, index) => {
+                const isToday =
+                  date.toDateString() === new Date().toDateString();
+                return (
+                  <div key={index}>
+                    <h3
+                      className={`text-sm font-bold ${
+                        isToday ? "text-blue-600" : "text-gray-500"
                       }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+                    >
+                      {dayAbbrev}
+                    </h3>
+                    <div className="flex flex-col items-center space-y-2 mt-2">
+                      <span className="text-sm text-gray-700">
+                        {taskCount.length}
+                      </span>
+                      {(taskCount.length === 0 && (
+                        <input
+                          id="indx"
+                          type="checkbox"
+                          checked={false}
+                          readOnly
+                          className={`h-6 w-6 ${
+                            hasCompleted ? "bg-green-200" : "bg-gray-200"
+                          } rounded-sm border-gray-300`}
+                        />
+                      )) ||
+                        taskCount.map((task, indx) => (
+                          <input
+                            key={indx}
+                            id={indx}
+                            type="checkbox"
+                            checked={task.isCompleted || false}
+                            readOnly
+                            className={`h-6 w-6 ${
+                              hasCompleted ? "bg-green-200" : "bg-gray-200"
+                            } rounded-sm border-gray-300`}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
       </div>
 
       {/* Container for Weekly Goals and Calendar (2-column layout) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-100 p-6 rounded-lg shadow-lg">
-        {/* Weekly Goals */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-rose-100 p-6 rounded-lg shadow-lg">
+        <WeeksInMonth
+          year={today.getFullYear()}
+          month={today.getMonth()}
+          weekIndx={currentWeekNumber}
+          completedTask={completedTask}
+        />
+      </div>
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-100 p-6 rounded-lg shadow-lg">
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-gray-700">Weekly Goals</h2>
           <div className="space-y-2">
@@ -143,8 +173,7 @@ const DailyGoals = () => {
             ))}
           </div>
         </div>
-
-        {/* Weekly Calendar */}
+        //Weekly Calendar
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-gray-700">
             Weekly Calendar
@@ -172,9 +201,20 @@ const DailyGoals = () => {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
 
 export default DailyGoals;
+
+// const days = ["M", "T", "W", "T", "F", "S", "S"];
+// const dailyToday = new Date().getDay();
+
+// const isAnyTaskCompleted = (dayIndex) => {
+//   const todayTasks = dailyTask.filter((task) => {
+//     const taskDate = new Date(task.date);
+//     return taskDate.getDay() === dayIndex;
+//   });
+//   return todayTasks.some((task) => task.isCompleted);
+// };

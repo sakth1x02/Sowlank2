@@ -30,23 +30,21 @@ const WeeksInMonth = ({ year, month, weekIndx, completedTask }) => {
 
   return (
     <div className="py-4">
-      <h2 className="text-2xl font-semibold mb-4">
-        Weeks in{" "}
+      <h2 className="text-xl font-semibold mb-4">
+        Weekly Calendar in{" "}
         {new Date(year, month).toLocaleDateString("en-US", { month: "long" })}/
         {year}
       </h2>
-      <div className="space-x-4 flex ">
+      <div className="flex gap-1">
         {weeks.map((week, index) => (
-          <div
-            key={index}
-            className="border p-4 rounded-lg bg-gray-50 flex flex-col items-center justify-center space-y-3"
-          >
-            <label
-              htmlFor={`weeklytask-${index}`}
-              className="text-lg font-medium"
+          <div key={index} className="  p-4 text-center rounded-lg bg-gray-50">
+            <pre
+              className={`font-medium ${
+                index + 1 === weekIndx ? "text-blue-600" : ""
+              }`}
             >
-              Week {index + 1}
-            </label>
+              Week{index + 1}
+            </pre>
             <input
               id={`weeklytask-${index}`}
               name="weeklytask"

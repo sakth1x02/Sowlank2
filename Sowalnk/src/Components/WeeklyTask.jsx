@@ -34,7 +34,6 @@ function WeeklyTask() {
     day: "numeric",
     year: "numeric",
   });
-  // console.log(firstDayOfWeek, lastDayOfWeek);
 
   const formattedEndOfWeek = lastDayOfWeek.toLocaleDateString("en-US", {
     weekday: "short",
@@ -162,15 +161,8 @@ function WeeklyTask() {
     );
     return (
       <div className="p-5 rounded-lg">
-        <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
+        <h2 className="text-2xl font-semibold mb-4">Weekly Task Information</h2>
         <div className="space-y-5">
-          <WeeksInMonth
-            year={today.getFullYear()}
-            month={today.getMonth()}
-            weekIndx={currentWeekNumber}
-            completedTask={completedTask}
-          />
-
           <div className="p-2 mt-5">
             <p>Total Tasks: {totalTask}</p>
             <p>Completed Tasks: {completedTask}</p>

@@ -1,8 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
-import jwt from "jsonwebtoken"; // For generating JWT tokens
-import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const userAuthentication = {
   signupUser: asyncHandler(async (req, res) => {
@@ -75,8 +75,8 @@ const userAuthentication = {
     // Step 5: Generate a JWT token
     const token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET, // Store your secret key in environment variables
-      { expiresIn: "1h" } // Token expires in 1 hour
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
     );
 
     // Step 6: Remove the password from the response for security

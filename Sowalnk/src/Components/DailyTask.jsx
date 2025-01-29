@@ -156,7 +156,7 @@ function DailyTask() {
   const Dashboard = ({ tasks }) => {
     return (
       <div className="p-5 rounded-lg">
-        <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
+        <h2 className="text-2xl font-semibold mb-4">Daily Task Information</h2>
         <div>
           <p>Total Tasks: {tasks.length}</p>
           <p>
@@ -244,7 +244,10 @@ function DailyTask() {
             </div>
             <button
               onClick={handleAddTask}
-              className="w-full py-3 rounded-md bg-[#674188] text-white"
+              className={`w-full py-3 rounded-md bg-[#674188] text-white ${
+                dailyTask.length >= 10 ? "cursor-not-allowed" : ""
+              }`}
+              disabled={dailyTask.length >= 10 ? true : false}
             >
               Add Task
             </button>
