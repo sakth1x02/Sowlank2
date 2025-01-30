@@ -16,8 +16,10 @@ app.use(cookieParser());
 //import Routes
 import dailyTaskRouter from "./routers/daily.routes.js";
 import userAuth from "./routers/user.routes.js";
+import weeklyTaskRouter from "./routers/weekly.routes.js";
 //Route Declaration
 app.use("/api/v1/task", dailyTaskRouter);
 app.use("/api/v1/user", userAuth);
+app.use("/api/v1/weeklytask", weeklyTaskRouter);
 
 export { app };

@@ -24,6 +24,7 @@ function DailyTask() {
   yesterday.setDate(today.getDate() - 1);
 
   const { dailyTask } = useSelector((state) => state.task);
+  const { weeklyTask } = useSelector((state) => state.weekly);
 
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "short",
@@ -46,6 +47,9 @@ function DailyTask() {
 
     if (
       dailyTask.some(
+        (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
+      ) ||
+      weeklyTask.some(
         (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
       )
     ) {
@@ -110,8 +114,10 @@ function DailyTask() {
     return colors[Math.floor(progress / 20)] || "#FA4032";
   };
 
-  const toggleCompletionHandler = (taskId) => {
-    dispatch(toggleTaskCompletion(taskId));
+  const toggleCompletionHandler = (task) => {
+    if (task.proofOfWork !== "") {
+      dispatch(toggleTaskCompletion(task._id));
+    }
   };
 
   useEffect(() => {
@@ -178,7 +184,7 @@ function DailyTask() {
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
         <div
-          className="w-full lg:w-2/3 rounded-lg shadow-lg p-5 mb-4 lg:mb-0"
+          className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0"
           style={{ backgroundColor: "#F0C1E1" }}
         >
           <div className="flex items-center justify-between">
@@ -254,7 +260,7 @@ function DailyTask() {
           </div>
         </div>
 
-        <div
+        {/* <div
           className="w-full lg:w-1/3 rounded-lg shadow-lg p-5"
           style={{ backgroundColor: "#F0C1E1" }}
         >
@@ -278,7 +284,7 @@ function DailyTask() {
               <li>No completed tasks from yesterday</li>
             )}
           </ul>
-        </div>
+        </div> */}
       </div>
 
       <div
@@ -375,14 +381,17 @@ function DailyTask() {
                   <td className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
-                      checked={task?.isCompleted}
-                      onChange={() => toggleCompletionHandler(task._id)}
+                      checked={task.proofOfWork !== "" && task?.isCompleted}
+                      onChange={() => toggleCompletionHandler(task)}
                       disabled={
                         task?.isCompleted ||
                         !isTaskStarted(task) ||
                         new Date() >
                           new Date(`${formattedDate} ${task?.endTime}`)
                       }
+                      className={`${
+                        task?.proofOfWork ? "" : "cursor-not-allowed"
+                      }`}
                       style={{
                         transform: "scale(1.5)",
                       }}
@@ -403,6 +412,7 @@ function DailyTask() {
                             ? "cursor-not-allowed"
                             : ""
                         }`}
+                        required
                       />
                     )}
                     {task?.proofOfWork && (

@@ -14,27 +14,17 @@ const weeklyTaskSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"], // Example priorities
       required: [true, "Priority is required"],
     },
-    startTime: {
+    startDate: {
       type: String,
-      required: [true, "Start time is required"],
-      validate: {
-        validator: function (v) {
-          return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v); // Validates HH:mm format
-        },
-        message: "Start time must be in HH:mm format",
-      },
+      required: [true, "Start Date is required"],
+      default: "",
     },
-    endTime: {
+    endDate: {
       type: String,
-      required: [true, "End time is required"],
-      validate: {
-        validator: function (v) {
-          return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v); // Validates HH:mm format
-        },
-        message: "End time must be in HH:mm format",
-      },
+      required: [true, "End Date is required"],
+      default: "",
     },
-    date: {
+    dateOnCreated: {
       type: String,
       default: "",
     },
@@ -62,4 +52,4 @@ const weeklyTaskSchema = new mongoose.Schema(
   }
 );
 
-export const weeklyTask = mongoose.model("DailyTask", weeklyTaskSchema);
+export const weeklyTask = mongoose.model("weeklyTask", weeklyTaskSchema);

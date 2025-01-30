@@ -1,18 +1,37 @@
 import React, { useState, useMemo, useEffect } from "react";
-import WeeksInMonth from "./WeeksInMonth";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchWeeklyTasks,
+  addWeeklyTask,
+  toggleWeeklyTaskCompletion,
+  deleteWeeklyTask,
+} from "../store/weekly-slice";
+
+import {
+  calculateWeeklyTaskProgress,
+  setWeeklyTaskProofWork,
+} from "../store/weekly-slice";
+
 function WeeklyTask() {
-  const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const { dailyTask } = useSelector((state) => state.task);
+  const { weeklyTask } = useSelector((state) => state.weekly);
+  const dispatch = useDispatch();
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const firstDayOfWeek = new Date(today);
   firstDayOfWeek.setDate(today.getDate() - today.getDay());
   firstDayOfWeek.setHours(0, 0, 0, 0);
+  const formattedDate = today.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   // Calculate week number
   const getWeekNumber = (date) => {
@@ -42,23 +61,22 @@ function WeeklyTask() {
     year: "numeric",
   });
 
-  const calculateProgress = (task) => {
-    const start = new Date(task.startDate);
-    const end = new Date(task.endDate);
-    const now = new Date();
+  // const calculateProgress = (task) => {
+  //   const start = new Date(task.startDate);
+  //   const end = new Date(task.endDate);
+  //   const now = new Date();
 
-    if (now <= start) return 0;
-    if (now >= end) return 100;
+  //   if (now <= start) return 0;
+  //   if (now >= end) return 100;
 
-    return Math.round(((now - start) / (end - start)) * 100);
-  };
+  //   return Math.round(((now - start) / (end - start)) * 100);
+  // };
 
   const handleAddTask = () => {
     if (!taskName || !priority || !startDate || !endDate) {
       alert("Please fill out all fields.");
       return;
     }
-
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -71,19 +89,32 @@ function WeeklyTask() {
       alert("Start date cannot be later than the end date.");
       return;
     }
-
+    if (
+      weeklyTask.some(
+        (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
+      ) ||
+      dailyTask.some(
+        (task) =>
+          task.taskName.toLowerCase() === taskName.trim().toLocaleLowerCase()
+      )
+    ) {
+      alert("This task already exists!");
+      resetForm();
+      return;
+    }
     const newTask = {
-      id: Date.now(),
       taskName,
-      priority,
+      priority: priority.toLowerCase(),
       startDate: start.toISOString(),
       endDate: end.toISOString(),
+      dateOnCreated: today,
+      progress: 0,
       isCompleted: false,
-      progress: calculateProgress({ startDate, endDate }),
-      proofOfWork: null,
+      proofOfWork: "",
+      hasExceededTime: false,
     };
 
-    setTasks((prevTasks) => [...prevTasks, newTask]);
+    dispatch(addWeeklyTask(newTask));
     resetForm();
   };
 
@@ -94,43 +125,48 @@ function WeeklyTask() {
     setEndDate("");
   };
 
-  const toggleCompletion = (taskId) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              isCompleted: !task.isCompleted,
-              progress: !task.isCompleted ? 100 : calculateProgress(task),
-            }
-          : task
-      )
-    );
+  const toggleCompletion = (task) => {
+    if (task.proofOfWork !== "") {
+      dispatch(toggleWeeklyTaskCompletion(task._id));
+    }
   };
 
   const handleDelete = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+    dispatch(deleteWeeklyTask(taskId));
   };
 
-  const handleFileChange = (taskId, file) => {
-    if (file) {
-      const fileURL = URL.createObjectURL(file);
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId ? { ...task, proofOfWork: fileURL } : task
-        )
+  const handleFileChange = async (taskId, file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const response = await fetch(
+        `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
       );
+
+      if (response.ok) {
+        const data = await response.json();
+        dispatch(setWeeklyTaskProofWork({ taskId, fileURL: data.proofOfWork }));
+      } else {
+        console.error("Failed to upload file");
+      }
+    } catch (err) {
+      console.error("Error uploading file:", err);
     }
   };
 
   const weeklyTasks = useMemo(
     () =>
-      tasks.filter((task) => {
+      weeklyTask.filter((task) => {
         const taskStartDate = new Date(task.startDate);
         const taskEndDate = new Date(task.endDate);
         return taskStartDate <= lastDayOfWeek && taskEndDate >= firstDayOfWeek;
       }),
-    [tasks, firstDayOfWeek, lastDayOfWeek]
+    [weeklyTask, firstDayOfWeek, lastDayOfWeek]
   );
 
   const getProgressBarColor = (progress) => {
@@ -138,19 +174,26 @@ function WeeklyTask() {
     if (progress <= 50) return "#4CAF50";
     if (progress <= 75) return "#FFA33C";
     if (progress < 100) return "#FC7033";
-    return "#FA4032";
+    return "#6DA951";
   };
+
+  const checkIfTaskExceededTime = (task) => {
+    const taskEndTime = new Date(`${formattedDate} ${task?.endDate}`);
+    const currentTime = new Date();
+
+    return taskEndTime < currentTime && !task?.isCompleted;
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => ({
-          ...task,
-          progress: calculateProgress(task),
-        }))
-      );
+      dispatch(calculateWeeklyTaskProgress());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+  useEffect(() => {
+    dispatch(fetchWeeklyTasks());
+  }, [dispatch]);
+
   const Dashboard = () => {
     const totalTask = Math.floor(dailyTask.length / 7);
     const completedTask = Math.floor(
@@ -235,13 +278,16 @@ function WeeklyTask() {
           </h2>
           <ul className="space-y-4">
             {weeklyTasks.map((task) => (
-              <li key={task.id} className="p-3 rounded-lg bg-white">
-                <span>{task.taskName}</span>
+              <li key={task._id} className="p-3 rounded-lg bg-white">
+                <span className="mr-4">{task.taskName}</span>
                 <button
-                  onClick={() => toggleCompletion(task.id)}
+                  onClick={() => toggleCompletion(task)}
                   className={`${
-                    task.isCompleted ? "bg-green-500" : "bg-gray-400"
+                    task.isCompleted
+                      ? "bg-green-500 cursor-not-allowed"
+                      : "bg-gray-400"
                   } text-white py-1 px-4 rounded`}
+                  disabled={task.isCompleted}
                 >
                   {task.isCompleted ? "Completed" : "Incomplete"}
                 </button>
@@ -268,14 +314,14 @@ function WeeklyTask() {
             </thead>
             <tbody>
               {weeklyTasks.map((task) => (
-                <tr key={task.id} className="border-t">
+                <tr key={task._id} className="border-t">
                   <td className="px-4 py-2 text-center">{task.taskName}</td>
                   <td className="px-4 py-2 text-center">{task.priority}</td>
                   <td className="px-4 py-2 text-center">
-                    {new Date(task.startDate).toLocaleDateString("en-US")}
+                    {new Date(task.startDate).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2 text-center">
-                    {new Date(task.endDate).toLocaleDateString("en-US")}
+                    {new Date(task.endDate).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2">
                     <div className="relative w-full h-6 rounded-full bg-gray-300">
@@ -294,22 +340,34 @@ function WeeklyTask() {
                   <td className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
-                      checked={task.isCompleted}
-                      onChange={() => toggleCompletion(task.id)}
-                      className="h-4 w-4"
+                      checked={task.proofOfWork !== "" && task?.isCompleted}
+                      onChange={() => toggleCompletion(task)}
+                      className={`h-4 w-4 ${
+                        task.isCompleted || task.proofOfWork === ""
+                          ? "cursor-not-allowed"
+                          : ""
+                      }`}
+                      disabled={task.isCompleted}
                     />
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleFileChange(task.id, e.target.files[0])
-                      }
-                      className="text-sm"
-                    />
-                    {task.proofOfWork && (
+                    {!task.proofOfWork && (
+                      <input
+                        type="file"
+                        onChange={(e) =>
+                          handleFileChange(task?._id, e.target.files[0])
+                        }
+                        disabled={checkIfTaskExceededTime(task)}
+                        className={`text-sm ${
+                          checkIfTaskExceededTime(task)
+                            ? "cursor-not-allowed"
+                            : ""
+                        }`}
+                      />
+                    )}
+                    {task?.proofOfWork && (
                       <a
-                        href={task.proofOfWork}
+                        href={task.proofOfWork || ""}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 underline"
@@ -320,7 +378,7 @@ function WeeklyTask() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => handleDelete(task._id)}
                       className="bg-[#FC7033] text-white py-1 px-3 rounded-md"
                     >
                       Delete
