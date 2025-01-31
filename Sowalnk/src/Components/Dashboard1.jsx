@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchTasks } from "../store/task-slice";
 import WeeksInMonth from "./WeeksInMonth.jsx";
 import BarCharts from "./BarCharts.jsx";
+import Ranking from "./Ranking";
 const DailyGoals = () => {
   const { dailyTask } = useSelector((state) => state.task);
   const { weeklyTask } = useSelector((store) => store.weekly);
@@ -198,8 +199,16 @@ const DailyGoals = () => {
         </div>
 
         {/* barcharts */}
-        <BarCharts />
+        <div className="flex">
+          <div className="text-center text-3xl font-bold italic mt-32">
+            Over All Activity
+          </div>
+          <BarCharts />
+        </div>
       </div>
+
+      {/* Ranking Page */}
+      <Ranking />
 
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-100 p-6 rounded-lg shadow-lg">
         <div className="flex-1 bg-white p-4 rounded-md shadow-sm">

@@ -1,63 +1,44 @@
 import * as React from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { axisClasses } from "@mui/x-charts/ChartsAxis";
-
+import { useSelector } from "react-redux";
 const BarCharts = () => {
-  const dataset = [
-    {
-      london: 59,
-      month: "Jan",
-    },
-    {
-      london: 50,
-      month: "Feb",
-    },
-    {
-      london: 47,
-      month: "Mar",
-    },
-    {
-      london: 54,
-      month: "Apr",
-    },
-    {
-      london: 57,
-      month: "May",
-    },
-    {
-      london: 60,
-      month: "June",
-    },
-    {
-      london: 59,
-      month: "July",
-    },
-    {
-      london: 65,
-      month: "Aug",
-    },
-    {
-      london: 51,
-      month: "Sept",
-    },
-    {
-      london: 60,
-      month: "Oct",
-    },
-    {
-      london: 67,
-      month: "Nov",
-    },
-    {
-      london: 61,
-      month: "Dec",
-    },
-  ];
+  const { dailyTask } = useSelector((state) => state.task);
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+  const dataset = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const dailyTasks = dailyTask.filter((task) => {
+      const taskDate = new Date(task.date);
+      return (
+        taskDate.getUTCFullYear() === currentYear &&
+        taskDate.getUTCMonth() + 1 === currentMonth &&
+        taskDate.getUTCDate() === day
+      );
+    });
+
+    // Calculate average progress for the day
+    const totalProgress = dailyTasks.reduce(
+      (acc, task) => acc + task.progress,
+      0
+    );
+    const averageProgress =
+      dailyTasks.length > 0 ? totalProgress / dailyTasks.length : 0;
+
+    return {
+      date: day.toString(),
+      progress: averageProgress,
+    };
+  });
+
   const chartSetting = {
     yAxis: [
-      //   {
-      //     label: "rainfall (mm)",
-      //   },
+      {
+        label: "Progress (%)",
+      },
     ],
     width: 500,
     height: 300,
@@ -67,17 +48,23 @@ const BarCharts = () => {
       },
     },
   };
-  function valueFormatter(value) {
-    return `${value}mm`;
-  }
+
+  const valueFormatter = (value) => `${Math.round(value)}%`;
 
   return (
     <BarChart
       dataset={dataset}
-      xAxis={[{ scaleType: "band", dataKey: "month" }]}
-      series={[{ dataKey: "london", valueFormatter }]}
+      xAxis={[
+        {
+          scaleType: "band",
+          dataKey: "date",
+          label: currentDate.toLocaleString("default", { month: "long" }),
+        },
+      ]}
+      series={[{ dataKey: "progress", valueFormatter }]}
       {...chartSetting}
     />
   );
 };
+
 export default BarCharts;
