@@ -224,7 +224,7 @@ function WeeklyTask() {
           </h1>
           <div className="flex justify-between items-center pb-2">
             <h2 className="text-xl font-semibold text-[#2e2e2e]">
-              Week {currentWeekNumber} : {formattedStartOfWeek} -{" "}
+              Week {currentWeekNumber / 6} : {formattedStartOfWeek} -{" "}
               {formattedEndOfWeek}
             </h2>
           </div>
