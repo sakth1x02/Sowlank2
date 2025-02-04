@@ -61,17 +61,6 @@ function WeeklyTask() {
     year: "numeric",
   });
 
-  // const calculateProgress = (task) => {
-  //   const start = new Date(task.startDate);
-  //   const end = new Date(task.endDate);
-  //   const now = new Date();
-
-  //   if (now <= start) return 0;
-  //   if (now >= end) return 100;
-
-  //   return Math.round(((now - start) / (end - start)) * 100);
-  // };
-
   const handleAddTask = () => {
     if (!taskName || !priority || !startDate || !endDate) {
       alert("Please fill out all fields.");
@@ -190,6 +179,7 @@ function WeeklyTask() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
   useEffect(() => {
     dispatch(fetchWeeklyTasks());
   }, [dispatch]);

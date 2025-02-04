@@ -90,6 +90,17 @@ const userAuthentication = {
       token: token,
     });
   }),
+  //get all users
+  getAllUsers: asyncHandler(async (req, res) => {
+    try {
+      const users = await User.find();
+      res.status(200).json({ data: users });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error From Fetch All Users", error: error.message });
+    }
+  }),
 };
 
 export { userAuthentication };

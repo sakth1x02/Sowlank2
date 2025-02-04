@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchMonthlyTasks,
+  addMonthlyTask,
+  deleteMonthlyTask,
+  toggleMonthlyTaskCompletion,
+} from "../store/monthly-slice";
+
+import {
+  calculateMonthlyTaskProgress,
+  setMonthlyTaskProofWork,
+} from "../store/monthly-slice";
 
 function MonthlyTask() {
-  const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -9,11 +20,15 @@ function MonthlyTask() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const { monthlyTask } = useSelector((store) => store.monthly);
+
+  const dispatch = useDispatch();
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const formatDateForInput = (date) => date.toISOString().split("T")[0];
-  const formatDate = (date) =>
+  const formattedDate = (date) =>
     new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -56,42 +71,31 @@ function MonthlyTask() {
     }
   };
 
-  const calculateProgress = (start, end) => {
-    const currentDate = new Date();
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    endDate.setHours(23, 59, 59, 999);
-
-    if (currentDate < startDate) return 0;
-    if (currentDate >= endDate) return 100;
-
-    const totalDuration = endDate - startDate;
-    const timePassed = currentDate - startDate;
-    return Math.round((timePassed / totalDuration) * 100);
-  };
-
   const handleAddTask = () => {
     if (!taskName.trim() || !startDate || !endDate || !priority) {
       setErrorMessage("Please fill in all required fields.");
       return;
     }
 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
     if (!validateDates(startDate, endDate)) {
       return;
     }
 
     const newTask = {
-      id: Date.now(),
       taskName,
-      priority,
-      startDate,
-      endDate,
+      priority: priority.toLowerCase(),
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      dateOnCreated: today,
       progress: 0,
       isCompleted,
       proofOfWork: "",
     };
 
-    setTasks([...tasks, newTask]);
+    dispatch(addMonthlyTask(newTask));
     resetForm();
   };
 
@@ -105,47 +109,66 @@ function MonthlyTask() {
   };
 
   const handleDelete = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+    dispatch(deleteMonthlyTask(taskId));
   };
 
-  const toggleCompletion = (taskId) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task
-      )
-    );
+  const toggleCompletion = (task) => {
+    if (task.proofOfWork !== "") {
+      dispatch(toggleMonthlyTaskCompletion(task._id));
+    }
   };
 
-  const handleFileChange = (taskId, file) => {
-    if (file) {
-      const fileURL = URL.createObjectURL(file);
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === taskId ? { ...task, proofOfWork: fileURL } : task
-        )
+  const handleFileChange = async (taskId, file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const response = await fetch(
+        `http://localhost:1000/api/v1/monthlytask/monthly/${taskId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
       );
+
+      if (response.ok) {
+        const data = await response.json();
+        dispatch(
+          setMonthlyTaskProofWork({ taskId, fileURL: data.proofOfWork })
+        );
+      } else {
+        console.error("Failed to upload file");
+      }
+    } catch (err) {
+      console.error("Error uploading file:", err);
     }
   };
 
   const getProgressColor = (progress) => {
-    if (progress < 30) return "#6DA951";
-    if (progress < 60) return "#4CAF50";
-    if (progress < 80) return "#FFA33C";
+    if (progress <= 25) return "#6DA951";
+    if (progress <= 50) return "#4CAF50";
+    if (progress <= 75) return "#FFA33C";
     if (progress < 100) return "#FC7033";
-    return "#FA4032";
+    return "#6DA951";
+  };
+
+  const checkIfTaskExceededTime = (task) => {
+    const taskEndTime = new Date(`${formattedDate} ${task?.endDate}`);
+    const currentTime = new Date();
+
+    return taskEndTime < currentTime && !task?.isCompleted;
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => ({
-          ...task,
-          progress: calculateProgress(task.startDate, task.endDate),
-        }))
-      );
+      dispatch(calculateMonthlyTaskProgress());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    dispatch(fetchMonthlyTasks());
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen p-6">
@@ -231,60 +254,85 @@ function MonthlyTask() {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => {
-                const progress = calculateProgress(task.startDate, task.endDate);
+              {monthlyTask.map((task) => {
+                // const progress = calculateProgress(
+                //   task.startDate,
+                //   task.endDate
+                // );
                 return (
                   <tr
-                    key={task.id}
+                    key={task._id}
                     className={task.isCompleted ? "bg-[#E6F9E6]" : "bg-white"}
                   >
-                    <td className="px-4 py-2 text-center text-black">{task.taskName}</td>
-                    <td className="px-4 py-2 text-center text-black">{task.priority}</td>
-                    <td className="px-4 py-2 text-center text-black">{formatDate(task.startDate)}</td>
-                    <td className="px-4 py-2 text-center text-black">{formatDate(task.endDate)}</td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.taskName}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {task.priority}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {new Date(task.startDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 text-center text-black">
+                      {new Date(task.endDate).toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-2">
                       <div className="relative h-5 bg-gray-200 rounded-full">
                         <div
                           className="absolute top-0 left-0 h-full rounded-full transition-all duration-300"
                           style={{
-                            width: `${progress}%`,
-                            backgroundColor: getProgressColor(progress)
+                            width: `${task.progress}%`,
+                            backgroundColor: getProgressColor(task.progress),
                           }}
                         >
                           <span className="absolute inset-0 flex items-center justify-center text-xs text-white">
-                            {progress}%
+                            {task.progress}%
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={task.isCompleted}
-                        onChange={() => toggleCompletion(task.id)}
-                        className="h-4 w-4"
+                        checked={task.proofOfWork !== "" && task?.isCompleted}
+                        onChange={() => toggleCompletion(task)}
+                        className={`h-4 w-4 ${
+                          task.isCompleted || task.proofOfWork === ""
+                            ? "cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={task.isCompleted}
                       />
                     </td>
                     <td className="px-4 py-2 text-center">
-                    <input
-                      type="file"
-                      onChange={(e) => handleFileChange(task.id, e.target.files[0])}
-                      className="text-sm"
-                    />
-                    {task.proofOfWork && (
-                      <a
-                        href={task.proofOfWork}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        View Proof
-                      </a>
-                    )}
-                  </td>
+                      {!task.proofOfWork && (
+                        <input
+                          type="file"
+                          onChange={(e) =>
+                            handleFileChange(task?._id, e.target.files[0])
+                          }
+                          disabled={checkIfTaskExceededTime(task)}
+                          className={`text-sm ${
+                            checkIfTaskExceededTime(task)
+                              ? "cursor-not-allowed"
+                              : ""
+                          }`}
+                        />
+                      )}
+                      {task?.proofOfWork && (
+                        <a
+                          href={task.proofOfWork || ""}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline"
+                        >
+                          View Proof
+                        </a>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-center">
                       <button
-                        onClick={() => handleDelete(task.id)}
+                        onClick={() => handleDelete(task._id)}
                         className="bg-[#FC7033] hover:bg-[#F37220] text-white px-4 py-2 rounded transition-colors"
                       >
                         Delete

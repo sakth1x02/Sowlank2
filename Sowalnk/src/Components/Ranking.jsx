@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { CircleUser } from "lucide-react";
 const Ranking = () => {
+  const [users, setUsers] = useState([]);
+
   const RankingData = [
     {
       position: 1,
@@ -102,6 +104,16 @@ const Ranking = () => {
     totalPoints: 22,
   };
 
+  const fetchUsers = async () => {
+    const response = await fetch("http://localhost:1000/api/v1/user/users");
+    const res = await response.json();
+    setUsers(res.data);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   return (
     <div className="bg-gray-100 p-6 min-h-screen flex flex-col items-center">
       <div className="flex justify-between items-center w-full max-w-4xl">
@@ -122,23 +134,23 @@ const Ranking = () => {
             </tr>
           </thead>
           <tbody>
-            {RankingData.map((person, index) => (
+            {users.map((person, index) => (
               <tr
                 key={index}
                 className={`${
                   index % 2 === 0 ? "bg-gray-100" : "bg-gray-200"
                 } hover:bg-blue-100`}
               >
-                <td className="p-3 pl-7 font-bold">{person.position}</td>
+                <td className="p-3 pl-7 font-bold">{person?.position}</td>
                 <td className="p-3">
                   <div className="flex gap-3 items-center">
                     <CircleUser className="w-6 h-6 inline-block" />
                     {person.name}
                   </div>
                 </td>
-                <td className="p-3">{person.positivePoints}</td>
-                <td className="p-3">{person.negativePoints}</td>
-                <td className="p-3 font-bold">{person.totalPoints}</td>
+                <td className="p-3">{person?.positivePoints}</td>
+                <td className="p-3">{person?.negativePoints}</td>
+                <td className="p-3 font-bold">{person?.totalPoints}</td>
               </tr>
             ))}
           </tbody>

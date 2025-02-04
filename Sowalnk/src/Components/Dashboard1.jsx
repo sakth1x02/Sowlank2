@@ -5,9 +5,11 @@ import BarCharts from "./BarCharts.jsx";
 import Ranking from "./Ranking";
 import DailyTaskDashboard from "./daily/DailyTaskDashboard.jsx";
 import WeeklyTaskDashboard from "./weekly/WeeklyTaskDashboard.jsx";
+import MonthlyTaskDashboard from "./monthly/MonthlyTaskDashboard.jsx";
 const DailyGoals = () => {
   const [openDailyTask, setOpenDailyTask] = useState(false);
   const [openWeeklyTask, setOpenWeeklyTask] = useState(false);
+  const [openMonthlyTask, setOpenMonthlyTask] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -48,6 +50,22 @@ const DailyGoals = () => {
             <WeeklyTaskDashboard
               openWeeklyTask
               setOpenWeeklyTask={setOpenWeeklyTask}
+            />
+          )}
+
+          {/* Container for Monthly Goals */}
+          <div
+            className="text-center bg-rose-100 p-6 rounded-lg shadow-lg hover:scale-105"
+            onClick={() => setOpenMonthlyTask(!openMonthlyTask)}
+          >
+            <h1 className="text-2xl font-semibold text-center">
+              Monthly Dashboard
+            </h1>
+          </div>
+          {openMonthlyTask && (
+            <MonthlyTaskDashboard
+              openMonthlyTask
+              setOpenMonthlyTask={setOpenMonthlyTask}
             />
           )}
         </div>
