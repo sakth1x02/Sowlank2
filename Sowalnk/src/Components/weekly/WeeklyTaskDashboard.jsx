@@ -20,7 +20,10 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
   const uniqueWeekdays = new Set(
     completedTasks.map((task) => new Date(task.date).getDay())
   );
-  const completedTask = uniqueWeekdays.size >= 7;
+
+  const completedTask =
+    uniqueWeekdays.size >= 7 ||
+    weeklyTask.filter((task) => task.isCompleted).length > 0;
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
@@ -58,7 +61,7 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
         <WeeksInMonth
           year={today.getFullYear()}
           month={today.getMonth()}
-          weekIndx={currentWeekNumber}
+          weekIndx={Math.floor(currentWeekNumber / 5)}
           completedTask={completedTask}
         />
       </div>

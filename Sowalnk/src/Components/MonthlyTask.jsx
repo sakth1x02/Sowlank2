@@ -7,10 +7,7 @@ import {
   toggleMonthlyTaskCompletion,
 } from "../store/monthly-slice";
 
-import {
-  calculateMonthlyTaskProgress,
-  setMonthlyTaskProofWork,
-} from "../store/monthly-slice";
+import { calculateMonthlyTaskProgress } from "../store/monthly-slice";
 
 function MonthlyTask() {
   const [taskName, setTaskName] = useState("");
@@ -113,35 +110,7 @@ function MonthlyTask() {
   };
 
   const toggleCompletion = (task) => {
-    if (task.proofOfWork !== "") {
-      dispatch(toggleMonthlyTaskCompletion(task._id));
-    }
-  };
-
-  const handleFileChange = async (taskId, file) => {
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const response = await fetch(
-        `http://localhost:1000/api/v1/monthlytask/monthly/${taskId}/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(
-          setMonthlyTaskProofWork({ taskId, fileURL: data.proofOfWork })
-        );
-      } else {
-        console.error("Failed to upload file");
-      }
-    } catch (err) {
-      console.error("Error uploading file:", err);
-    }
+    dispatch(toggleMonthlyTaskCompletion(task._id));
   };
 
   const getProgressColor = (progress) => {
@@ -249,7 +218,6 @@ function MonthlyTask() {
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Progress</th>
                 <th className="px-4 py-3">Completed</th>
-                <th className="px-4 py-3">Proof of Work</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
@@ -294,41 +262,13 @@ function MonthlyTask() {
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={task.proofOfWork !== "" && task?.isCompleted}
+                        checked={task?.isCompleted}
                         onChange={() => toggleCompletion(task)}
                         className={`h-4 w-4 ${
-                          task.isCompleted || task.proofOfWork === ""
-                            ? "cursor-not-allowed"
-                            : ""
+                          task.isCompleted ? "cursor-not-allowed" : ""
                         }`}
                         disabled={task.isCompleted}
                       />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      {!task.proofOfWork && (
-                        <input
-                          type="file"
-                          onChange={(e) =>
-                            handleFileChange(task?._id, e.target.files[0])
-                          }
-                          disabled={checkIfTaskExceededTime(task)}
-                          className={`text-sm ${
-                            checkIfTaskExceededTime(task)
-                              ? "cursor-not-allowed"
-                              : ""
-                          }`}
-                        />
-                      )}
-                      {task?.proofOfWork && (
-                        <a
-                          href={task.proofOfWork || ""}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-500 underline"
-                        >
-                          View Proof
-                        </a>
-                      )}
                     </td>
                     <td className="px-4 py-2 text-center">
                       <button
