@@ -52,20 +52,21 @@ function MonthlyTask() {
     return true;
   };
 
+  const getLastDayOfMonth = (date) => {
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    return lastDay;
+  };
+
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
     setStartDate(newStartDate);
-    if (endDate) {
-      validateDates(newStartDate, endDate);
-    }
-  };
 
-  const handleEndDateChange = (e) => {
-    const newEndDate = e.target.value;
-    setEndDate(newEndDate);
-    if (startDate) {
-      validateDates(startDate, newEndDate);
-    }
+    // Automatically set end date to last day of the month
+    const startDateObj = new Date(newStartDate);
+    const lastDay = getLastDayOfMonth(startDateObj);
+    setEndDate(formatDateForInput(lastDay));
+
+    validateDates(newStartDate, formatDateForInput(lastDay));
   };
 
   const handleAddTask = () => {
@@ -178,16 +179,6 @@ function MonthlyTask() {
                   className="w-full p-3 border border-gray-300 rounded-md"
                 />
               </div>
-              <div className="w-full lg:w-1/3">
-                <label className="block text-black">End Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={handleEndDateChange}
-                  min={startDate || formatDateForInput(today)}
-                  className="w-full p-3 border border-gray-300 rounded-md"
-                />
-              </div>
             </div>
             {errorMessage && (
               <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
@@ -223,10 +214,6 @@ function MonthlyTask() {
             </thead>
             <tbody>
               {monthlyTask.map((task) => {
-                // const progress = calculateProgress(
-                //   task.startDate,
-                //   task.endDate
-                // );
                 return (
                   <tr
                     key={task._id}

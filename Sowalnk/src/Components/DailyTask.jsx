@@ -180,6 +180,10 @@ function DailyTask() {
       ? dailyTask
       : dailyTask.filter((task) => task.date.split("T")[0] === selectedDate);
 
+  const todaysTasks = dailyTask.filter(
+    (task) => task.date.split("T")[0] === today.toISOString().split("T")[0]
+  );
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
@@ -251,40 +255,14 @@ function DailyTask() {
             <button
               onClick={handleAddTask}
               className={`w-full py-3 rounded-md bg-[#674188] text-white ${
-                dailyTask.length >= 10 ? "cursor-not-allowed" : ""
+                todaysTasks.length >= 10 ? "cursor-not-allowed" : ""
               }`}
-              disabled={dailyTask.length >= 10 ? true : false}
+              disabled={todaysTasks.length >= 10}
             >
               Add Task
             </button>
           </div>
         </div>
-
-        {/* <div
-          className="w-full lg:w-1/3 rounded-lg shadow-lg p-5"
-          style={{ backgroundColor: "#F0C1E1" }}
-        >
-          <h2
-            className="text-2xl font-semibold text-left mb-6"
-            style={{ color: "#2e2e2e" }}
-          >
-            Yesterday's Tasks
-          </h2>
-          <ul className="space-y-4">
-            {yesterdaysTasks.length > 0 ? (
-              yesterdaysTasks.map((task) => (
-                <li key={task.id} className="p-3 rounded-md bg-green-100">
-                  <strong>{task.taskName}</strong>
-                  <div className="text-xs">
-                    Completed at: {formattedYesterday}
-                  </div>
-                </li>
-              ))
-            ) : (
-              <li>No completed tasks from yesterday</li>
-            )}
-          </ul>
-        </div> */}
       </div>
 
       <div

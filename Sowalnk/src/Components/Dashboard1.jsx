@@ -18,6 +18,13 @@ const DailyGoals = () => {
   return (
     <div className="space-y-5">
       <div className="space-y-5">
+        <div className="text-xl font-semibold text-end">
+          {new Date().toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </div>
         {/* Container for Daily Goals and Calendar (2-column layout) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div

@@ -14,6 +14,7 @@ import WeeklyTask from "./Components/WeeklyTask";
 import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";
 import Ranking from "./Components/Ranking.jsx";
+import CompletedTask from "./Components/CompletedTask";
 const App = () => {
   return (
     <>
@@ -35,6 +36,7 @@ const App = () => {
                 <Route path="monthly" element={<MonthlyTask />} />
                 <Route path="taskchart" element={<TaskChart />} />
                 <Route path="rankings" element={<Ranking />} />
+                <Route path="completed-task" element={<CompletedTask />} />
               </Route>
             </Routes>
           </div>

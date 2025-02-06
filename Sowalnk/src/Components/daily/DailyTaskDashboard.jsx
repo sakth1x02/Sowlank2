@@ -54,73 +54,78 @@ const DailyTaskDashboard = ({ openDailyTask, setOpenDailyTask }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
       onClick={() => setOpenDailyTask(!openDailyTask)}
     >
-      <div className="bg-rose-300 w-[90%] max-w-2xl p-6 rounded-lg shadow-lg flex gap-4">
+      <div className="bg-rose-300 w-[90%] h-[70%] overflow-scroll max-w-2xl p-6 rounded-lg shadow-lg flex gap-4">
         {/* Daily Goals Section */}
-        <div className="w-[40%] bg-white p-4 rounded-md shadow-sm">
+        <div className="w-[70%] h-full overflow-scroll bg-white p-4 rounded-md shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-gray-700">Daily Goals</h2>
           <div className="space-y-[2px]">
-            {dailyTask.map((task) => (
-              <div
-                key={task._id}
-                className="flex ml-[3px] mt-[75px] items-center gap-2 rounded"
-              >
-                <span
-                  className={`text-base ${
-                    task.isCompleted
-                      ? "line-through text-gray-400"
-                      : "text-gray-700"
-                  }`}
+            {dailyTask
+              .filter(
+                (task) =>
+                  new Date(task.date).toDateString() ===
+                  new Date().toDateString()
+              )
+              .map((task) => (
+                <div
+                  key={task._id}
+                  className="flex ml-[3px] mt-[46px] items-center justify-between gap-2 rounded"
                 >
-                  {task.taskName}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={task.isCompleted || false}
-                  readOnly
-                  className="w-5 h-5 text-green-500 border-gray-300 rounded focus:ring-green-500"
-                />
-              </div>
-            ))}
+                  <span
+                    className={`text-base ${
+                      task.isCompleted
+                        ? "line-through text-gray-400"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {task.taskName}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={task.isCompleted || false}
+                    readOnly
+                    className="w-5 h-5 text-green-500 border-gray-300 rounded focus:ring-green-500"
+                  />
+                </div>
+              ))}
           </div>
         </div>
 
         {/* Calendar Section */}
-        <div className="overflow-auto flex-1 bg-white p-4 rounded-md shadow-sm">
-          <div className="flex justify-between items-center mb-4">
+        <div className="overflow-auto bg-white p-4 rounded-md shadow-sm flex flex-col h-full">
+          <div className="flex justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-700">Daily Calendar</h2>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-2 flex-grow">
             {daysWithData.map(({ date, dayAbbrev, dayNumber, tasks }) => {
               const isToday = date.toDateString() === new Date().toDateString();
-              // const isPastDate = date < new Date() && !isToday;
+              const isPastDate = date < new Date() && !isToday;
 
               return (
                 <div
                   key={date.toISOString()}
-                  className={`p-2 rounded-lg text-center`}
+                  className={`p-2 rounded-lg text-center ${
+                    isPastDate
+                      ? "bg-gray-100 opacity-50"
+                      : isToday
+                      ? "bg-blue-100"
+                      : "bg-gray-200 opacity-60"
+                  }`}
                 >
                   <div className="text-center mb-1">
                     <div
                       className={`text-sm font-semibold ${
-                        isToday ? "text-blue-600" : "text-gray-500"
+                        isToday ? "text-blue-700" : "text-gray-500"
                       }`}
                     >
                       {dayAbbrev}
                     </div>
-                    <div
-                      className={`text-lg ${
-                        isToday ? "text-blue-600 font-bold" : "text-gray-700"
-                      }`}
-                    >
-                      {dayNumber}
-                    </div>
                   </div>
 
                   <div className="">
-                    {tasks.slice(0, 10).map((task, index) => (
+                    {tasks.map((task, index) => (
                       <div key={task._id} className="">
-                        {task.isCompleted && (
+                        {task.isCompleted ? (
                           <input
                             key={index}
                             type="checkbox"
@@ -128,15 +133,29 @@ const DailyTaskDashboard = ({ openDailyTask, setOpenDailyTask }) => {
                             readOnly
                             className={`h-5 w-5 rounded-sm border-gray-300 cursor-default`}
                           />
+                        ) : (
+                          <input
+                            key={index}
+                            type="checkbox"
+                            checked={false}
+                            readOnly
+                            className={`h-5 w-5 rounded-sm border-gray-300 cursor-default`}
+                          />
                         )}
                       </div>
                     ))}
                     {Array.from({
-                      length:
-                        10 - tasks.filter((task) => task.isCompleted).length,
+                      length: Math.max(
+                        0,
+                        dailyTask.filter(
+                          (task) =>
+                            new Date(task.date).toDateString() ===
+                            new Date().toDateString()
+                        ).length - tasks.length
+                      ),
                     }).map((_, index) => (
                       <input
-                        key={index}
+                        key={`empty-${index}`}
                         type="checkbox"
                         checked={false}
                         readOnly
@@ -150,7 +169,7 @@ const DailyTaskDashboard = ({ openDailyTask, setOpenDailyTask }) => {
           </div>
 
           {/* pagination */}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between mt-auto pt-3">
             <button
               onClick={handlePreviousWeek}
               className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-gray-700"

@@ -1,32 +1,13 @@
 import React from "react";
 import { useSelector } from "react-redux";
-const Progress = React.forwardRef(({ className, value, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={`relative h-4 w-full overflow-hidden rounded-full bg-gray-200 ${className}`}
-    {...props}
-  >
-    <div
-      className="h-full w-full flex-1 bg-yellow-400 transition-all"
-      style={{
-        transform: `translateX(-${100 - (value || 0)}%)`,
-        rotate: className.includes("h-24") ? "270deg" : "0deg",
-      }}
-    />
-  </div>
-));
+import CircularProgressDemo from "./Progress";
+
 const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
   const { monthlyTask } = useSelector((store) => store.monthly);
 
   const { dailyTask } = useSelector((state) => state.task);
 
   const currentMonthIndex = new Date().getMonth();
-
-  // Logic for filter isComplete and unique day or date
-  const completedTasks = dailyTask.filter((task) => task.isCompleted);
-  const uniqueWeekdays = new Set(
-    completedTasks.map((task) => new Date(task.date).getDay())
-  );
 
   function getDaysInCurrentMonth() {
     const date = new Date();
@@ -36,12 +17,34 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
     const lastDayOfMonth = new Date(nextMonth - 1);
     return lastDayOfMonth.getDate();
   }
+  // Logic for filter isComplete and unique day or date and taking the current month
+  const completedMonths = dailyTask.reduce((months, task) => {
+    if (task.isCompleted) {
+      const taskMonth = new Date(task.dateOnCreated).getMonth();
+      const uniqueDatesInMonth = new Set(
+        dailyTask
+          .filter(
+            (t) => t.isCompleted && new Date(t.date).getMonth() === taskMonth
+          )
+          .map((t) => new Date(t.date).getDate())
+      );
 
-  const completedMonths =
-    uniqueWeekdays.size >= getDaysInCurrentMonth ||
-    monthlyTask.filter((task) => task.isCompleted).length;
+      if (uniqueDatesInMonth.size >= getDaysInCurrentMonth()) {
+        months.add(taskMonth);
+      }
+    }
+    return months;
+  }, new Set());
 
-  const progress = (completedMonths / 12) * 100;
+  // Add months from completed monthly tasks
+  monthlyTask.forEach((task) => {
+    if (task.isCompleted) {
+      const taskMonth = new Date(task.dateOnCreated).getMonth();
+      completedMonths.add(taskMonth);
+    }
+  });
+
+  const progress = completedMonths.size;
   const months = [
     "Jan",
     "Feb",
@@ -103,23 +106,12 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
             </h2>
 
             {/* Progress Circle */}
-            <div className="relative w-24 h-24 flex items-center justify-center">
-              {/* Background circle */}
-              <div className="absolute inset-0 rounded-full border-8 border-gray-200 opacity-20" />
-
-              {/* Progress circle */}
-              <Progress value={progress} className="h-24 w-24" />
-
-              {/* Center text */}
-              <span className="absolute text-xl font-medium">
-                {completedMonths}/12
-              </span>
-            </div>
+            <CircularProgressDemo progressValue={progress} />
 
             {/* Months Grid */}
             <div className="grid grid-cols-6 gap-2 w-full">
               {months.map((month, index) => {
-                const isCompleted = index < completedMonths;
+                const isCompleted = completedMonths.has(index);
                 const isCurrentMonth = index === currentMonthIndex;
 
                 return (
@@ -129,9 +121,9 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
                     flex items-center justify-center p-2 rounded-full text-sm
                     ${
                       isCurrentMonth
-                        ? "bg-blue-200 text-blue-800"
-                        : isCompleted
-                        ? "bg-green-200 text-green-800"
+                        ? isCompleted
+                          ? "bg-green-200 text-green-800"
+                          : "bg-blue-200 text-blue-800"
                         : "bg-gray-100 text-gray-600"
                     }
                   `}
