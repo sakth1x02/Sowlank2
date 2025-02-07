@@ -5,6 +5,7 @@ import {
   addTask,
   toggleTaskCompletion,
   deleteTask,
+  toggleHasExceededTime,
 } from "../store/task-slice";
 
 import {
@@ -134,8 +135,16 @@ function DailyTask() {
   const checkIfTaskExceededTime = (task) => {
     const taskEndTime = new Date(`${formattedDate} ${task?.endTime}`);
     const currentTime = new Date();
+    const hasExceededTime = taskEndTime < currentTime && !task?.isCompleted;
 
-    return taskEndTime < currentTime && !task?.isCompleted;
+    if (hasExceededTime && !task.hasExceededTime) {
+      dispatch(toggleHasExceededTime(task._id))
+        .unwrap()
+        .catch((error) => {
+          console.error("Failed to update exceeded time status:", error);
+        });
+    }
+    return hasExceededTime;
   };
 
   useEffect(() => {

@@ -12,4 +12,8 @@ router.post(
   upload.single("file"),
   dailyTaskController.uploadFileController
 );
+router.patch(
+  "/daily/:id/togglehasexceededtime",
+  dailyTaskController.toggleHasExceededTime
+);
 export default router;

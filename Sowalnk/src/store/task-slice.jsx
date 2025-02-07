@@ -26,6 +26,26 @@ export const toggleTaskCompletion = createAsyncThunk(
   }
 );
 
+export const toggleHasExceededTime = createAsyncThunk(
+  "task/toggleHasExceededTime",
+  async (taskId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:1000/api/v1/task/daily/${taskId}/togglehasexceededtime`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to toggle exceeded time status");
+      }
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+);
 export const deleteTask = createAsyncThunk(
   "task/deleteTask",
   async (taskId) => {
@@ -75,6 +95,12 @@ const taskSlice = createSlice({
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.dailyTask = state.dailyTask.filter(
           (task) => task._id !== action.payload
+        );
+      })
+      .addCase(toggleHasExceededTime.fulfilled, (state, action) => {
+        const updatedTask = action.payload;
+        state.dailyTask = state.dailyTask.map((task) =>
+          task._id === updatedTask._id ? updatedTask : task
         );
       });
   },

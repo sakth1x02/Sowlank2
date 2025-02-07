@@ -37,10 +37,35 @@ const userSchema = new Schema(
         message: (props) => `${props.value} is not a valid phone number!`,
       },
     },
+    positivePoints: {
+      type: Number,
+      default: 10,
+    },
+    negativePoints: {
+      type: Number,
+      default: 0,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+    },
+    lastTaskDate: {
+      type: Date,
+      default: null,
+    },
+    totalPoints: {
+      type: Number,
+      default: 10,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.pre("save", function (next) {
+  this.totalPoints = Math.max(0, this.positivePoints - this.negativePoints);
+  next();
+});
 
 export const User = mongoose.model("User", userSchema);

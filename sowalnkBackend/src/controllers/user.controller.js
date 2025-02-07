@@ -93,13 +93,78 @@ const userAuthentication = {
   //get all users
   getAllUsers: asyncHandler(async (req, res) => {
     try {
-      const users = await User.find();
-      res.status(200).json({ data: users });
+      const users = await User.find()
+        .select("-password")
+        .sort({ totalPoints: -1 })
+        .lean();
+
+      // Add position based on sorted order
+      const usersWithPosition = users.map((user, index) => ({
+        ...user,
+        position: index + 1,
+      }));
+
+      res.status(200).json({ data: usersWithPosition });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error From Fetch All Users", error: error.message });
+      res.status(500).json({
+        message: "Error From Fetch All Users",
+        error: error.message,
+      });
     }
+  }),
+
+  updateTaskPoints: asyncHandler(async (req, res) => {
+    const { userId, completed } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (completed) {
+      // Add 2 points for completion
+      user.positivePoints += 2;
+
+      // Check for streak
+      if (user.lastTaskDate) {
+        const lastDate = new Date(user.lastTaskDate);
+        lastDate.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Consecutive day
+          user.streak += 1;
+
+          // Add bonus points for every 5 days streak
+          if (user.streak % 5 === 0) {
+            user.positivePoints += 5;
+          }
+        } else if (diffDays > 1) {
+          // Reset streak if not consecutive
+          user.streak = 1;
+        }
+      } else {
+        // First task completion
+        user.streak = 1;
+      }
+
+      user.lastTaskDate = today;
+    } else {
+      // Add negative points for incomplete task
+      user.negativePoints += 2;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Points updated successfully",
+      data: user,
+    });
   }),
 };
 

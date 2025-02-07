@@ -15,6 +15,7 @@ import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";
 import Ranking from "./Components/Ranking.jsx";
 import CompletedTask from "./Components/CompletedTask";
+import ProtectedRoute from "./Components/ProtectedRoute";
 const App = () => {
   return (
     <>
@@ -30,6 +31,7 @@ const App = () => {
                 <Route path="pricing" element={<Subscription />} />
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<Signup />} />
+
                 <Route path="dashboard" element={<Dashboard1 />} />
                 <Route path="dailytask" element={<DailyTask />} />
                 <Route path="weekly" element={<WeeklyTask />} />

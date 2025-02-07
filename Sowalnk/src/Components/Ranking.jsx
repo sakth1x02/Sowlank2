@@ -1,118 +1,129 @@
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { CircleUser } from "lucide-react";
+import { fetchUsers } from "../store/user-slice.jsx";
 const Ranking = () => {
-  const [users, setUsers] = useState([]);
+  const { users } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
-  const RankingData = [
-    {
-      position: 1,
-      name: "Person",
-      positivePoints: 100,
-      negativePoints: 10,
-      totalPoints: 90,
-    },
-    {
-      position: 2,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 7,
-      totalPoints: 73,
-    },
-    {
-      position: 3,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 7,
-      totalPoints: 73,
-    },
-    {
-      position: 4,
-      name: "Person",
-      positivePoints: 70,
-      negativePoints: 3,
-      totalPoints: 67,
-    },
-    {
-      position: 5,
-      name: "Person",
-      positivePoints: 69,
-      negativePoints: 3,
-      totalPoints: 66,
-    },
-    {
-      position: 6,
-      name: "Person",
-      positivePoints: 70,
-      negativePoints: 5,
-      totalPoints: 65,
-    },
-    {
-      position: 7,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 8,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 9,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 10,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 11,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 12,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-    {
-      position: 13,
-      name: "Person",
-      positivePoints: 80,
-      negativePoints: 5,
-      totalPoints: 75,
-    },
-  ];
+  // const RankingData = [
+  //   {
+  //     position: 1,
+  //     name: "Person",
+  //     positivePoints: 100,
+  //     negativePoints: 10,
+  //     totalPoints: 90,
+  //   },
+  //   {
+  //     position: 2,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 7,
+  //     totalPoints: 73,
+  //   },
+  //   {
+  //     position: 3,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 7,
+  //     totalPoints: 73,
+  //   },
+  //   {
+  //     position: 4,
+  //     name: "Person",
+  //     positivePoints: 70,
+  //     negativePoints: 3,
+  //     totalPoints: 67,
+  //   },
+  //   {
+  //     position: 5,
+  //     name: "Person",
+  //     positivePoints: 69,
+  //     negativePoints: 3,
+  //     totalPoints: 66,
+  //   },
+  //   {
+  //     position: 6,
+  //     name: "Person",
+  //     positivePoints: 70,
+  //     negativePoints: 5,
+  //     totalPoints: 65,
+  //   },
+  //   {
+  //     position: 7,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 8,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 9,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 10,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 11,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 12,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  //   {
+  //     position: 13,
+  //     name: "Person",
+  //     positivePoints: 80,
+  //     negativePoints: 5,
+  //     totalPoints: 75,
+  //   },
+  // ];
 
-  const currentPerson = {
-    name: "Person 00",
-    positivePoints: 25,
-    negativePoints: 3,
-    totalPoints: 22,
-  };
-
-  const fetchUsers = async () => {
-    const response = await fetch("http://localhost:1000/api/v1/user/users");
-    const res = await response.json();
-    setUsers(res.data);
-  };
+  // const currentPerson = {
+  //   name: "Person 00",
+  //   positivePoints: 25,
+  //   negativePoints: 3,
+  //   totalPoints: 22,
+  // };
 
   useEffect(() => {
-    fetchUsers();
+    dispatch(fetchUsers());
   }, []);
+
+  // useEffect(() => {
+  //   users.map((user) => {
+  //     if (dailyTask && user?._id) {
+  //       dailyTask.forEach((task) => {
+  //         if (task.isCompleted) {
+  //           updatePoints(user._id, true);
+  //         } else if (task.hasExceededTime) {
+  //           updatePoints(user._id, false);
+  //         }
+  //       });
+  //     }
+  //   });
+  // }, [dailyTask, users?._id]);
 
   return (
     <div className="bg-gray-100 p-6 min-h-screen flex flex-col items-center">
@@ -131,6 +142,7 @@ const Ranking = () => {
               <th className="p-3">Positive Points</th>
               <th className="p-3">Negative Points</th>
               <th className="p-3">Total Points</th>
+              <th className="p-3">Streak</th>
             </tr>
           </thead>
           <tbody>
@@ -138,7 +150,11 @@ const Ranking = () => {
               <tr
                 key={index}
                 className={`${
-                  index % 2 === 0 ? "bg-gray-100" : "bg-gray-200"
+                  person._id === users?._id
+                    ? "bg-blue-50" // Highlight current user
+                    : index % 2 === 0
+                    ? "bg-gray-100"
+                    : "bg-gray-200"
                 } hover:bg-blue-100`}
               >
                 <td className="p-3 pl-7 font-bold">{person?.position}</td>
@@ -148,29 +164,59 @@ const Ranking = () => {
                     {person.name}
                   </div>
                 </td>
-                <td className="p-3">{person?.positivePoints}</td>
-                <td className="p-3">{person?.negativePoints}</td>
+                <td className="p-3 text-green-600">
+                  +{person?.positivePoints}
+                </td>
+                <td className="p-3 text-red-600">-{person?.negativePoints}</td>
                 <td className="p-3 font-bold">{person?.totalPoints}</td>
+                <td className="p-3">
+                  {person.streak > 0 && (
+                    <div className="flex items-center">
+                      <span className="text-yellow-600">🔥</span>
+                      <span className="ml-1 font-semibold">
+                        {person.streak} day{person.streak !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="mt-6 w-full max-w-2xl bg-white rounded-lg shadow-md p-4">
-        <h2 className="text-xl font-bold text-blue-600 mb-2">
-          Current Person Level
-        </h2>
-        <div className="flex justify-between items-center">
-          <div className="font-semibold">Name: {currentPerson.name}</div>
-          <div className="flex gap-6">
-            <div>Positive Points: {currentPerson.positivePoints}</div>
-            <div>Negative Points: {currentPerson.negativePoints}</div>
-            <div className="font-bold">
-              Total Points: {currentPerson.totalPoints}
+
+      {/* Current User Stats Card */}
+      {/* {users && (
+        <div className="mt-6 w-full max-w-2xl bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-xl font-bold text-blue-600 mb-2">Your Stats</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-gray-50 rounded">
+              <div className="text-sm text-gray-600">Position</div>
+              <div className="text-xl font-bold text-blue-600">
+                #{users.find((u) => u._id === users._id)?.position || "-"}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded">
+              <div className="text-sm text-gray-600">Positive Points</div>
+              <div className="text-xl font-bold text-green-600">
+                +{users.find((u) => u._id === users._id)?.positivePoints || 0}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded">
+              <div className="text-sm text-gray-600">Negative Points</div>
+              <div className="text-xl font-bold text-red-600">
+                -{users.find((u) => u._id === users._id)?.negativePoints || 0}
+              </div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded">
+              <div className="text-sm text-gray-600">Current Streak</div>
+              <div className="text-xl font-bold text-yellow-600">
+                {users.find((u) => u._id === users._id)?.streak || 0} days
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )} */}
     </div>
   );
 };

@@ -13,15 +13,16 @@ const Login = () => {
     console.log("Login attempt with:", { email, password });
 
     try {
-      await axios.post("http://localhost:1000/api/v1/user/login", {
+      const res = await axios.post("http://localhost:1000/api/v1/user/login", {
         email,
         password,
       });
-      alert("User registered successfully!");
+      localStorage.setItem("token", res.data.token);
+      alert("User Logged In successfully!");
       navigate("/");
     } catch (error) {
       console.error("Error during registration:", error);
-      alert("Error registering user");
+      alert("Error Logged In");
     }
   };
 

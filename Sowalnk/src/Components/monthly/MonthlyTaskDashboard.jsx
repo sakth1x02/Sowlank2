@@ -116,7 +116,7 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
 
                 return (
                   <div
-                    key={month}
+                    key={index}
                     className={`
                     flex items-center justify-center p-2 rounded-full text-sm
                     ${

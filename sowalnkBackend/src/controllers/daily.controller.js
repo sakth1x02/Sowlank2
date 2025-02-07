@@ -72,6 +72,17 @@ const dailyTaskController = {
 
     res.status(200).json(task);
   }),
+  // toggle hasExceededTime status
+  toggleHasExceededTime: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const task = await DailyTask.findById(id);
+    if (!task) {
+      throw new ApiError(404, "Task not found");
+    }
+    task.hasExceededTime = !task.hasExceededTime;
+    await task.save();
+    res.status(200).json(task);
+  }),
 
   uploadFileController: asyncHandler(async (req, res) => {
     const file = req.file;
