@@ -8,7 +8,7 @@ export const fetchUsers = createAsyncThunk("user/fetchUsers", async () => {
 
 export const updatePoints = createAsyncThunk(
   "user/updatePoints",
-  async (userId, completed) => {
+  async ({ userId, completed, taskId }) => {
     try {
       const response = await fetch(
         "http://localhost:1000/api/v1/user/update-points",
@@ -17,7 +17,7 @@ export const updatePoints = createAsyncThunk(
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId, completed }),
+          body: JSON.stringify({ userId, completed, taskId }),
         }
       );
 
@@ -36,6 +36,12 @@ const userSlice = createSlice({
   initialState: {
     users: [],
     taskPoint: [],
+    loggedInUser: null,
+  },
+  reducers: {
+    setLoggedInUser: (state, action) => {
+      state.loggedInUser = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -50,4 +56,6 @@ const userSlice = createSlice({
       });
   },
 });
+
+export const { setLoggedInUser } = userSlice.actions;
 export default userSlice.reducer;

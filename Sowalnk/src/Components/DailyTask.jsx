@@ -104,15 +104,23 @@ function DailyTask() {
       console.error("Error uploading file:", err);
     }
   };
-  const getProgressColor = (progress, isCompleted) => {
-    if (isCompleted && progress === 100) {
-      return "#4CAF50";
+  const getProgressColor = (progress, isCompleted, hasExceededTime) => {
+    // Handle completed tasks
+    if (isCompleted) {
+      return "#4CAF50"; // Green
     }
-    if (progress === 100 && !isCompleted) {
-      return "#FF0000";
+
+    // Handle exceeded time
+    if (hasExceededTime) {
+      return "#FF0000"; // Red
     }
-    const colors = ["#6DA951", "#4CAF50", "#FFA33C", "#FC7033", "#FA4032"];
-    return colors[Math.floor(progress / 20)] || "#FA4032";
+
+    // Handle in-progress tasks
+    const validProgress = Math.min(Math.max(0, Number(progress) || 0), 100);
+    if (validProgress < 25) return "#FA4032";
+    if (validProgress < 50) return "#FC7033";
+    if (validProgress < 75) return "#FFA33C";
+    return "#6DA951";
   };
 
   const toggleCompletionHandler = (task) => {
@@ -123,28 +131,43 @@ function DailyTask() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      dailyTask.forEach((task) => {
+        if (!task.isCompleted && !task.hasExceededTime) {
+          checkIfTaskExceededTime(task);
+        }
+      });
       dispatch(calculateTaskProgress());
     }, 1000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [dailyTask]);
 
   const handleDelete = async (taskId) => {
     dispatch(deleteTask(taskId));
   };
 
-  const checkIfTaskExceededTime = (task) => {
-    const taskEndTime = new Date(`${formattedDate} ${task?.endTime}`);
-    const currentTime = new Date();
-    const hasExceededTime = taskEndTime < currentTime && !task?.isCompleted;
+  const checkIfTaskExceededTime = async (task) => {
+    if (!task?.endTime || task?.isCompleted || task?.hasExceededTime)
+      return false;
 
-    if (hasExceededTime && !task.hasExceededTime) {
-      dispatch(toggleHasExceededTime(task._id))
-        .unwrap()
-        .catch((error) => {
-          console.error("Failed to update exceeded time status:", error);
-        });
+    const currentTime = new Date();
+    const [hours, minutes] = task.endTime.split(":");
+    const taskEndTime = new Date();
+    taskEndTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
+
+    const hasExceeded = taskEndTime < currentTime;
+
+    if (hasExceeded && !task.hasExceededTime) {
+      try {
+        await dispatch(toggleHasExceededTime(task._id)).unwrap();
+        // Force refresh task data after exceeding time
+        dispatch(fetchTasks());
+      } catch (error) {
+        console.error("Failed to update exceeded time status:", error);
+      }
     }
-    return hasExceededTime;
+
+    return hasExceeded;
   };
 
   useEffect(() => {
@@ -352,7 +375,8 @@ function DailyTask() {
                           width: `${task?.progress}%`,
                           backgroundColor: getProgressColor(
                             task?.progress,
-                            task?.isCompleted
+                            task?.isCompleted,
+                            task?.hasExceededTime
                           ),
                         }}
                       ></div>
@@ -393,11 +417,9 @@ function DailyTask() {
                         onChange={(e) =>
                           handleFileChange(task?._id, e.target.files[0])
                         }
-                        disabled={checkIfTaskExceededTime(task)}
+                        disabled={task?.hasExceededTime}
                         className={`text-sm ${
-                          checkIfTaskExceededTime(task)
-                            ? "cursor-not-allowed"
-                            : ""
+                          task?.hasExceededTime ? "cursor-not-allowed" : ""
                         }`}
                         required
                       />
@@ -418,11 +440,9 @@ function DailyTask() {
                     <button
                       onClick={() => handleDelete(task?._id)}
                       className={`py-1 px-2 rounded-md bg-red-500 text-white ${
-                        checkIfTaskExceededTime(task)
-                          ? "cursor-not-allowed"
-                          : ""
+                        task?.hasExceededTime ? "cursor-not-allowed" : ""
                       }`}
-                      disabled={checkIfTaskExceededTime(task)}
+                      disabled={task?.hasExceededTime}
                     >
                       Delete
                     </button>

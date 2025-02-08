@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { User, Mail, Lock, Phone } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -58,11 +59,11 @@ const Signup = () => {
     if (validateForm()) {
       try {
         await axios.post("http://localhost:1000/api/v1/user/signup", formData);
-        alert("User registered successfully!");
+        toast.success("User registered successfully!");
         navigate("/login");
       } catch (error) {
         console.error("Error during registration:", error);
-        alert("Error registering user");
+        toast.error("Error registering user");
       }
     }
   };
@@ -144,6 +145,12 @@ const Signup = () => {
           >
             Register
           </button>
+          <Link
+            to="/login"
+            className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Already have an account? Login
+          </Link>
         </form>
       </div>
     </div>

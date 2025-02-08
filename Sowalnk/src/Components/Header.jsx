@@ -1,20 +1,39 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoggedInUser } from "../store/user-slice";
 
 const Header = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.user.loggedInUser);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    dispatch(setLoggedInUser(null));
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      dispatch(setLoggedInUser(JSON.parse(user)));
+    }
+  }, []);
 
   const navItems = [
     { label: "Home", path: "/" },
     { label: "About Us", path: "/about" },
     { label: "Features", path: "/features" },
     { label: "Pricing", path: "/pricing" },
-    { label: "Login", path: "/login" },
   ];
 
   return (
@@ -40,6 +59,25 @@ const Header = () => {
                 {item.label}
               </NavLink>
             ))}
+            {auth ? (
+              <button
+                onClick={handleLogout}
+                className="hover:text-violet-400 transition cursor-pointer"
+              >
+                Logout
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-violet-400"
+                    : "hover:text-violet-400 transition"
+                }
+              >
+                Login
+              </NavLink>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -80,19 +118,28 @@ const Header = () => {
                 {item.label}
               </NavLink>
             ))}
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `block py-2 px-4 rounded ${
-                  isActive
-                    ? "text-violet-400 bg-purple-700"
-                    : "hover:bg-purple-700 hover:text-violet-400 transition"
-                }`
-              }
-              onClick={() => setIsOpen(false)}
-            >
-              Login
-            </NavLink>
+            {auth ? (
+              <button
+                onClick={handleLogout}
+                className="block py-2 px-4 rounded hover:bg-purple-700 hover:text-violet-400 transition"
+              >
+                Logout
+              </button>
+            ) : (
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  `block py-2 px-4 rounded ${
+                    isActive
+                      ? "text-violet-400 bg-purple-700"
+                      : "hover:bg-purple-700 hover:text-violet-400 transition"
+                  }`
+                }
+                onClick={() => setIsOpen(false)}
+              >
+                Login
+              </NavLink>
+            )}
           </div>
         </div>
       </div>

@@ -1,28 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Lock } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { setLoggedInUser } from "../store/user-slice";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      dispatch(setLoggedInUser(JSON.parse(user)));
+      navigate("/");
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt with:", { email, password });
 
     try {
       const res = await axios.post("http://localhost:1000/api/v1/user/login", {
         email,
         password,
       });
-      localStorage.setItem("token", res.data.token);
-      alert("User Logged In successfully!");
-      navigate("/");
+
+      if (res.data?.data) {
+        const userData = res.data.data;
+        localStorage.setItem("user", JSON.stringify(userData));
+        dispatch(setLoggedInUser(userData));
+        toast.success("User Logged In successfully!");
+        navigate("/");
+      } else {
+        toast.error("Invalid login response");
+      }
     } catch (error) {
-      console.error("Error during registration:", error);
-      alert("Error Logged In");
+      console.error("Error during login:", error);
+      toast.error(error.response?.data?.message || "Error logging in");
     }
   };
 

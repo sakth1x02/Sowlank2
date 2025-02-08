@@ -56,6 +56,10 @@ const dailyTaskSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    pointsAwarded: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timeseries: true,

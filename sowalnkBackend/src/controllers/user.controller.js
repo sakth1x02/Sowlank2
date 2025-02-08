@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { DailyTask } from "../models/daily.model.js";
 
 const userAuthentication = {
   signupUser: asyncHandler(async (req, res) => {
@@ -114,11 +115,21 @@ const userAuthentication = {
   }),
 
   updateTaskPoints: asyncHandler(async (req, res) => {
-    const { userId, completed } = req.body;
+    const { userId, completed, taskId } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
       throw new ApiError(404, "User not found");
+    }
+
+    // Find and update the task
+    const task = await DailyTask.findById(taskId);
+    if (!task || task.pointsAwarded) {
+      return res.status(200).json({
+        success: true,
+        message: "Points already awarded",
+        data: user,
+      });
     }
 
     const today = new Date();
@@ -136,28 +147,25 @@ const userAuthentication = {
         const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
 
         if (diffDays === 1) {
-          // Consecutive day
           user.streak += 1;
-
-          // Add bonus points for every 5 days streak
           if (user.streak % 5 === 0) {
             user.positivePoints += 5;
           }
         } else if (diffDays > 1) {
-          // Reset streak if not consecutive
           user.streak = 1;
         }
       } else {
-        // First task completion
         user.streak = 1;
       }
 
       user.lastTaskDate = today;
     } else {
-      // Add negative points for incomplete task
       user.negativePoints += 2;
     }
 
+    // Mark the task as points awarded
+    task.pointsAwarded = true;
+    await task.save();
     await user.save();
 
     res.status(200).json({

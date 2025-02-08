@@ -64,7 +64,12 @@ const taskSlice = createSlice({
     calculateTaskProgress(state) {
       state.dailyTask = state.dailyTask.map((task) => {
         if (task?.isCompleted) return task;
-        const progress = calculateProgress(task?.startTime, task?.endTime);
+
+        const progress = calculateProgress(
+          task?.startTime,
+          task?.endTime,
+          task?.hasExceededTime
+        );
         return { ...task, progress };
       });
     },
@@ -100,7 +105,13 @@ const taskSlice = createSlice({
       .addCase(toggleHasExceededTime.fulfilled, (state, action) => {
         const updatedTask = action.payload;
         state.dailyTask = state.dailyTask.map((task) =>
-          task._id === updatedTask._id ? updatedTask : task
+          task._id === updatedTask._id
+            ? {
+                ...updatedTask,
+                progress: 100,
+                hasExceededTime: true,
+              }
+            : task
         );
       });
   },
