@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { monthlyTaskController } from "../controllers/monthly.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
+
 const router = Router();
+
+// Protect all routes
+router.use(verifyJWT);
+
 router.post("/monthly", monthlyTaskController.createTask);
 router.get("/monthly", monthlyTaskController.getAllTasks);
 router.patch("/monthly/:id/toggle", monthlyTaskController.toggleTaskCompletion);
@@ -11,4 +17,5 @@ router.post(
   upload.single("file"),
   monthlyTaskController.uploadFileController
 );
+
 export default router;

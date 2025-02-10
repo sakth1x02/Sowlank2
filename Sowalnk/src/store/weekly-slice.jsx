@@ -5,7 +5,10 @@ export const fetchWeeklyTasks = createAsyncThunk(
   "weeklytask/fetchWeeklyTasks",
   async () => {
     const response = await fetch(
-      "http://localhost:1000/api/v1/weeklytask/weekly"
+      "http://localhost:1000/api/v1/weeklytask/weekly",
+      {
+        credentials: "include",
+      }
     );
     return await response.json();
   }
@@ -18,6 +21,7 @@ export const addWeeklyTask = createAsyncThunk(
       "http://localhost:1000/api/v1/weeklytask/weekly",
       {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(task),
       }
@@ -31,7 +35,10 @@ export const toggleWeeklyTaskCompletion = createAsyncThunk(
   async (taskId) => {
     const response = await fetch(
       `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/toggle`,
-      { method: "PATCH" }
+      {
+        method: "PATCH",
+        credentials: "include",
+      }
     );
     return await response.json();
   }
@@ -44,6 +51,7 @@ export const deleteWeeklyTask = createAsyncThunk(
       `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/delete`,
       {
         method: "DELETE",
+        credentials: "include",
       }
     );
     return taskId;

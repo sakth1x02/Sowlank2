@@ -35,7 +35,6 @@ const Sidebar = () => {
       className: advanceMember === true ? "" : "hidden",
     },
     { path: "/completed-task", label: "Completed Task" },
-    { path: "/upcoming-task", label: "Upcoming Task" },
     { path: "/overdue-task", label: "Overdue Task" },
     {
       path: "/rankings",

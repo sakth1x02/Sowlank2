@@ -40,9 +40,18 @@ const Signup = () => {
     else if (!emailRegex.test(formData.email))
       newErrors.email = "Invalid email format";
 
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password !== formData.confirmPassword)
+    // New password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordRegex.test(formData.password)) {
+      newErrors.password =
+        "Password must be at least 8 characters long,should have one uppercase,one lowercase and one special character";
+    }
+    console.log(formData.password, formData.confirmPassword);
+    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
 
     const phoneRegex = /^\d{10}$/;
     if (!formData.phone) newErrors.phone = "Phone number is required";
@@ -58,12 +67,29 @@ const Signup = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        await axios.post("http://localhost:1000/api/v1/user/signup", formData);
+        const response = await fetch(
+          "http://localhost:1000/api/v1/user/signup",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(formData),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Error registering user");
+        }
+
         toast.success("User registered successfully!");
         navigate("/login");
       } catch (error) {
         console.error("Error during registration:", error);
-        toast.error("Error registering user");
+        toast.error(error.message || "Error registering user");
       }
     }
   };
@@ -109,10 +135,10 @@ const Signup = () => {
               placeholder="Password"
               className="w-full px-4 py-2 border rounded-md"
             />
-            {errors.password && (
-              <p className="text-red-500">{errors.password}</p>
-            )}
           </div>
+          {errors.password && (
+            <p className="text-red-500 pl-3">{errors.password}</p>
+          )}
           <div className="flex gap-3">
             <Lock className=" mt-2 ml-2" />
             <input
@@ -123,10 +149,10 @@ const Signup = () => {
               placeholder="Confirm Password"
               className="w-full px-4 py-2 border rounded-md"
             />
-            {errors.confirmPassword && (
-              <p className="text-red-500">{errors.confirmPassword}</p>
-            )}
           </div>
+          {errors.confirmPassword && (
+            <p className="text-red-500 pl-3">{errors.confirmPassword}</p>
+          )}
           <div className="flex gap-3">
             <Phone className=" mt-2 ml-2" />
             <input
@@ -137,8 +163,8 @@ const Signup = () => {
               placeholder="Phone Number"
               className="w-full px-4 py-2 border rounded-md"
             />
-            {errors.phone && <p className="text-red-500">{errors.phone}</p>}
           </div>
+          {errors.phone && <p className="text-red-500 pl-3">{errors.phone}</p>}
           <button
             type="submit"
             className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600"

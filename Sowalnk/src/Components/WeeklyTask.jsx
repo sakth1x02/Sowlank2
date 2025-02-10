@@ -133,6 +133,7 @@ function WeeklyTask() {
         `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/upload`,
         {
           method: "POST",
+          credentials: "include",
           body: formData,
         }
       );
@@ -214,7 +215,7 @@ function WeeklyTask() {
           </h1>
           <div className="flex justify-between items-center pb-2">
             <h2 className="text-xl font-semibold text-[#2e2e2e]">
-              Week {currentWeekNumber / 6} : {formattedStartOfWeek} -{" "}
+              Week {Math.ceil(currentWeekNumber / 6)} : {formattedStartOfWeek} -{" "}
               {formattedEndOfWeek}
             </h2>
           </div>

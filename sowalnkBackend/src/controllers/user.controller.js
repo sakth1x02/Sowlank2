@@ -5,6 +5,20 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { DailyTask } from "../models/daily.model.js";
 
+// Helper function to generate access token
+const generateAccessToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
+};
+
+// Update cookie options
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // Only use secure in production
+  sameSite: "lax", // Changed from strict to lax
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+  path: "/", // Add explicit path
+};
+
 const userAuthentication = {
   signupUser: asyncHandler(async (req, res) => {
     // Step 1: Extract user details from the request body
@@ -13,11 +27,14 @@ const userAuthentication = {
     // Step 2: Validate required fields
     if (
       [name, email, password, confirmPassword, phone].some(
-        (field) => field.trim() == ""
-      ) &&
-      !email.include("@")
+        (field) => !field?.trim()
+      )
     ) {
       throw new ApiError(400, "All fields are required");
+    }
+
+    if (!email.includes("@")) {
+      throw new ApiError(400, "Invalid email format");
     }
 
     if (password !== confirmPassword) {
@@ -41,14 +58,18 @@ const userAuthentication = {
       phone,
     });
 
-    // Step 6: Remove the password from the response for security
+    // Generate token
+    const token = generateAccessToken(user._id);
+
+    // Step 6: Remove the password from the response
     const createdUser = await User.findById(user._id).select("-password");
 
-    // Step 7: Return the response
-    res.status(201).json({
+    // Set cookie and send response with token
+    res.status(201).cookie("token", token, cookieOptions).json({
       success: true,
       message: "User registered successfully",
       data: createdUser,
+      token,
     });
   }),
 
@@ -73,24 +94,43 @@ const userAuthentication = {
       throw new ApiError(401, "Invalid credentials");
     }
 
-    // Step 5: Generate a JWT token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    // Generate token
+    const token = generateAccessToken(user._id);
 
-    // Step 6: Remove the password from the response for security
+    // Remove password from response
     const loggedInUser = await User.findById(user._id).select("-password");
 
-    // Step 7: Return the response with the token
-    res.status(200).json({
+    // Set cookie and send response with token
+    res.status(200).cookie("token", token, cookieOptions).json({
       success: true,
       message: "User logged in successfully",
       data: loggedInUser,
-      token: token,
+      token,
     });
   }),
+
+  logoutUser: asyncHandler(async (req, res) => {
+    res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "User logged out successfully",
+      });
+  }),
+
+  // Protected route to get current user
+  getCurrentUser: asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id).select("-password");
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  }),
+
   //get all users
   getAllUsers: asyncHandler(async (req, res) => {
     try {

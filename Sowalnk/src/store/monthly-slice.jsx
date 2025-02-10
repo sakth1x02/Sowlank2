@@ -5,7 +5,10 @@ export const fetchMonthlyTasks = createAsyncThunk(
   "weeklytask/fetchMonthlyTasks",
   async () => {
     const response = await fetch(
-      "http://localhost:1000/api/v1/monthlytask/monthly"
+      "http://localhost:1000/api/v1/monthlytask/monthly",
+      {
+        credentials: "include",
+      }
     );
     return await response.json();
   }
@@ -18,6 +21,7 @@ export const addMonthlyTask = createAsyncThunk(
       "http://localhost:1000/api/v1/monthlytask/monthly",
       {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(task),
       }
@@ -31,7 +35,10 @@ export const toggleMonthlyTaskCompletion = createAsyncThunk(
   async (taskId) => {
     const response = await fetch(
       `http://localhost:1000/api/v1/monthlytask/monthly/${taskId}/toggle`,
-      { method: "PATCH" }
+      {
+        method: "PATCH",
+        credentials: "include",
+      }
     );
     return await response.json();
   }
@@ -44,6 +51,7 @@ export const deleteMonthlyTask = createAsyncThunk(
       `http://localhost:1000/api/v1/monthlytask/monthly/${taskId}/delete`,
       {
         method: "DELETE",
+        credentials: "include",
       }
     );
     return taskId;

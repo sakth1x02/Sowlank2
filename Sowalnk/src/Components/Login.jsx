@@ -24,13 +24,26 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:1000/api/v1/user/login", {
-        email,
-        password,
+      const response = await fetch("http://localhost:1000/api/v1/user/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
-      if (res.data?.data) {
-        const userData = res.data.data;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error logging in");
+      }
+
+      if (data?.data) {
+        const userData = data.data;
         localStorage.setItem("user", JSON.stringify(userData));
         dispatch(setLoggedInUser(userData));
         toast.success("User Logged In successfully!");
@@ -40,7 +53,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Error during login:", error);
-      toast.error(error.response?.data?.message || "Error logging in");
+      toast.error(error.message || "Error logging in");
     }
   };
 

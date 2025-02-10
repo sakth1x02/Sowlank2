@@ -3,10 +3,13 @@ import { useSelector } from "react-redux";
 
 const CompletedTask = () => {
   const { dailyTask } = useSelector((state) => state.task);
+  // console.log(dailyTask);
 
   // Group tasks by date
   const groupedTasks = dailyTask.reduce((acc, task) => {
-    const date = new Date(task.date).toDateString();
+    console.log(task.date.split("T")[0]);
+    const date = new Date(task.date.split("T")[0]).toDateString();
+    console.log(date);
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -18,7 +21,7 @@ const CompletedTask = () => {
   const sortedDates = Object.keys(groupedTasks).sort(
     (a, b) => new Date(b) - new Date(a)
   );
-
+  console.log(sortedDates);
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">
@@ -26,55 +29,64 @@ const CompletedTask = () => {
       </h1>
 
       <div className="space-y-6">
-        {sortedDates.map((date) => {
-          // Skip today's tasks
-          if (date === new Date().toDateString()) return null;
+        {sortedDates.length > 0 ? (
+          sortedDates.map((date, index) => {
+            // Skip today's tasks
+            if (date === new Date().toDateString()) return null;
 
-          return (
-            <div key={date} className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                {new Date(date).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </h2>
-              <div className="space-y-3">
-                {groupedTasks[date].map((task) => (
-                  <div
-                    key={task._id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={task.isCompleted}
-                        readOnly
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span
-                        className={`text-lg ${
-                          task.isCompleted
-                            ? "line-through text-gray-400"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {task.taskName}
+            return (
+              <div key={index} className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                  {new Date(date).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </h2>
+                <div className="space-y-3">
+                  {groupedTasks[date].map((task) => (
+                    <div
+                      key={task._id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={task.isCompleted}
+                          readOnly
+                          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span
+                          className={`text-lg ${
+                            task.isCompleted
+                              ? "line-through text-gray-400"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {task.taskName}
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {new Date(task.date.split("T")[1]).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(task.date).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="text-lg font-semibold italic text-gray-800">
+            No Previous Data Present
+          </div>
+        )}
       </div>
     </div>
   );

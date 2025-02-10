@@ -90,6 +90,7 @@ function DailyTask() {
         `http://localhost:1000/api/v1/task/daily/${taskId}/upload`,
         {
           method: "POST",
+          credentials: "include",
           body: formData,
         }
       );

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./Components/LandingPage";
 import About from "./Components/About";
@@ -29,8 +29,14 @@ const App = () => {
                 <Route path="about" element={<About />} />
                 <Route path="features" element={<Feature />} />
                 <Route path="pricing" element={<Subscription />} />
-                <Route path="login" element={<Login />} />
-                <Route path="signup" element={<Signup />} />
+                <Route
+                  path="login"
+                  element={auth ? <LandingPage /> : <Login />}
+                />
+                <Route
+                  path="signup"
+                  element={auth ? <LandingPage /> : <Signup />}
+                />
                 <Route
                   path="dashboard"
                   element={auth ? <Dashboard1 /> : <Login />}

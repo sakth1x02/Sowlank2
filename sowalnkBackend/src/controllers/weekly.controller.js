@@ -3,23 +3,25 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { uploadOnCloudinary } from "../utils/uploadOnCloud.js";
 import fs from "fs";
+
 const weeklyTaskController = {
   createTask: asyncHandler(async (req, res) => {
     try {
       const { taskName, priority, startDate, endDate, dateOnCreated } =
         req.body;
+      const userId = req.user._id; // Get user ID from authenticated request
 
       if (!taskName || !priority || !startDate || !endDate) {
-        console.error("Missing required fields");
         throw new ApiError(400, "Missing required fields");
       }
 
       const existedData = await weeklyTask.findOne({
         taskName: taskName.trim(),
+        user: userId,
       });
+
       if (existedData) {
-        console.error("This Data is Already existed");
-        throw new ApiError(409, "This Data is Already existed");
+        throw new ApiError(409, "This task already exists for this user");
       }
 
       const newTask = new weeklyTask({
@@ -28,6 +30,7 @@ const weeklyTaskController = {
         startDate,
         endDate,
         dateOnCreated,
+        user: userId,
       });
 
       await newTask.save();
@@ -44,24 +47,23 @@ const weeklyTaskController = {
     }
   }),
 
-  // Get all tasks
   getAllTasks: asyncHandler(async (req, res) => {
     try {
-      const tasks = await weeklyTask.find();
+      const userId = req.user._id;
+      const tasks = await weeklyTask.find({ user: userId });
       res.status(200).json(tasks);
     } catch (error) {
       res
         .status(500)
         .json({ message: "Error fetching tasks", error: error.message });
-      //here i resolve issue because the apiResponse utility i used i think there is some issue....
     }
   }),
 
-  // Toggle task completion status
   toggleTaskCompletion: asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const userId = req.user._id;
 
-    const task = await weeklyTask.findById(id);
+    const task = await weeklyTask.findOne({ _id: id, user: userId });
 
     if (!task) {
       throw new ApiError(404, "Task not found");
@@ -77,19 +79,23 @@ const weeklyTaskController = {
   uploadFileController: asyncHandler(async (req, res) => {
     const file = req.file;
     const { id } = req.params;
+    const userId = req.user._id;
+
     if (!file) {
       throw new ApiError(400, "Image Proof is Not Found");
     }
+
     try {
+      const task = await weeklyTask.findOne({ _id: id, user: userId });
+      if (!task) {
+        throw new ApiError(404, "Task not found");
+      }
+
       const uploadResult = await uploadOnCloudinary(file.path);
       fs.unlinkSync(file.path);
 
       if (!uploadResult) {
         return res.status(500).json({ message: "Upload to Cloudinary failed" });
-      }
-      const task = await weeklyTask.findById(id);
-      if (!task) {
-        throw new ApiError(404, "Task not found the given data");
       }
 
       task.proofOfWork = uploadResult.url;
@@ -102,66 +108,24 @@ const weeklyTaskController = {
     }
   }),
 
-  // // Get a task by ID
-  // getTaskById: async (req, res) => {
-  //   try {
-  //     const { id } = req.params;
-  //     const task = await weeklyTask.findById(id);
+  deleteTask: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user._id;
 
-  //     if (!task) {
-  //       return res.status(404).json({ message: "Task not found" });
-  //     }
+    const deletedTask = await weeklyTask.findOneAndDelete({
+      _id: id,
+      user: userId,
+    });
 
-  //     res.status(200).json(task);
-  //   } catch (error) {
-  //     res
-  //       .status(500)
-  //       .json({ message: "Error fetching task", error: error.message });
-  //   }
-  // },
-
-  // // Update a task by ID
-  // updateTask: async (req, res) => {
-  //   try {
-  //     const { id } = req.params;
-  //     const updatedTask = await weeklyTask.findByIdAndUpdate(id, req.body, {
-  //       new: true,
-  //       runValidators: true,
-  //     });
-
-  //     if (!updatedTask) {
-  //       return res.status(404).json({ message: "Task not found" });
-  //     }
-
-  //     res
-  //       .status(200)
-  //       .json({ message: "Task updated successfully", task: updatedTask });
-  //   } catch (error) {
-  //     res
-  //       .status(500)
-  //       .json({ message: "Error updating task", error: error.message });
-  //   }
-  // },
-
-  // // Delete a task by ID
-  deleteTask: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const deletedTask = await weeklyTask.findByIdAndDelete(id);
-
-      if (!deletedTask) {
-        return res.status(404).json({ message: "Task not found" });
-      }
-
-      res
-        .status(200)
-        .json({ message: "Task deleted successfully", task: deletedTask });
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error deleting task", error: error.message });
+    if (!deletedTask) {
+      throw new ApiError(404, "Task not found");
     }
-  },
+
+    res.status(200).json({
+      message: "Task deleted successfully",
+      task: deletedTask,
+    });
+  }),
 };
 
 export { weeklyTaskController };
