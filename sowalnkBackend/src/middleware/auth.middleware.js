@@ -13,15 +13,12 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       token = authHeader.replace("Bearer ", "");
     }
 
-    console.log("Token received:", token); // Debug log
-
     if (!token) {
       throw new ApiError(401, "Unauthorized request - No token provided");
     }
 
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded token:", decodedToken); // Debug log
 
       const user = await User.findById(decodedToken?.userId).select(
         "-password"

@@ -91,7 +91,7 @@ const DailyTaskDashboard = ({ openDailyTask, setOpenDailyTask }) => {
         </div>
 
         {/* Calendar Section */}
-        <div className="overflow-auto bg-white p-4 rounded-md shadow-sm flex flex-col h-full">
+        <div className="overflow-auto w-[60%] bg-white p-4 rounded-md shadow-sm flex flex-col h-full">
           <div className="flex justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-700">Daily Calendar</h2>
           </div>

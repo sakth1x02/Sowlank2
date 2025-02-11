@@ -3,13 +3,10 @@ import { useSelector } from "react-redux";
 
 const CompletedTask = () => {
   const { dailyTask } = useSelector((state) => state.task);
-  // console.log(dailyTask);
 
   // Group tasks by date
   const groupedTasks = dailyTask.reduce((acc, task) => {
-    console.log(task.date.split("T")[0]);
     const date = new Date(task.date.split("T")[0]).toDateString();
-    console.log(date);
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -21,7 +18,6 @@ const CompletedTask = () => {
   const sortedDates = Object.keys(groupedTasks).sort(
     (a, b) => new Date(b) - new Date(a)
   );
-  console.log(sortedDates);
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">
@@ -68,13 +64,10 @@ const CompletedTask = () => {
                         </span>
                       </div>
                       <span className="text-sm text-gray-500">
-                        {new Date(task.date.split("T")[1]).toLocaleTimeString(
-                          "en-US",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(task.date).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   ))}

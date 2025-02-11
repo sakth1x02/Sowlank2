@@ -176,10 +176,8 @@ const userAuthentication = {
     today.setHours(0, 0, 0, 0);
 
     if (completed) {
-      // Add 2 points for completion
       user.positivePoints += 2;
 
-      // Check for streak
       if (user.lastTaskDate) {
         const lastDate = new Date(user.lastTaskDate);
         lastDate.setHours(0, 0, 0, 0);
@@ -203,7 +201,8 @@ const userAuthentication = {
       user.negativePoints += 2;
     }
 
-    // Mark the task as points awarded
+    user.totalPoints = Math.max(0, user.positivePoints - user.negativePoints);
+
     task.pointsAwarded = true;
     await task.save();
     await user.save();

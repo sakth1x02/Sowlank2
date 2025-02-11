@@ -53,7 +53,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Error during login:", error);
-      toast.error(error.message || "Error logging in");
+      toast.error("Invalid login response");
     }
   };
 

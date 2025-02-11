@@ -61,7 +61,7 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
         <WeeksInMonth
           year={today.getFullYear()}
           month={today.getMonth()}
-          weekIndx={Math.floor(currentWeekNumber / 5)}
+          weekIndx={Math.ceil(currentWeekNumber / 5)}
           completedTask={completedTask}
         />
       </div>
