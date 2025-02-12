@@ -40,7 +40,7 @@ const Ranking = () => {
   }, [dailyTask]);
 
   return (
-    <div className="bg-gray-100 p-6 min-h-screen flex flex-col items-center">
+    <div className="bg-gray-100 p-6 lg:min-h-screen flex flex-col items-center">
       <div className="flex justify-between items-center w-full max-w-4xl">
         <h1 className="text-2xl font-bold text-blue-600 mb-6">
           Power Rankings

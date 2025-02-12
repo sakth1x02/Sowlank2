@@ -1,6 +1,6 @@
 import React from "react";
 
-const WeeksInMonth = ({ year, month, weekIndx, completedTask }) => {
+const WeeksInMonth = ({ year, month, weekIndx, completedWeeks }) => {
   const getDaysInMonth = (year, month) => {
     const days = [];
     const date = new Date(year, month, 1); // Start at the first day of the month
@@ -27,7 +27,7 @@ const WeeksInMonth = ({ year, month, weekIndx, completedTask }) => {
       currentWeek = [];
     }
   });
-
+  console.log(weeks);
   return (
     <div className="py-4">
       <h2 className="text-xl font-semibold mb-4">
@@ -36,28 +36,30 @@ const WeeksInMonth = ({ year, month, weekIndx, completedTask }) => {
         {year}
       </h2>
       <div className="flex gap-1">
-        {weeks.map((week, index) => (
-          <div key={index} className="  p-4 text-center rounded-lg bg-gray-50">
-            <pre
-              className={`font-medium ${
-                index + 1 === weekIndx ? "text-blue-600" : ""
-              }`}
-            >
-              Week{index + 1}
-            </pre>
-            <input
-              id={`weeklytask-${index}`}
-              name="weeklytask"
-              type="checkbox"
-              checked={index + 1 === weekIndx && completedTask > 0}
-              onChange={() => {}}
-              className=""
-              style={{
-                transform: "scale(1.5)",
-              }}
-            />
-          </div>
-        ))}
+        {weeks.map((week, index) => {
+          return (
+            <div key={index} className="p-4 text-center rounded-lg bg-gray-50">
+              <pre
+                className={`font-medium ${
+                  index + 1 === weekIndx ? "text-blue-600" : ""
+                }`}
+              >
+                Week{index + 1}
+              </pre>
+              <input
+                id={`weeklytask-${index}`}
+                name="weeklytask"
+                type="checkbox"
+                checked={completedWeeks.includes(index + 1)}
+                onChange={() => {}}
+                className=""
+                style={{
+                  transform: "scale(1.5)",
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

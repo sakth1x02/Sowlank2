@@ -54,7 +54,7 @@ const DailyTaskDashboard = ({ openDailyTask, setOpenDailyTask }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
       onClick={() => setOpenDailyTask(!openDailyTask)}
     >
-      <div className="bg-rose-300 w-[90%] h-[70%] overflow-scroll max-w-2xl p-6 rounded-lg shadow-lg flex gap-4">
+      <div className="bg-rose-300 w-[90%] h-[40%] md:h-[70%] overflow-scroll max-w-2xl p-6 rounded-lg shadow-lg flex gap-4">
         {/* Daily Goals Section */}
         <div className="w-[40%] h-full overflow-scroll bg-white p-4 rounded-md shadow-sm">
           <h2 className="text-xl font-bold mb-4 text-gray-700">Daily Goals</h2>

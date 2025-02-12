@@ -59,7 +59,7 @@ const Subscription = () => {
   return (
     <div className="min-h-screen flex flex-col items-center bg-purple-200 p-8">
       {/* Moving Advertisement */}
-      <div className="w-full bg-black text-white py-2 flex items-center justify-center">
+      <div className="w-full overflow-hidden bg-black text-white py-2 flex items-center justify-center">
         <div className="text-xl font-bold animate-marquee">
           🎉 Special Offer: Get 50% off on your first 3 months! 🎉
         </div>

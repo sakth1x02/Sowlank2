@@ -106,6 +106,7 @@ function WeeklyTask() {
     dispatch(addWeeklyTask(newTask));
     resetForm();
   };
+  //issue number 3 if i add weekly task start date and end date on same date then it showing the progress 100%
 
   const resetForm = () => {
     setTaskName("");

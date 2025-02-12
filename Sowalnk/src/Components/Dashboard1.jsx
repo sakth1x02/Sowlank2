@@ -78,7 +78,7 @@ const DailyGoals = () => {
         </div>
 
         {/* barcharts */}
-        <div className="flex flex-col pb-10 w-[49%] justify-center items-center space-y-6 shadow-lg rounded-md bg-rose-100">
+        <div className="flex flex-col pb-10 md:w-[49%] justify-center items-center space-y-6 shadow-lg rounded-md bg-rose-100">
           <div className="text-center text-3xl font-bold mt-10">
             Over All Activity
           </div>

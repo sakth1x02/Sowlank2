@@ -6,24 +6,34 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
   const { weeklyTask } = useSelector((store) => store.weekly);
 
   const today = new Date();
-  const getWeekNumber = (date) => {
-    const startOfYear = new Date(date.getFullYear(), 0, 1);
-    const daysSinceStart = Math.floor(
-      (date - startOfYear) / (1000 * 60 * 60 * 24)
-    );
-    return Math.ceil((daysSinceStart + startOfYear.getDay() + 1) / 7);
+  const getWeekInMonth = (date) => {
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const dayOfMonth = date.getDate();
+    return Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
   };
-  const currentWeekNumber = getWeekNumber(today);
 
-  // Logic for filter isComplete and unique day or date
-  const completedTasks = dailyTask.filter((task) => task.isCompleted);
-  const uniqueWeekdays = new Set(
-    completedTasks.map((task) => new Date(task.date).getDay())
+  // Group completed tasks by week number in month
+  const completedTasksByWeek = {};
+  dailyTask.forEach((task) => {
+    if (task.isCompleted) {
+      const taskDate = new Date(task.date);
+      // Only process tasks from current month
+      if (taskDate.getMonth() === today.getMonth()) {
+        const weekNum = getWeekInMonth(taskDate);
+
+        if (!completedTasksByWeek[weekNum]) {
+          completedTasksByWeek[weekNum] = new Set();
+        }
+        completedTasksByWeek[weekNum].add(taskDate.getDay());
+      }
+    }
+  });
+
+  // Check which weeks have all 7 days completed
+  const completedWeeks = Object.keys(completedTasksByWeek).filter(
+    (weekNum) => completedTasksByWeek[weekNum].size >= 7
   );
 
-  const completedTask =
-    uniqueWeekdays.size >= 7 ||
-    weeklyTask.filter((task) => task.isCompleted).length > 0;
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
@@ -61,8 +71,8 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
         <WeeksInMonth
           year={today.getFullYear()}
           month={today.getMonth()}
-          weekIndx={Math.ceil(currentWeekNumber / 5)}
-          completedTask={completedTask}
+          weekIndx={getWeekInMonth(today)}
+          completedWeeks={completedWeeks.map(Number)}
         />
       </div>
     </div>

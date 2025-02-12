@@ -20,21 +20,25 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
   // Logic for filter isComplete and unique day or date and taking the current month
   const completedMonths = dailyTask.reduce((months, task) => {
     if (task.isCompleted) {
-      const taskMonth = new Date(task.dateOnCreated).getMonth();
+      //this is for the current month
+      // Needed to review code here like i want to filter out dailytask of unique dates and same months******
+      const currentMonth = new Date().getMonth();
       const uniqueDatesInMonth = new Set(
         dailyTask
           .filter(
-            (t) => t.isCompleted && new Date(t.date).getMonth() === taskMonth
+            (t) => t.isCompleted && new Date(t.date).getMonth() === currentMonth
           )
           .map((t) => new Date(t.date).getDate())
       );
 
       if (uniqueDatesInMonth.size >= getDaysInCurrentMonth()) {
-        months.add(taskMonth);
+        months.add(currentMonth);
       }
     }
     return months;
   }, new Set());
+
+  //Need to create a new set for the weekly task issue number 2 ***** like wanted to ask
 
   // Add months from completed monthly tasks
   monthlyTask.forEach((task) => {
