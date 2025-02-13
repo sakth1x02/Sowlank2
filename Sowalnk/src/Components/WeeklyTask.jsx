@@ -209,8 +209,8 @@ function WeeklyTask() {
   };
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto flex space-x-4 mb-6">
-        <div className="w-2/3 rounded-lg shadow-lg p-5 bg-[#F0C1E1]">
+      <div className="max-w-md md:max-w-4xl lg:mx-auto md:flex space-y-4 md:space-y-0 md:space-x-4 mb-6">
+        <div className="md:w-2/3 rounded-lg shadow-lg p-5 bg-[#F0C1E1]">
           <h1 className="text-2xl font-semibold text-center mb-4 text-[#2e2e2e]">
             Weekly Checklist
           </h1>
@@ -264,7 +264,7 @@ function WeeklyTask() {
           </div>
         </div>
 
-        <div className="w-1/3 rounded-lg shadow-lg p-5 bg-[#F0C1E1]">
+        <div className="md:w-1/3 rounded-lg shadow-lg p-5 bg-[#F0C1E1]">
           <h2 className="text-xl font-semibold mb-4 text-[#3d3d3d]">
             Tasks This Week
           </h2>
@@ -289,7 +289,7 @@ function WeeklyTask() {
         </div>
       </div>
 
-      <div className="my-6 max-w-4xl mx-auto rounded-lg shadow-lg p-6 bg-[#F0C1E1]">
+      <div className="my-6 max-w-md md:max-w-4xl lg:mx-auto rounded-lg shadow-lg p-6 bg-[#F0C1E1]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse table-auto">
             <thead>

@@ -1,6 +1,12 @@
 import React from "react";
-
-const WeeksInMonth = ({ year, month, weekIndx, completedWeeks }) => {
+import { useSelector } from "react-redux";
+const WeeksInMonth = ({
+  year,
+  month,
+  weekIndx,
+  completedWeeks,
+  completedWeekTaskNum,
+}) => {
   const getDaysInMonth = (year, month) => {
     const days = [];
     const date = new Date(year, month, 1); // Start at the first day of the month
@@ -27,7 +33,7 @@ const WeeksInMonth = ({ year, month, weekIndx, completedWeeks }) => {
       currentWeek = [];
     }
   });
-  console.log(weeks);
+
   return (
     <div className="py-4">
       <h2 className="text-xl font-semibold mb-4">
@@ -50,7 +56,10 @@ const WeeksInMonth = ({ year, month, weekIndx, completedWeeks }) => {
                 id={`weeklytask-${index}`}
                 name="weeklytask"
                 type="checkbox"
-                checked={completedWeeks.includes(index + 1)}
+                checked={
+                  completedWeeks.includes(index + 1) ||
+                  completedWeekTaskNum.includes(index + 1)
+                }
                 onChange={() => {}}
                 className=""
                 style={{

@@ -142,7 +142,7 @@ function MonthlyTask() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
+      <div className="max-w-md md:max-w-4xl lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
         <div className="w-full lg:w-2/3 rounded-lg shadow-lg p-5 mb-4 lg:mb-0 bg-[#F0C1E1]">
           <h1 className="text-2xl font-semibold mb-6 text-[#2e2e2e]">
             Monthly Checklist
@@ -195,7 +195,7 @@ function MonthlyTask() {
       </div>
 
       {/* Tasks Table */}
-      <div className="max-w-4xl mx-auto mb-6 p-6 rounded-lg bg-[#F0C1E1]">
+      <div className="max-w-md md:max-w-4xl lg:mx-auto mb-6 p-6 rounded-lg bg-[#F0C1E1]">
         <h2 className="text-2xl font-semibold text-left mb-6 text-[#2e2e2e]">
           Month Tasks
         </h2>

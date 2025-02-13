@@ -11,7 +11,15 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
     const dayOfMonth = date.getDate();
     return Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
   };
+  // console.log(getWeekInMonth(new Date(20225, 1, 1)));
 
+  const completedWeekTaskNum = weeklyTask
+    .filter((task) => task.isCompleted)
+    .map((task) => {
+      const weekNum = getWeekInMonth(new Date(task.dateOnCreated));
+      return { ...task, weekNum };
+    });
+  console.log(completedWeekTaskNum);
   // Group completed tasks by week number in month
   const completedTasksByWeek = {};
   dailyTask.forEach((task) => {
@@ -73,6 +81,9 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
           month={today.getMonth()}
           weekIndx={getWeekInMonth(today)}
           completedWeeks={completedWeeks.map(Number)}
+          completedWeekTaskNum={completedWeekTaskNum.map(
+            (task) => task.weekNum
+          )}
         />
       </div>
     </div>

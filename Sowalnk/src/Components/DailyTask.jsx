@@ -12,6 +12,9 @@ import {
   calculateTaskProgress,
   setDailyTaskProofWork,
 } from "../store/task-slice";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 function DailyTask() {
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
@@ -23,6 +26,7 @@ function DailyTask() {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
+  const navigate = useNavigate();
 
   const { dailyTask } = useSelector((state) => state.task);
   const { weeklyTask } = useSelector((state) => state.weekly);
@@ -126,7 +130,14 @@ function DailyTask() {
 
   const toggleCompletionHandler = (task) => {
     if (task.proofOfWork !== "") {
-      dispatch(toggleTaskCompletion(task._id));
+      dispatch(toggleTaskCompletion(task._id))
+        .unwrap()
+        .then(() => {
+          toast.success(`Task "${task.taskName}" completed successfully! 🎉`);
+        })
+        .catch((error) => {
+          toast.error("Failed to complete task");
+        });
     }
   };
 
@@ -161,6 +172,9 @@ function DailyTask() {
     if (hasExceeded && !task.hasExceededTime) {
       try {
         await dispatch(toggleHasExceededTime(task._id)).unwrap();
+        toast.error(
+          `Time exceeded for task "${task.taskName}"! ⏰ No Worry You can still complete it`
+        );
         // Force refresh task data after exceeding time
         dispatch(fetchTasks());
       } catch (error) {
@@ -217,9 +231,21 @@ function DailyTask() {
     (task) => task.date.split("T")[0] === today.toISOString().split("T")[0]
   );
 
+  useEffect(() => {
+    const hasNavigated = sessionStorage.getItem("hasNavigatedToPricing");
+    if (todaysTasks.length >= 10 && !hasNavigated) {
+      toast.error("You have reached the maximum number of tasks for today");
+      sessionStorage.setItem("hasNavigatedToPricing", "true");
+      navigate("/pricing");
+    }
+    if (todaysTasks.length < 10) {
+      sessionStorage.removeItem("hasNavigatedToPricing");
+    }
+  }, [todaysTasks, navigate]);
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
+    <div className="min-h-screen lg:p-6 ">
+      <div className="max-w-md md:max-w-4xl lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
         <div
           className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0"
           style={{ backgroundColor: "#F0C1E1" }}
@@ -299,7 +325,7 @@ function DailyTask() {
       </div>
 
       <div
-        className="max-w-4xl mx-auto mb-6 p-6 rounded-lg"
+        className="max-w-md md:max-w-4xl lg:mx-auto mb-6 p-6 rounded-lg"
         style={{ backgroundColor: "#F0C1E1" }}
       >
         <div className="flex gap-6 justify-between items-start">
@@ -313,7 +339,7 @@ function DailyTask() {
             {
               <div className="mt-2 text-xl font-bold italic">
                 {selectedDate === "" ? (
-                  <p className="text-sm not-italic mt-1">
+                  <p className="text-sm not-italic mt-1 hidden md:block">
                     Select Date For Particular Task's Data
                   </p>
                 ) : (

@@ -19,7 +19,7 @@ const CompletedTask = () => {
     (a, b) => new Date(b) - new Date(a)
   );
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="md:max-w-4xl md:mx-auto md:p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">
         Completed Tasks History
       </h1>

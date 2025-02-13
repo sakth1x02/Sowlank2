@@ -7,48 +7,78 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
 
   const { dailyTask } = useSelector((state) => state.task);
 
+  const { weeklyTask } = useSelector((state) => state.weekly);
+
   const currentMonthIndex = new Date().getMonth();
 
-  function getDaysInCurrentMonth() {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const nextMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(nextMonth - 1);
-    return lastDayOfMonth.getDate();
+  function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
   }
-  // Logic for filter isComplete and unique day or date and taking the current month
+
   const completedMonths = dailyTask.reduce((months, task) => {
     if (task.isCompleted) {
-      //this is for the current month
-      // Needed to review code here like i want to filter out dailytask of unique dates and same months******
-      const currentMonth = new Date().getMonth();
+      const taskDate = new Date(task.date);
+      const taskMonth = taskDate.getMonth();
+      const taskYear = taskDate.getFullYear();
+
+      // Group completed tasks by month
+      const tasksInMonth = dailyTask.filter((t) => {
+        const date = new Date(t.date);
+        return (
+          t.isCompleted &&
+          date.getMonth() === taskMonth &&
+          date.getFullYear() === taskYear
+        );
+      });
+
+      // Get unique dates for this month
       const uniqueDatesInMonth = new Set(
-        dailyTask
-          .filter(
-            (t) => t.isCompleted && new Date(t.date).getMonth() === currentMonth
-          )
-          .map((t) => new Date(t.date).getDate())
+        tasksInMonth.map((t) => new Date(t.date).getDate())
       );
 
-      if (uniqueDatesInMonth.size >= getDaysInCurrentMonth()) {
-        months.add(currentMonth);
+      // Check if number of unique completed dates meets or exceeds days in that month
+      if (uniqueDatesInMonth.size >= getDaysInMonth(taskYear, taskMonth)) {
+        months.add(taskMonth);
       }
     }
     return months;
   }, new Set());
 
-  //Need to create a new set for the weekly task issue number 2 ***** like wanted to ask
-
-  // Add months from completed monthly tasks
-  monthlyTask.forEach((task) => {
+  // Calculate completed months from weekly tasks
+  const weeklyCompletedMonths = weeklyTask.reduce((months, task) => {
     if (task.isCompleted) {
-      const taskMonth = new Date(task.dateOnCreated).getMonth();
-      completedMonths.add(taskMonth);
-    }
-  });
+      const taskDate = new Date(task.dateOnCreated);
+      const taskMonth = taskDate.getMonth();
+      const taskYear = taskDate.getFullYear();
 
-  const progress = completedMonths.size;
+      // Get all weekly tasks for this month
+      const weeksInMonth = weeklyTask.filter((t) => {
+        const date = new Date(t.dateOnCreated);
+        return date.getMonth() === taskMonth && date.getFullYear() === taskYear;
+      });
+
+      // Get number of completed weeks in this month
+      const completedWeeksCount = weeksInMonth.filter(
+        (t) => t.isCompleted
+      ).length;
+
+      // Assuming a month needs 4 completed weeks to be considered complete
+      if (completedWeeksCount >= 4) {
+        months.add(taskMonth);
+      }
+    }
+    return months;
+  }, new Set());
+
+  // Merge both daily and weekly completed months
+  const allCompletedMonths = new Set([
+    ...completedMonths,
+    ...weeklyCompletedMonths,
+  ]);
+
+  // Update the progress variable to use allCompletedMonths
+  const progress = allCompletedMonths.size;
+
   const months = [
     "Jan",
     "Feb",
@@ -115,7 +145,7 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
             {/* Months Grid */}
             <div className="grid grid-cols-6 gap-2 w-full">
               {months.map((month, index) => {
-                const isCompleted = completedMonths.has(index);
+                const isCompleted = allCompletedMonths.has(index);
                 const isCurrentMonth = index === currentMonthIndex;
 
                 return (
