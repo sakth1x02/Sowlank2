@@ -19,7 +19,6 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
       const weekNum = getWeekInMonth(new Date(task.dateOnCreated));
       return { ...task, weekNum };
     });
-  console.log(completedWeekTaskNum);
   // Group completed tasks by week number in month
   const completedTasksByWeek = {};
   dailyTask.forEach((task) => {

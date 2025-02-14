@@ -1,13 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIntermediateMember, setAdvanceMember } from "../store/ui-slice";
 import { TriangleAlert } from "lucide-react";
+
 const Subscription = () => {
-  const [selectedPlan, setSelectedPlan] = useState(); // Track selected plan
+  const [selectedPlan, setSelectedPlan] = useState();
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { intermediateMember, advanceMember } = useSelector(
     (state) => state.ui
   );
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  // useEffect(() => {
+  //   const checkSubscriptionStatus = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const response = await fetch(
+  //         "http://localhost:1000/api/v1/subscription/status",
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //       const data = await response.json();
+
+  //       if (data.data.subscription) {
+  //         if (data.data.subscription.planType === "INTERMEDIATE") {
+  //           dispatch(setIntermediateMember(true));
+  //         } else if (data.data.subscription.planType === "ADVANCED") {
+  //           dispatch(setAdvanceMember(true));
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch subscription status:", error);
+  //     }
+  //   };
+
+  //   checkSubscriptionStatus();
+  // }, [dispatch]);
+
   const plans = [
     {
       name: "BASIC",
@@ -30,7 +70,7 @@ const Subscription = () => {
     },
     {
       name: "ADVANCED",
-      price: "₹1550/year",
+      price: "₹1500/year",
       features: [
         "Remainders,Push Notification",
         "support team",
@@ -42,23 +82,100 @@ const Subscription = () => {
   ];
 
   const showFeatures = (planName) => {
-    // Set the selected plan to show its features
     setSelectedPlan(planName);
   };
 
-  const handleSubscribe = (planName) => {
-    // Replace with actual navigation when the payment page is implemented
-    if (planName === "INTERMEDIATE") {
-      dispatch(setIntermediateMember(true));
-    }
-    if (planName === "ADVANCED") {
-      dispatch(setAdvanceMember(true));
+  const handleSubscribe = async (planName) => {
+    if (planName === "BASIC") return;
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      // Create subscription
+      const response = await fetch(
+        "http://localhost:1000/api/v1/subscription/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ planType: planName }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create subscription");
+      }
+
+      // Initialize Razorpay
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        subscription_id: data.data.id,
+        name: "Sowalnk",
+        description: `${planName} Plan Subscription`,
+        handler: async function (response) {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch(
+              "http://localhost:1000/api/v1/subscription/verify",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_subscription_id: response.razorpay_subscription_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              }
+            );
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok) {
+              throw new Error(
+                verifyData.message || "Payment verification failed"
+              );
+            }
+
+            // Update UI based on plan
+            if (planName === "INTERMEDIATE") {
+              dispatch(setIntermediateMember(true));
+            } else if (planName === "ADVANCED") {
+              dispatch(setAdvanceMember(true));
+            }
+
+            alert("Subscription successful!");
+          } catch (error) {
+            alert("Payment verification failed: " + error.message);
+          }
+        },
+        prefill: {
+          email: "user@example.com", // You can get this from your user context
+          contact: "", // User's phone number if available
+        },
+        theme: {
+          color: "#7C3AED",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
+    } catch (error) {
+      alert("Failed to initiate subscription: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="lg:min-h-screen flex flex-col items-center bg-purple-200 p-8">
-      {/* Moving Advertisement */}
       <div className="w-full overflow-hidden bg-black text-white py-2 flex items-center justify-center">
         <div className="text-xl font-bold animate-marquee">
           🎉 Special Offer: Get 50% off on your first 3 months! 🎉
@@ -87,7 +204,6 @@ const Subscription = () => {
         ))}
       </div>
 
-      {/* Display features of the selected plan */}
       {selectedPlan && (
         <div className="mt-8 bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl place-items-center text-center">
           <h2 className="text-2xl font-semibold mb-4">
@@ -113,9 +229,8 @@ const Subscription = () => {
           )}
           <button
             onClick={() => handleSubscribe(selectedPlan)}
-            className={`mt-4 
-           
-            `}
+            disabled={loading}
+            className={`mt-4 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <span
               className={` ${
@@ -130,7 +245,7 @@ const Subscription = () => {
               }
               `}
             >
-              Subscribe Now
+              {loading ? "Processing..." : "Subscribe Now"}
             </span>
             <span
               className={` ${
@@ -145,7 +260,7 @@ const Subscription = () => {
               }
               `}
             >
-              Subscribe Now
+              {loading ? "Processing..." : "Subscribe Now"}
             </span>
           </button>
           <button
@@ -157,7 +272,6 @@ const Subscription = () => {
         </div>
       )}
 
-      {/* Add CSS for the marquee animation */}
       <style jsx="true">{`
         @keyframes marquee {
           0% {

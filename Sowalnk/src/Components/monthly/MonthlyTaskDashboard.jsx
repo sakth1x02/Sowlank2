@@ -70,10 +70,21 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
     return months;
   }, new Set());
 
+  //This is for the monthly task
+  const monthlyCompletedMonths = monthlyTask.reduce((months, task) => {
+    if (task.isCompleted) {
+      const taskDate = new Date(task.dateOnCreated);
+      const taskMonth = taskDate.getMonth();
+      months.add(taskMonth);
+    }
+    return months;
+  }, new Set());
+
   // Merge both daily and weekly completed months
   const allCompletedMonths = new Set([
     ...completedMonths,
     ...weeklyCompletedMonths,
+    ...monthlyCompletedMonths,
   ]);
 
   // Update the progress variable to use allCompletedMonths

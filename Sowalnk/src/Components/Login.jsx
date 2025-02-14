@@ -41,10 +41,12 @@ const Login = () => {
       if (!response.ok) {
         throw new Error(data.message || "Error logging in");
       }
+      console.log(data.token);
 
       if (data?.data) {
         const userData = data.data;
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", data.token);
         dispatch(setLoggedInUser(userData));
         toast.success("User Logged In successfully!");
         navigate("/");
