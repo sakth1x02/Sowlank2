@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock } from "lucide-react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
@@ -41,8 +40,6 @@ const Login = () => {
       if (!response.ok) {
         throw new Error(data.message || "Error logging in");
       }
-      console.log(data.token);
-
       if (data?.data) {
         const userData = data.data;
         localStorage.setItem("user", JSON.stringify(userData));

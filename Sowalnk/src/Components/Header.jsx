@@ -21,6 +21,7 @@ const Header = () => {
     dispatch(setLoggedInUser(null));
     toast.success("Logged out successfully");
     navigate("/login");
+    window.location.reload();
   };
 
   useEffect(() => {

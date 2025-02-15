@@ -106,7 +106,7 @@ const verifySubscription = asyncHandler(async (req, res) => {
 });
 
 const getSubscriptionStatus = asyncHandler(async (req, res) => {
-  const subscription = await Subscription.findOne({
+  const subscription = await Subscription.find({
     userId: req.user._id,
     status: "active",
   });

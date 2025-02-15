@@ -19,34 +19,35 @@ const Subscription = () => {
     document.body.appendChild(script);
   }, []);
 
-  // useEffect(() => {
-  //   const checkSubscriptionStatus = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       const response = await fetch(
-  //         "http://localhost:1000/api/v1/subscription/status",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-  //       const data = await response.json();
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:1000/api/v1/subscription/status",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        console.log(data);
 
-  //       if (data.data.subscription) {
-  //         if (data.data.subscription.planType === "INTERMEDIATE") {
-  //           dispatch(setIntermediateMember(true));
-  //         } else if (data.data.subscription.planType === "ADVANCED") {
-  //           dispatch(setAdvanceMember(true));
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch subscription status:", error);
-  //     }
-  //   };
+        data.data.subscription.forEach((plan) => {
+          if (plan.planType === "INTERMEDIATE") {
+            dispatch(setIntermediateMember(true));
+          } else if (plan.planType === "ADVANCED") {
+            dispatch(setAdvanceMember(true));
+          }
+        });
+      } catch (error) {
+        console.error("Failed to fetch subscription status:", error);
+      }
+    };
 
-  //   checkSubscriptionStatus();
-  // }, [dispatch]);
+    checkSubscriptionStatus();
+  }, [dispatch]);
 
   const plans = [
     {

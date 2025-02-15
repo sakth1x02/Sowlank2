@@ -14,6 +14,7 @@ import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";
 import Ranking from "./Components/Ranking.jsx";
 import CompletedTask from "./Components/CompletedTask";
+import Coupons from "./Components/Coupons.jsx";
 import { useSelector } from "react-redux";
 
 const App = () => {
@@ -64,6 +65,10 @@ const App = () => {
                 <Route
                   path="completed-task"
                   element={auth ? <CompletedTask /> : <Login />}
+                />
+                <Route
+                  path="coupons"
+                  element={auth ? <Coupons /> : <Login />}
                 />
               </Route>
             </Routes>
