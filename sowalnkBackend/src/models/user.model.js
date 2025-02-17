@@ -65,6 +65,18 @@ const userSchema = new Schema(
       type: Number,
       default: 10,
     },
+    normalCoins: {
+      type: Number,
+      default: 1,
+    },
+    goldCoins: {
+      type: Number,
+      default: 1,
+    },
+    eliteCoins: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,

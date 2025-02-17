@@ -213,6 +213,61 @@ const userAuthentication = {
       data: user,
     });
   }),
+  increaseNormalCoins: asyncHandler(async (req, res) => {
+    const { userId, taskId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not Found");
+    }
+
+    const task = await DailyTask.findById(taskId);
+    if (!task) {
+      throw new ApiError(404, "Task not Found");
+    }
+
+    if (task.isCompleted) {
+      user.normalCoins += 1;
+    }
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Normal Coins updated successfully",
+      data: user,
+    });
+  }),
+  increaseGoldCoins: asyncHandler(async (req, res) => {
+    const { userId, weeklyTaskCompleted } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not Found");
+    }
+    if (weeklyTaskCompleted) {
+      user.goldCoins += 1;
+    }
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Gold Coins updated successfully",
+      data: user,
+    });
+  }),
+  increaseEliteCoins: asyncHandler(async (req, res) => {
+    const { userId, monthlyTaskCompleted } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not Found");
+    }
+    if (monthlyTaskCompleted) {
+      user.eliteCoins += 1;
+    }
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Elite Coins updated successfully",
+      data: user,
+    });
+  }),
 };
 
 export { userAuthentication };

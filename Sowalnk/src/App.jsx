@@ -14,8 +14,11 @@ import MonthlyTask from "./Components/MonthlyTask";
 import TaskChart from "./Components/TaskChart";
 import Ranking from "./Components/Ranking.jsx";
 import CompletedTask from "./Components/CompletedTask";
-import Coupons from "./Components/Coupons.jsx";
+import Coupons from "./Components/Coupons/Coupons.jsx";
 import { useSelector } from "react-redux";
+import NormalCoinConvert from "./Components/Coupons/NormalCoinConvert.jsx";
+import GoldCoinConvert from "./Components/Coupons/GoldCoinConvert.jsx";
+import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
 
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
@@ -70,6 +73,19 @@ const App = () => {
                   path="coupons"
                   element={auth ? <Coupons /> : <Login />}
                 />
+
+                <Route
+                  path="coupons/normal"
+                  element={auth ? <NormalCoinConvert /> : <Login />}
+                />
+                <Route
+                  path="coupons/gold"
+                  element={auth ? <GoldCoinConvert /> : <Login />}
+                />
+                <Route
+                  path="coupons/elite"
+                  element={auth ? <EliteCoinConvert /> : <Login />}
+                />
               </Route>
             </Routes>
           </div>
@@ -80,23 +96,3 @@ const App = () => {
 };
 
 export default App;
-
-// import React from 'react'
-// import Dashboard1 from './Components/Dashboard1'
-// import { BrowserRouter , Route, Routes } from 'react-router-dom'
-
-// function App() {
-//   return (
-//     <div>
-//       <BrowserRouter>
-//       <Routes>
-//       <Route path="/" element={<Dashboard1 />} />
-
-//       </Routes>
-
-//       </BrowserRouter>
-//     </div>
-//   )
-// }
-
-// export default App

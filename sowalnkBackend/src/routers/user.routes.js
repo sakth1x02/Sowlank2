@@ -15,4 +15,8 @@ router.get("/me", userAuthentication.getCurrentUser);
 router.get("/users", userAuthentication.getAllUsers);
 router.post("/update-points", userAuthentication.updateTaskPoints);
 
+router.post("/increase-normal-coins", userAuthentication.increaseNormalCoins);
+router.post("/increase-gold-coins", userAuthentication.increaseGoldCoins);
+router.post("/increase-elite-coins", userAuthentication.increaseEliteCoins);
+
 export default router;

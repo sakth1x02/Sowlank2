@@ -15,6 +15,8 @@ import {
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+import { increaseNormalCoins } from "../store/user-slice";
+
 function DailyTask() {
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
@@ -30,6 +32,7 @@ function DailyTask() {
 
   const { dailyTask } = useSelector((state) => state.task);
   const { weeklyTask } = useSelector((state) => state.weekly);
+  const { loggedInUser } = useSelector((state) => state.user);
 
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "short",
@@ -128,16 +131,37 @@ function DailyTask() {
     return "#6DA951";
   };
 
-  const toggleCompletionHandler = (task) => {
-    if (task.proofOfWork !== "") {
-      dispatch(toggleTaskCompletion(task._id))
-        .unwrap()
-        .then(() => {
-          toast.success(`Task "${task.taskName}" completed successfully! 🎉`);
+  const toggleCompletionHandler = async (task) => {
+    // Early return if proofOfWork is empty
+    if (task.proofOfWork === "") {
+      return;
+    }
+
+    try {
+      // Toggle task completion
+      await dispatch(toggleTaskCompletion(task._id)).unwrap();
+      toast.success(`Task "${task.taskName}" completed successfully! 🎉`);
+
+      // Increase coins
+      await dispatch(
+        increaseNormalCoins({
+          userId: loggedInUser._id,
+          taskId: task._id,
         })
-        .catch((error) => {
-          toast.error("Failed to complete task");
-        });
+      ).unwrap();
+      toast.success("Coins increased successfully! 🪙");
+    } catch (error) {
+      // Specific error messages
+      if (error.message.includes("toggleTaskCompletion")) {
+        toast.error("Failed to complete task");
+      } else if (error.message.includes("increaseNormalCoins")) {
+        toast.error("Failed to increase coins");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+
+      // Log the error for debugging
+      console.error("Error in toggleCompletionHandler:", error);
     }
   };
 
