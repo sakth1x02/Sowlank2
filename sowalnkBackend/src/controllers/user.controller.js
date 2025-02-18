@@ -4,7 +4,8 @@ import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { DailyTask } from "../models/daily.model.js";
-
+import { weeklyTask } from "../models/weekly.model.js";
+import { monthlyTask } from "../models/monthly.model.js";
 // Helper function to generate access token
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -237,14 +238,21 @@ const userAuthentication = {
     });
   }),
   increaseGoldCoins: asyncHandler(async (req, res) => {
-    const { userId, weeklyTaskCompleted } = req.body;
+    const { userId, taskId } = req.body;
     const user = await User.findById(userId);
     if (!user) {
       throw new ApiError(404, "User not Found");
     }
-    if (weeklyTaskCompleted) {
+
+    const task = await weeklyTask.findById(taskId);
+    if (!task) {
+      throw new ApiError(404, "Task not Found");
+    }
+
+    if (task.isCompleted) {
       user.goldCoins += 1;
     }
+
     await user.save();
     res.status(200).json({
       success: true,
@@ -253,18 +261,106 @@ const userAuthentication = {
     });
   }),
   increaseEliteCoins: asyncHandler(async (req, res) => {
-    const { userId, monthlyTaskCompleted } = req.body;
+    const { userId, taskId } = req.body;
     const user = await User.findById(userId);
     if (!user) {
       throw new ApiError(404, "User not Found");
     }
-    if (monthlyTaskCompleted) {
+    const task = await monthlyTask.findById(taskId);
+    if (!task) {
+      throw new ApiError(404, "Task not Found");
+    }
+    if (task.isCompleted) {
       user.eliteCoins += 1;
     }
     await user.save();
     res.status(200).json({
       success: true,
       message: "Elite Coins updated successfully",
+      data: user,
+    });
+  }),
+  convertNormalCoinsToCoupon: asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const COUPON_COST = 5;
+
+    if (user.normalCoins < COUPON_COST) {
+      throw new ApiError(400, "Not enough normal coins to convert.");
+    }
+
+    if (user.couponCards.length >= 2) {
+      throw new ApiError(400, "You can only have 2 coupons at a time!");
+    }
+
+    // Deduct coins and add a coupon card
+    user.normalCoins -= COUPON_COST;
+    user.couponCards.push(`Coupon Card ${user.couponCards.length + 1}`);
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Coupon card generated successfully!",
+      data: user,
+    });
+  }),
+  convertGoldCoinsToCoupon: asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not Found");
+    }
+    const COUPON_COST = 5;
+    if (user.goldCoins < COUPON_COST) {
+      throw new ApiError(400, "Not enough gold coins to convert");
+    }
+    if (user.goldCouponCards.length >= 5)
+      throw new ApiError(400, "You can only have 5 coupons at a time");
+
+    //Deduct coins and add a coupon card
+    user.goldCoins -= COUPON_COST;
+    user.goldCouponCards.push(
+      `Gold Coupon Card ${user.goldCouponCards.length + 1}`
+    );
+
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Gold Coupon Card Generated Successfully",
+      data: user,
+    });
+  }),
+
+  convertEliteCoinsToCoupon: asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User not Found");
+    }
+    const COUPON_COST = 5;
+    if (user.eliteCoins < COUPON_COST) {
+      throw new ApiError(400, "Not enough elite coins to convert");
+    }
+    if (user.eliteCouponCards.length >= 1) {
+      throw new ApiError(400, "You can only have 1 elite coupon at a time");
+    }
+
+    //Deduct coins and add a coupon card
+    user.eliteCoins -= COUPON_COST;
+    user.eliteCouponCards.push(
+      `₹1000 Discount Coupon ${user.eliteCouponCards.length + 1} for Food or Products`
+    );
+
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Elite Coupon Card Generated Successfully",
       data: user,
     });
   }),

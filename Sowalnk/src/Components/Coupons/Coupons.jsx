@@ -12,10 +12,16 @@ const Coupons = () => {
   const loggedInUserData = users.find(
     (user) => user?._id === loggedInUser?._id
   );
-  console.log(loggedInUserData);
+
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
+
+  if (!loggedInUserData) {
+    return <p>Loading...</p>;
+  }
+
+  console.log(loggedInUserData);
 
   const coinTypes = [
     {
@@ -23,7 +29,7 @@ const Coupons = () => {
       description: "Basic coins for everyday rewards",
       color: "bg-blue-500",
       icon: "🪙",
-      amount: loggedInUserData.normalCoins,
+      amount: loggedInUserData?.normalCoins,
       locked: false,
       link: "/coupons/normal",
     },
@@ -32,7 +38,7 @@ const Coupons = () => {
       description: "Premium currency for special items",
       color: "bg-yellow-500",
       icon: "💰",
-      amount: "1",
+      amount: loggedInUserData?.goldCoins,
       locked: !intermediateMember,
       link: "/coupons/gold",
     },
@@ -41,7 +47,7 @@ const Coupons = () => {
       description: "Exclusive currency for rare items",
       color: "bg-purple-500",
       icon: "👑",
-      amount: "1",
+      amount: loggedInUserData?.eliteCoins,
       locked: !advanceMember,
       link: "/coupons/elite",
     },
@@ -94,7 +100,7 @@ const Coupons = () => {
                       : "hover:bg-gray-700"
                   }`}
                 >
-                  Get More Coins
+                  Convert to Coupon
                 </Link>
               </div>
             </div>

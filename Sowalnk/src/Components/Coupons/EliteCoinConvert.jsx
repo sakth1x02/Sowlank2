@@ -1,34 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchUsers, convertEliteCoinsToCoupon } from "../../store/user-slice";
 
 const EliteCoinConvert = () => {
-  // Load Elite Coins and Coupons from localStorage
-  const [eliteCoins, setEliteCoins] = useState(
-    () => parseInt(localStorage.getItem("eliteCoins")) || 2000
-  );
-  const [eliteCoupons, setEliteCoupons] = useState(
-    () => JSON.parse(localStorage.getItem("eliteCoupons")) || []
-  );
+  const dispatch = useDispatch();
+  const { users, loggedInUser } = useSelector((store) => store.user);
+  const loggedInUserData = users.find((user) => user._id === loggedInUser._id);
 
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  if (!loggedInUserData) {
+    return <p>Loading...</p>;
+  }
+  const COUPON_COST = 5;
   // Function to handle conversion
-  const handleConvert = () => {
-    if (eliteCoupons.length >= 1) {
+  const handleConvert = async () => {
+    if (loggedInUserData?.eliteCouponCards.length >= 1) {
       toast.warning("You can only have 1 Elite Coupon at a time!");
       return;
     }
 
-    if (eliteCoins < 1000) {
-      toast.error("Not enough Elite Coins! You need at least 1000.");
+    if (loggedInUserData?.eliteCoins < COUPON_COST) {
+      toast.error("Not enough Elite Coins! You need at least 5.");
       return;
     }
 
     // Deduct 1000 coins and add a new coupon
-    setEliteCoins((prev) => prev - 1000);
-    setEliteCoupons([
-      { description: "₹1000 Discount Coupon for Food or Products" },
-    ]);
-    toast.success("Successfully redeemed a ₹1000 coupon!");
+    try {
+      await dispatch(
+        convertEliteCoinsToCoupon({ userId: loggedInUserData._id })
+      ).unwrap();
+      toast.success("Successfully redeemed a ₹1000 coupon!");
+    } catch (error) {
+      console.error("Error converting elite coins:", error);
+      toast.error("Error converting elite coins. Please try again.");
+    }
   };
 
   return (
@@ -40,16 +50,22 @@ const EliteCoinConvert = () => {
       {/* Display Elite Coin Balance */}
       <div className="text-center mb-6 flex justify-center items-center gap-5">
         <p className="text-lg">Your Balance:</p>
-        <p className="text-2xl font-bold">👑 {eliteCoins} Elite Coins</p>
+        <p className="text-2xl font-bold">
+          👑 {loggedInUserData?.eliteCoins} Elite Coins
+        </p>
       </div>
 
       {/* Convert Button */}
       <div className="text-center">
         <button
           onClick={handleConvert}
-          disabled={eliteCoupons.length >= 1 || eliteCoins < 1000}
+          disabled={
+            loggedInUserData?.eliteCouponCards.length >= 1 ||
+            loggedInUserData?.eliteCoins < COUPON_COST
+          }
           className={`px-6 py-2 text-white font-semibold rounded-lg ${
-            eliteCoupons.length >= 1 || eliteCoins < 1000
+            loggedInUserData?.eliteCouponCards.length >= 1 ||
+            loggedInUserData?.eliteCoins < COUPON_COST
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-purple-600 hover:bg-purple-500"
           }`}
@@ -60,7 +76,7 @@ const EliteCoinConvert = () => {
 
       {/* Display Coupons */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-1 gap-6">
-        {eliteCoupons.map((coupon, index) => (
+        {loggedInUserData?.eliteCouponCards.map((coupon, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 10 }}
@@ -74,7 +90,7 @@ const EliteCoinConvert = () => {
       </div>
 
       {/* Show a message if they have no coupons */}
-      {eliteCoupons.length === 0 && (
+      {loggedInUserData?.eliteCouponCards.length === 0 && (
         <p className="text-center text-gray-500 mt-4">
           You haven't redeemed any coupons yet.
         </p>

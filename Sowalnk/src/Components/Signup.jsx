@@ -48,7 +48,6 @@ const Signup = () => {
       newErrors.password =
         "Password must be at least 8 characters long,should have one uppercase,one lowercase and one special character";
     }
-    console.log(formData.password, formData.confirmPassword);
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }

@@ -5,9 +5,11 @@ import {
   addMonthlyTask,
   deleteMonthlyTask,
   toggleMonthlyTaskCompletion,
-} from "../store/monthly-slice";
+} from "../store/monthly-slice.jsx";
 
-import { calculateMonthlyTaskProgress } from "../store/monthly-slice";
+import { calculateMonthlyTaskProgress } from "../store/monthly-slice.jsx";
+import { toast } from "react-toastify";
+// import { increaseEliteCoins } from "../store/user-slice.jsx";
 
 function MonthlyTask() {
   const [taskName, setTaskName] = useState("");
@@ -18,7 +20,7 @@ function MonthlyTask() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const { monthlyTask } = useSelector((store) => store.monthly);
-
+  // const { loggedInUser } = useSelector((store) => store.user);
   const dispatch = useDispatch();
 
   const today = new Date();
@@ -110,8 +112,21 @@ function MonthlyTask() {
     dispatch(deleteMonthlyTask(taskId));
   };
 
-  const toggleCompletion = (task) => {
-    dispatch(toggleMonthlyTaskCompletion(task._id));
+  const toggleCompletion = async (task) => {
+    try {
+      await dispatch(toggleMonthlyTaskCompletion(task._id)).unwrap();
+      toast.success(`Task "${task.taskName}" completed successfully! 🎉`);
+      // await dispatch(
+      //   increaseEliteCoins({
+      //     userId: loggedInUser._id,
+      //     taskId: task._id,
+      //   })
+      // ).unwrap();
+      // toast.success("Elite Coins increased successfully! 👑");
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+      toast.error("Failed to complete task");
+    }
   };
 
   const getProgressColor = (progress) => {

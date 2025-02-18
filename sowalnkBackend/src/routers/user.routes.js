@@ -18,5 +18,13 @@ router.post("/update-points", userAuthentication.updateTaskPoints);
 router.post("/increase-normal-coins", userAuthentication.increaseNormalCoins);
 router.post("/increase-gold-coins", userAuthentication.increaseGoldCoins);
 router.post("/increase-elite-coins", userAuthentication.increaseEliteCoins);
-
+router.post(
+  "/convert-normal-coins",
+  userAuthentication.convertNormalCoinsToCoupon
+);
+router.post("/convert-gold-coins", userAuthentication.convertGoldCoinsToCoupon);
+router.post(
+  "/convert-elite-coins",
+  userAuthentication.convertEliteCoinsToCoupon
+);
 export default router;

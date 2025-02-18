@@ -60,7 +60,7 @@ export const increaseNormalCoins = createAsyncThunk(
 
 export const increaseGoldCoins = createAsyncThunk(
   "user/increaseGoldCoins",
-  async ({ userId, weeklyTaskCompleted }) => {
+  async ({ userId, taskId }) => {
     try {
       const response = await fetch(
         "http://localhost:1000/api/v1/user/increase-gold-coins",
@@ -70,7 +70,7 @@ export const increaseGoldCoins = createAsyncThunk(
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId, weeklyTaskCompleted }),
+          body: JSON.stringify({ userId, taskId }),
         }
       );
       if (response.ok) {
@@ -84,7 +84,7 @@ export const increaseGoldCoins = createAsyncThunk(
 );
 export const increaseEliteCoins = createAsyncThunk(
   "user/increaseEliteCoins",
-  async ({ userId, monthlyTaskCompleted }) => {
+  async ({ userId, taskId }) => {
     try {
       const response = await fetch(
         "http://localhost:1000/api/v1/user/increase-elite-coins",
@@ -94,7 +94,7 @@ export const increaseEliteCoins = createAsyncThunk(
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId, monthlyTaskCompleted }),
+          body: JSON.stringify({ userId, taskId }),
         }
       );
       if (response.ok) {
@@ -107,6 +107,81 @@ export const increaseEliteCoins = createAsyncThunk(
   }
 );
 
+export const convertNormalCoinsToCoupon = createAsyncThunk(
+  "user/convertNormalCoinsToCoupon",
+  async ({ userId }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:1000/api/v1/user/convert-normal-coins",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      if (response.ok) {
+        const res = await response.json();
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Error converting normal coins:", error);
+    }
+  }
+);
+
+export const convertGoldCoinsToCoupon = createAsyncThunk(
+  "user/convertGoldCoinsToCoupon",
+  async ({ userId }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:1000/api/v1/user/convert-gold-coins",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+      if (response.ok) {
+        const res = await response.json();
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Error converting gold coins:", error);
+    }
+  }
+);
+
+export const convertEliteCoinsToCoupon = createAsyncThunk(
+  "user/convertEliteCoinsToCoupon",
+  async ({ userId }) => {
+    try {
+      const response = await fetch(
+        "http://localhost:1000/api/v1/user/convert-elite-coins",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+      if (response.ok) {
+        const res = await response.json();
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Error converting elite coins:", error);
+    }
+  }
+);
 const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -143,6 +218,24 @@ const userSlice = createSlice({
         );
       })
       .addCase(increaseEliteCoins.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user._id === updatedUser._id ? updatedUser : user
+        );
+      })
+      .addCase(convertNormalCoinsToCoupon.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user._id === updatedUser._id ? updatedUser : user
+        );
+      })
+      .addCase(convertGoldCoinsToCoupon.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user._id === updatedUser._id ? updatedUser : user
+        );
+      })
+      .addCase(convertEliteCoinsToCoupon.fulfilled, (state, action) => {
         const updatedUser = action.payload;
         state.users = state.users.map((user) =>
           user._id === updatedUser._id ? updatedUser : user

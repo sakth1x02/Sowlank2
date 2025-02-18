@@ -1,43 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUsers } from "../../store/user-slice";
+import { fetchUsers, convertNormalCoinsToCoupon } from "../../store/user-slice";
+
 const NormalCoinConvert = () => {
-  // State for normal coins and coupon cards
+  const dispatch = useDispatch();
   const { users, loggedInUser } = useSelector((store) => store.user);
   const loggedInUserData = users.find((user) => user._id === loggedInUser._id);
-  console.log(loggedInUserData);
-  const [normalCoins, setNormalCoins] = useState(1);
-  const [couponCards, setCouponCards] = useState([]);
-  const dispatch = useDispatch();
-  //There this loggesInUserData getting undefined value need to fix it
+
   useEffect(() => {
     dispatch(fetchUsers());
-  }, []);
+  }, [dispatch]);
 
-  // Cost of one coupon card in normal coins
+  if (!loggedInUserData) {
+    return <p>Loading...</p>;
+  }
+
   const COUPON_COST = 5;
 
-  // Function to handle coin conversion
-  const handleConvertCoins = () => {
-    if (couponCards.length >= 2) {
+  const handleConvertCoins = async () => {
+    if (loggedInUserData.couponCards.length >= 2) {
       toast.warning("You can only have 2 coupons at a time!");
       return;
     }
 
-    if (normalCoins < COUPON_COST) {
+    if (loggedInUserData.normalCoins < COUPON_COST) {
       toast.warning("Not enough normal coins to convert.");
       return;
     }
 
-    // Deduct coins and generate a new coupon card
-    setNormalCoins((prevCoins) => prevCoins - COUPON_COST);
-    setCouponCards((prevCards) => [
-      ...prevCards,
-      `Coupon Card ${prevCards.length + 1}`,
-    ]);
-    toast.success("Coupon card generated successfully!");
+    try {
+      await dispatch(
+        convertNormalCoinsToCoupon({ userId: loggedInUserData._id })
+      ).unwrap();
+      toast.success("Coupon card generated successfully!");
+    } catch (error) {
+      toast.error(error.message || "Failed to convert coins.");
+    }
   };
 
   return (
@@ -49,7 +49,7 @@ const NormalCoinConvert = () => {
       {/* Display available normal coins */}
       <div className="bg-blue-100 p-4 rounded-lg mb-6">
         <p className="text-lg font-semibold text-blue-800">
-          Available Normal Coins: {normalCoins}
+          Available Normal Coins: {loggedInUserData?.normalCoins || 0}
         </p>
       </div>
 
@@ -58,7 +58,8 @@ const NormalCoinConvert = () => {
         <button
           onClick={handleConvertCoins}
           className={`bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors ${
-            couponCards.length >= 2 || normalCoins < COUPON_COST
+            loggedInUserData?.couponCards.length >= 2 ||
+            loggedInUserData?.normalCoins < COUPON_COST
               ? "opacity-50 cursor-not-allowed"
               : ""
           }`}
@@ -69,7 +70,7 @@ const NormalCoinConvert = () => {
 
       {/* Display generated coupon cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {couponCards.map((card, index) => (
+        {loggedInUserData?.couponCards.map((card, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 10 }}
@@ -83,7 +84,7 @@ const NormalCoinConvert = () => {
       </div>
 
       {/* Message when maximum cards are reached */}
-      {couponCards.length >= 2 && (
+      {loggedInUserData?.couponCards.length >= 2 && (
         <p className="text-center text-gray-600 mt-6">
           You have reached the maximum number of coupon cards.
         </p>

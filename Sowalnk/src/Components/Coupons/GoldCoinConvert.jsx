@@ -1,34 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchUsers, convertGoldCoinsToCoupon } from "../../store/user-slice";
 
 const GoldCoinConvert = () => {
-  // State for normal coins and coupon cards
-  const [goldCoins, setGoldCoins] = useState(25);
-  const [couponCards, setCouponCards] = useState([]);
+  const dispatch = useDispatch();
+  const { users, loggedInUser } = useSelector((store) => store.user);
+  const loggedInUserData = users.find((user) => user._id === loggedInUser._id);
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  if (!loggedInUserData) {
+    return <p>Loading...</p>;
+  }
 
   // Cost of one coupon card in normal coins
   const COUPON_COST = 5;
 
   // Function to handle coin conversion
-  const handleConvertCoins = () => {
-    if (couponCards.length >= 5) {
+  const handleConvertCoins = async () => {
+    if (loggedInUserData?.goldCouponCards.length >= 5) {
       toast.warning("You can only have 5 coupons at a time!");
       return;
     }
 
-    if (goldCoins < COUPON_COST) {
+    if (loggedInUserData?.goldCoins < COUPON_COST) {
       toast.warning("Not enough gold coins to convert.");
       return;
     }
 
     // Deduct coins and generate a new coupon card
-    setGoldCoins((prevCoins) => prevCoins - COUPON_COST);
-    setCouponCards((prevCards) => [
-      ...prevCards,
-      `Coupon Card ${prevCards.length + 1}`,
-    ]);
-    toast.success("Coupon card generated successfully!");
+    try {
+      await dispatch(
+        convertGoldCoinsToCoupon({ userId: loggedInUserData._id })
+      ).unwrap();
+      toast.success("Coupon card generated successfully!");
+    } catch (error) {
+      console.error("Error generating coupon card:", error);
+      toast.error("Error generating coupon card. Please try again.");
+    }
   };
 
   return (
@@ -38,7 +51,7 @@ const GoldCoinConvert = () => {
       {/* Display available normal coins */}
       <div className="bg-blue-100 p-4 rounded-lg mb-6">
         <p className="text-lg font-semibold text-blue-800">
-          Available Gold Coins: {goldCoins}
+          Available Gold Coins: {loggedInUserData?.goldCoins || 0}
         </p>
       </div>
 
@@ -47,7 +60,8 @@ const GoldCoinConvert = () => {
         <button
           onClick={handleConvertCoins}
           className={`bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors ${
-            couponCards.length >= 5 || goldCoins < COUPON_COST
+            loggedInUserData?.goldCouponCards.length >= 5 ||
+            loggedInUserData?.goldCoins < COUPON_COST
               ? "opacity-50 cursor-not-allowed"
               : ""
           }`}
@@ -58,7 +72,7 @@ const GoldCoinConvert = () => {
 
       {/* Display generated coupon cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {couponCards.map((card, index) => (
+        {loggedInUserData?.goldCouponCards.map((card, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 10 }}
@@ -72,7 +86,7 @@ const GoldCoinConvert = () => {
       </div>
 
       {/* Message when maximum cards are reached */}
-      {couponCards.length >= 5 && (
+      {loggedInUserData?.goldCouponCards.length >= 5 && (
         <p className="text-center text-gray-600 mt-6">
           You have reached the maximum number of coupon cards.
         </p>

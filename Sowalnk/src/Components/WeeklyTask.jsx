@@ -12,6 +12,9 @@ import {
   setWeeklyTaskProofWork,
 } from "../store/weekly-slice";
 
+import { toast } from "react-toastify";
+import { increaseGoldCoins } from "../store/user-slice.jsx";
+
 function WeeklyTask() {
   const [taskName, setTaskName] = useState("");
   const [priority, setPriority] = useState("");
@@ -19,6 +22,7 @@ function WeeklyTask() {
   const [endDate, setEndDate] = useState("");
   const { dailyTask } = useSelector((state) => state.task);
   const { weeklyTask } = useSelector((state) => state.weekly);
+  const { loggedInUser } = useSelector((store) => store.user);
   const dispatch = useDispatch();
 
   const today = new Date();
@@ -115,9 +119,23 @@ function WeeklyTask() {
     setEndDate("");
   };
 
-  const toggleCompletion = (task) => {
-    if (task.proofOfWork !== "") {
-      dispatch(toggleWeeklyTaskCompletion(task._id));
+  const toggleCompletion = async (task) => {
+    if (task.proofOfWork === "") {
+      return;
+    }
+    try {
+      await dispatch(toggleWeeklyTaskCompletion(task._id)).unwrap();
+      toast.success(`Task "${task.taskName}" completed successfully! 🎉`);
+      await dispatch(
+        increaseGoldCoins({
+          userId: loggedInUser._id,
+          taskId: task._id,
+        })
+      ).unwrap();
+      toast.success("Gold Coins increased successfully! 💰");
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+      toast.error("Failed to complete task");
     }
   };
 

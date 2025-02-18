@@ -77,6 +77,18 @@ const userSchema = new Schema(
       type: Number,
       default: 1,
     },
+    couponCards: {
+      type: [String],
+      default: [],
+    },
+    goldCouponCards: {
+      type: [String],
+      default: [],
+    },
+    eliteCouponCards: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
