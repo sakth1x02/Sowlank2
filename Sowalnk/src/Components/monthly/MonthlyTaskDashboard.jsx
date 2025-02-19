@@ -147,7 +147,7 @@ const MonthlyTaskDashboard = ({ openMonthlyTask, setOpenMonthlyTask }) => {
           <div className="p-4 flex flex-col items-center gap-6">
             {/* Title */}
             <h2 className="text-2xl font-bold text-gray-800">
-              Elite Monthly Tracker
+              Monthly Tracker
             </h2>
 
             {/* Progress Circle */}

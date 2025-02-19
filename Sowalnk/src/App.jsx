@@ -19,7 +19,7 @@ import { useSelector } from "react-redux";
 import NormalCoinConvert from "./Components/Coupons/NormalCoinConvert.jsx";
 import GoldCoinConvert from "./Components/Coupons/GoldCoinConvert.jsx";
 import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
-
+import YearlyTask from "./Components/YearlyTask";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -56,6 +56,10 @@ const App = () => {
                 <Route
                   path="monthly"
                   element={auth ? <MonthlyTask /> : <Login />}
+                />
+                <Route
+                  path="yearly"
+                  element={auth ? <YearlyTask /> : <Login />}
                 />
                 <Route
                   path="taskchart"

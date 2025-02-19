@@ -317,8 +317,8 @@ function WeeklyTask() {
                 <th className="px-4 py-3">Start Date</th>
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Progress</th>
-                <th className="px-4 py-3">Completed</th>
-                <th className="px-4 py-3">Proof of Work</th>
+                {/* <th className="px-4 py-3">Completed</th>
+                <th className="px-4 py-3">Proof of Work</th> */}
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -347,7 +347,7 @@ function WeeklyTask() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  {/* <td className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
                       checked={task.proofOfWork !== "" && task?.isCompleted}
@@ -385,7 +385,7 @@ function WeeklyTask() {
                         View Proof
                       </a>
                     )}
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => handleDelete(task._id)}

@@ -223,7 +223,6 @@ function MonthlyTask() {
                 <th className="px-4 py-3">Start Date</th>
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Progress</th>
-                <th className="px-4 py-3">Completed</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
@@ -261,7 +260,7 @@ function MonthlyTask() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    {/* <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={task?.isCompleted}
@@ -271,7 +270,7 @@ function MonthlyTask() {
                         }`}
                         disabled={task.isCompleted}
                       />
-                    </td>
+                    </td> */}
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => handleDelete(task._id)}

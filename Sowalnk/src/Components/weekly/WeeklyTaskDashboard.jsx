@@ -11,7 +11,6 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
     const dayOfMonth = date.getDate();
     return Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
   };
-  // console.log(getWeekInMonth(new Date(20225, 1, 1)));
 
   const completedWeekTaskNum = weeklyTask
     .filter((task) => task.isCompleted)

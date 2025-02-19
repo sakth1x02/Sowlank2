@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { DailyTask } from "../models/daily.model.js";
 import { weeklyTask } from "../models/weekly.model.js";
-import { monthlyTask } from "../models/monthly.model.js";
+import { yearlyTask } from "../models/yearly.model.js";
 // Helper function to generate access token
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -266,7 +266,7 @@ const userAuthentication = {
     if (!user) {
       throw new ApiError(404, "User not Found");
     }
-    const task = await monthlyTask.findById(taskId);
+    const task = await yearlyTask.findById(taskId);
     if (!task) {
       throw new ApiError(404, "Task not Found");
     }

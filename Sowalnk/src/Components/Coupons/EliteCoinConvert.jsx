@@ -70,7 +70,7 @@ const EliteCoinConvert = () => {
               : "bg-purple-600 hover:bg-purple-500"
           }`}
         >
-          Redeem ₹1000 Coupon
+          Redeem ₹1000 Coupon(5 Elite Coins)
         </button>
       </div>
 
