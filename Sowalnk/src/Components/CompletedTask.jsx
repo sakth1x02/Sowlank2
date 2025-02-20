@@ -1,11 +1,13 @@
-import React from "react";
-import { useSelector } from "react-redux";
-
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchTasks } from "../store/task-slice.jsx";
 const CompletedTask = () => {
   const { dailyTask } = useSelector((state) => state.task);
+  const dispatch = useDispatch();
+  const dailyTaskData = dailyTask.filter((task) => task.isCompleted);
 
   // Group tasks by date
-  const groupedTasks = dailyTask.reduce((acc, task) => {
+  const groupedTasks = dailyTaskData.reduce((acc, task) => {
     const date = new Date(task.date.split("T")[0]).toDateString();
     if (!acc[date]) {
       acc[date] = [];
@@ -18,6 +20,11 @@ const CompletedTask = () => {
   const sortedDates = Object.keys(groupedTasks).sort(
     (a, b) => new Date(b) - new Date(a)
   );
+
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, []);
+
   return (
     <div className="md:max-w-4xl md:mx-auto md:p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">

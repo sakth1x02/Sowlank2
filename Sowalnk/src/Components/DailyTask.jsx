@@ -33,6 +33,7 @@ function DailyTask() {
   const { dailyTask } = useSelector((state) => state.task);
   const { weeklyTask } = useSelector((state) => state.weekly);
   const { loggedInUser } = useSelector((state) => state.user);
+  const { intermediateMember } = useSelector((store) => store.ui);
 
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "short",
@@ -254,15 +255,18 @@ function DailyTask() {
   const todaysTasks = dailyTask.filter(
     (task) => task.date.split("T")[0] === today.toISOString().split("T")[0]
   );
+  const taskLimitReached = intermediateMember
+    ? todaysTasks.length >= 20
+    : todaysTasks.length >= 10;
 
   useEffect(() => {
     const hasNavigated = sessionStorage.getItem("hasNavigatedToPricing");
-    if (todaysTasks.length >= 10 && !hasNavigated) {
+    if (taskLimitReached && !hasNavigated) {
       toast.error("You have reached the maximum number of tasks for today");
       sessionStorage.setItem("hasNavigatedToPricing", "true");
       navigate("/pricing");
     }
-    if (todaysTasks.length < 10) {
+    if (!taskLimitReached) {
       sessionStorage.removeItem("hasNavigatedToPricing");
     }
   }, [todaysTasks, navigate]);
@@ -338,9 +342,19 @@ function DailyTask() {
             <button
               onClick={handleAddTask}
               className={`w-full py-3 rounded-md bg-[#674188] text-white ${
-                todaysTasks.length >= 10 ? "cursor-not-allowed" : ""
+                (
+                  intermediateMember
+                    ? todaysTasks.length >= 20
+                    : todaysTasks.length >= 10
+                )
+                  ? "cursor-not-allowed"
+                  : ""
               }`}
-              disabled={todaysTasks.length >= 10}
+              disabled={
+                intermediateMember
+                  ? todaysTasks.length >= 20
+                  : todaysTasks.length >= 10
+              }
             >
               Add Task
             </button>

@@ -20,6 +20,7 @@ import NormalCoinConvert from "./Components/Coupons/NormalCoinConvert.jsx";
 import GoldCoinConvert from "./Components/Coupons/GoldCoinConvert.jsx";
 import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
 import YearlyTask from "./Components/YearlyTask";
+import OverdueTask from "./Components/OverdueTask.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -72,6 +73,10 @@ const App = () => {
                 <Route
                   path="completed-task"
                   element={auth ? <CompletedTask /> : <Login />}
+                />
+                <Route
+                  path="overdue-task"
+                  element={auth ? <OverdueTask /> : <Login />}
                 />
                 <Route
                   path="coupons"

@@ -54,8 +54,8 @@ function YearlyTask() {
     return true;
   };
 
-  const getLastDayOfMonth = (date) => {
-    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const getLastDayOfThiredMonth = (date) => {
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 4, 1);
     return lastDay;
   };
 
@@ -65,7 +65,7 @@ function YearlyTask() {
 
     // Automatically set end date to last day of the month
     const startDateObj = new Date(newStartDate);
-    const lastDay = getLastDayOfMonth(startDateObj);
+    const lastDay = getLastDayOfThiredMonth(startDateObj);
     setEndDate(formatDateForInput(lastDay));
 
     validateDates(newStartDate, formatDateForInput(lastDay));
