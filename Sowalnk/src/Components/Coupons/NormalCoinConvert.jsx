@@ -20,8 +20,8 @@ const NormalCoinConvert = () => {
   const COUPON_COST = 5;
 
   const handleConvertCoins = async () => {
-    if (loggedInUserData.couponCards.length >= 2) {
-      toast.warning("You can only have 2 coupons at a time!");
+    if (loggedInUserData.couponCards.length >= 4) {
+      toast.warning("You can only have 4 coupons at a time!");
       return;
     }
 
@@ -58,7 +58,7 @@ const NormalCoinConvert = () => {
         <button
           onClick={handleConvertCoins}
           className={`bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors ${
-            loggedInUserData?.couponCards.length >= 2 ||
+            loggedInUserData?.couponCards.length >= 4 ||
             loggedInUserData?.normalCoins < COUPON_COST
               ? "opacity-50 cursor-not-allowed"
               : ""
@@ -84,7 +84,7 @@ const NormalCoinConvert = () => {
       </div>
 
       {/* Message when maximum cards are reached */}
-      {loggedInUserData?.couponCards.length >= 2 && (
+      {loggedInUserData?.couponCards.length >= 4 && (
         <p className="text-center text-gray-600 mt-6">
           You have reached the maximum number of coupon cards.
         </p>

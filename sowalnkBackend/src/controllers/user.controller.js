@@ -294,8 +294,8 @@ const userAuthentication = {
       throw new ApiError(400, "Not enough normal coins to convert.");
     }
 
-    if (user.couponCards.length >= 2) {
-      throw new ApiError(400, "You can only have 2 coupons at a time!");
+    if (user.couponCards.length >= 4) {
+      throw new ApiError(400, "You can only have 4 coupons at a time!");
     }
 
     // Deduct coins and add a coupon card

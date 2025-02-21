@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchTasks } from "../store/task-slice.jsx";
+
 const OverdueTask = () => {
   const { dailyTask } = useSelector((state) => state.task);
   const dispatch = useDispatch();
-  const dailyTaskData = dailyTask.filter((task) => !task.isCompleted);
+  const dailyTaskData = dailyTask.filter((task) => task.hasExceededTime);
 
   // Group tasks by date
   const groupedTasks = dailyTaskData.reduce((acc, task) => {
@@ -34,9 +35,6 @@ const OverdueTask = () => {
       <div className="space-y-6">
         {sortedDates.length > 0 ? (
           sortedDates.map((date, index) => {
-            // Skip today's tasks
-            if (date === new Date().toDateString()) return null;
-
             return (
               <div key={index} className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-700 mb-4">
@@ -84,7 +82,7 @@ const OverdueTask = () => {
           })
         ) : (
           <div className="text-lg font-semibold italic text-gray-800">
-            No Previous Data Present
+            No pending task is there
           </div>
         )}
       </div>

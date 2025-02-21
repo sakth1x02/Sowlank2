@@ -21,6 +21,7 @@ import GoldCoinConvert from "./Components/Coupons/GoldCoinConvert.jsx";
 import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
 import YearlyTask from "./Components/YearlyTask";
 import OverdueTask from "./Components/OverdueTask.jsx";
+import Reminders from "./Components/Reminders.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -81,6 +82,10 @@ const App = () => {
                 <Route
                   path="coupons"
                   element={auth ? <Coupons /> : <Login />}
+                />
+                <Route
+                  path="reminders"
+                  element={auth ? <Reminders /> : <Login />}
                 />
 
                 <Route
