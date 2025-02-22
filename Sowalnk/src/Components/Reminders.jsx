@@ -28,8 +28,6 @@ const Reminders = () => {
     (a, b) => new Date(b) - new Date(a)
   );
 
-  // console.log(groupedTasks);
-
   useEffect(() => {
     dispatch(fetchTasks());
   }, []);
@@ -45,7 +43,7 @@ const Reminders = () => {
           sortedDates.map((date, index) => {
             return (
               <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-700 mb-4 flex justify-between">
+                <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center justify-between">
                   <div className="flex gap-3 text-red-600">
                     <TriangleAlert className="" />
                     <h1>Pending</h1>
@@ -95,7 +93,7 @@ const Reminders = () => {
           })
         ) : (
           <div className="text-lg font-semibold italic text-gray-800">
-            No Previous Data Present
+            No Pending Task is there
           </div>
         )}
       </div>

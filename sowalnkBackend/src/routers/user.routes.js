@@ -7,7 +7,7 @@ const router = Router();
 // Public routes
 router.post("/signup", userAuthentication.signupUser);
 router.post("/login", userAuthentication.loginUser);
-
+router.post("/verify-email", userAuthentication.verifyEmail);
 // Protected routes
 router.use(verifyJWT); // Apply middleware to all routes below
 router.post("/logout", userAuthentication.logoutUser);

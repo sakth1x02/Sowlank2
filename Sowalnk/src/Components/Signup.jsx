@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import PasswordStrengthMeter from "./PasswordStrengthMeter.jsx";
 import { User, Mail, Lock, Phone } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -84,8 +84,8 @@ const Signup = () => {
           throw new Error(data.message || "Error registering user");
         }
 
-        toast.success("User registered successfully!");
-        navigate("/login");
+        // toast.success("User registered successfully!");
+        navigate("/verify-email");
       } catch (error) {
         console.error("Error during registration:", error);
         toast.error(error.message || "Error registering user");
@@ -101,7 +101,7 @@ const Signup = () => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3">
-            <User className=" mt-2 ml-2" />
+            <User className=" mt-2 " />
             <input
               type="text"
               name="name"
@@ -113,7 +113,7 @@ const Signup = () => {
             {errors.name && <p className="text-red-500">{errors.name}</p>}
           </div>
           <div className="flex gap-3">
-            <Mail className=" mt-2 ml-2" />
+            <Mail className=" mt-2" />
             <input
               type="email"
               name="email"
@@ -125,7 +125,7 @@ const Signup = () => {
             {errors.email && <p className="text-red-500">{errors.email}</p>}
           </div>
           <div className="flex gap-3">
-            <Lock className=" mt-2 ml-2" />
+            <Lock className=" mt-2" />
             <input
               type="password"
               name="password"
@@ -139,7 +139,7 @@ const Signup = () => {
             <p className="text-red-500 pl-3">{errors.password}</p>
           )}
           <div className="flex gap-3">
-            <Lock className=" mt-2 ml-2" />
+            <Lock className=" mt-2" />
             <input
               type="password"
               name="confirmPassword"
@@ -153,7 +153,7 @@ const Signup = () => {
             <p className="text-red-500 pl-3">{errors.confirmPassword}</p>
           )}
           <div className="flex gap-3">
-            <Phone className=" mt-2 ml-2" />
+            <Phone className=" mt-2" />
             <input
               type="tel"
               name="phone"
@@ -164,6 +164,7 @@ const Signup = () => {
             />
           </div>
           {errors.phone && <p className="text-red-500 pl-3">{errors.phone}</p>}
+          <PasswordStrengthMeter password={formData.password} />
           <button
             type="submit"
             className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600"

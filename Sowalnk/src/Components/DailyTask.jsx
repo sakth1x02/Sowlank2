@@ -273,7 +273,7 @@ function DailyTask() {
 
   return (
     <div className="min-h-screen lg:p-6 ">
-      <div className="max-w-md md:max-w-4xl lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
+      <div className="max-w-md md:max-w-2xl lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
         <div
           className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0"
           style={{ backgroundColor: "#F0C1E1" }}
@@ -363,7 +363,7 @@ function DailyTask() {
       </div>
 
       <div
-        className="max-w-md md:max-w-4xl lg:mx-auto mb-6 p-6 rounded-lg"
+        className="max-w-md md:max-w-2xl lg:mx-auto mb-6 p-6 rounded-lg"
         style={{ backgroundColor: "#F0C1E1" }}
       >
         <div className="flex gap-6 justify-between items-start">

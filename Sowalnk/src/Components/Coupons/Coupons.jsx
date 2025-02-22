@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchUsers } from "../../store/user-slice";
+import { Loader } from "lucide-react";
 const Coupons = () => {
   const dispatch = useDispatch();
   const { intermediateMember, advanceMember } = useSelector(
@@ -18,10 +19,10 @@ const Coupons = () => {
   }, [dispatch]);
 
   if (!loggedInUserData) {
-    return <p>Loading...</p>;
+    return (
+      <Loader className="w-10 h-10 text-purple-700  animate-spin mx-auto" />
+    );
   }
-
-  console.log(loggedInUserData);
 
   const coinTypes = [
     {

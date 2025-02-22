@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import { DailyTask } from "../models/daily.model.js";
 import { weeklyTask } from "../models/weekly.model.js";
 import { yearlyTask } from "../models/yearly.model.js";
+import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
+
 // Helper function to generate access token
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -50,6 +52,9 @@ const userAuthentication = {
 
     // Step 4: Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     // Step 5: Create the user in the database
     const user = await User.create({
@@ -57,10 +62,13 @@ const userAuthentication = {
       email,
       password: hashedPassword,
       phone,
+      verificationToken,
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
     });
 
     // Generate token
     const token = generateAccessToken(user._id);
+    await sendVerificationEmail(user.email, verificationToken);
 
     // Step 6: Remove the password from the response
     const createdUser = await User.findById(user._id).select("-password");
@@ -72,6 +80,41 @@ const userAuthentication = {
       data: createdUser,
       token,
     });
+  }),
+  verifyEmail: asyncHandler(async (req, res) => {
+    const { verificationCode } = req.body;
+    try {
+      const user = await User.findOne({
+        verificationToken: verificationCode,
+        verificationTokenExpiresAt: { $gt: Date.now() },
+      });
+
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired verification code",
+        });
+      }
+
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpiresAt = undefined;
+      await user.save();
+
+      await sendWelcomeEmail(user.email, user.name);
+
+      res.status(200).json({
+        success: true,
+        message: "Email verified successfully",
+        user: {
+          ...user._doc,
+          password: undefined,
+        },
+      });
+    } catch (error) {
+      console.log("error in verifyEmail ", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
   }),
 
   loginUser: asyncHandler(async (req, res) => {
@@ -89,25 +132,29 @@ const userAuthentication = {
       throw new ApiError(404, "User not found");
     }
 
-    // Step 4: Compare the provided password with the hashed password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new ApiError(401, "Invalid credentials");
+    if (user.isVerified) {
+      // Step 4: Compare the provided password with the hashed password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid credentials");
+      }
+
+      // Generate token
+      const token = generateAccessToken(user._id);
+
+      // Remove password from response
+      const loggedInUser = await User.findById(user._id).select("-password");
+      user.lastLogin = new Date();
+      await user.save();
+
+      // Set cookie and send response with token
+      res.status(200).cookie("token", token, cookieOptions).json({
+        success: true,
+        message: "User logged in successfully",
+        data: loggedInUser,
+        token,
+      });
     }
-
-    // Generate token
-    const token = generateAccessToken(user._id);
-
-    // Remove password from response
-    const loggedInUser = await User.findById(user._id).select("-password");
-
-    // Set cookie and send response with token
-    res.status(200).cookie("token", token, cookieOptions).json({
-      success: true,
-      message: "User logged in successfully",
-      data: loggedInUser,
-      token,
-    });
   }),
 
   logoutUser: asyncHandler(async (req, res) => {

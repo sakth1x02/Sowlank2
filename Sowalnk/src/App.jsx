@@ -22,6 +22,7 @@ import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
 import YearlyTask from "./Components/YearlyTask";
 import OverdueTask from "./Components/OverdueTask.jsx";
 import Reminders from "./Components/Reminders.jsx";
+import VerifyEmailPage from "./Components/VerifyEmailPage.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -30,6 +31,7 @@ const App = () => {
         <div className="flex">
           <div className="flex-grow">
             <Routes>
+              <Route path="verify-email" element={<VerifyEmailPage />} />
               <Route path="/" element={<Layout />}>
                 <Route index element={<LandingPage />} />
                 <Route path="about" element={<About />} />
@@ -43,6 +45,7 @@ const App = () => {
                   path="signup"
                   element={auth ? <LandingPage /> : <Signup />}
                 />
+
                 <Route
                   path="dashboard"
                   element={auth ? <Dashboard1 /> : <Login />}

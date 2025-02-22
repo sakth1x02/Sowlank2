@@ -51,14 +51,14 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-700 lg:hidden"
+        className="relative top-1 left-[-3px] z-50 p-2  lg:hidden"
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? (
-          <X className="h-6 w-6 text-white" />
+          <X className="h-6 w-6 text-white fixed top-6 left-[9px]" />
         ) : (
           <Menu className="h-6 w-6 text-white" />
         )}

@@ -1,19 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar";
 import "./Layout.css";
 import { Outlet } from "react-router-dom";
 
 const Layout = () => {
-  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
     <>
       <Header />
       <div className="flex flex-row min-h-screen">
         {/* Sidebar */}
-        <Sidebar />
+        {/* <Sidebar /> */}
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col bg-gray-100">

@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoggedInUser } from "../store/user-slice";
-
+import Sidebar from "./Sidebar.jsx";
 const Header = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const navigate = useNavigate();
@@ -40,11 +40,16 @@ const Header = () => {
 
   return (
     <nav className="bg-purple-800 text-white">
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-3 ">
+        {/* <Sidebar /> */}
         {/* Desktop Navigation */}
         <div className="flex justify-between items-center">
+          {/* <Sidebar /> */}
           {/* Branding */}
-          <div className="text-2xl font-bold">SOWALNK</div>
+          <div className="flex justify-between items-center">
+            <Sidebar />
+            <div className="text-2xl font-bold ml-2 pt-2">SOWALNK</div>
+          </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">

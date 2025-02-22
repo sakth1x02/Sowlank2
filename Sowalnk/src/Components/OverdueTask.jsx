@@ -82,7 +82,7 @@ const OverdueTask = () => {
           })
         ) : (
           <div className="text-lg font-semibold italic text-gray-800">
-            No pending task is there
+            No Previous Data is Present
           </div>
         )}
       </div>
