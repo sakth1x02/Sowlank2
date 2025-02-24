@@ -9,8 +9,8 @@ const VerifyEmailPage = () => {
   const navigate = useNavigate();
 
   // const { error, isLoading, verifyEmail } = useAuthStore();
-  const error = false;
-  const isLoading = false;
+  let error = false;
+  let isLoading = false;
 
   const handleChange = (index, value) => {
     const newCode = [...code];
@@ -51,7 +51,7 @@ const VerifyEmailPage = () => {
         "http://localhost:1000/api/v1/user/verify-email",
         {
           method: "POST",
-          credentials: true,
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -59,7 +59,6 @@ const VerifyEmailPage = () => {
         }
       );
       const data = await response.json();
-      console.log(data);
       if (!response.ok) {
         error = data.message || "Error In verifying code";
         throw new Error(data.message || "Error In verifying code");
@@ -93,7 +92,7 @@ const VerifyEmailPage = () => {
   }, [code]);
 
   return (
-    <div className="bg-slate-600 min-h-screen place-content-center place-items-center ">
+    <div className="bg-slate-600 fixed top-0 left-0 w-full z-50 min-h-screen place-content-center place-items-center ">
       <div className="max-w-md  w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: -50 }}

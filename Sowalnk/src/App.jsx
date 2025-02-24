@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./Components/LandingPage";
 import About from "./Components/About";
 import Feature from "./Components/Feature";
@@ -23,6 +23,8 @@ import YearlyTask from "./Components/YearlyTask";
 import OverdueTask from "./Components/OverdueTask.jsx";
 import Reminders from "./Components/Reminders.jsx";
 import VerifyEmailPage from "./Components/VerifyEmailPage.jsx";
+import ForgetPasswordPage from "./Components/ForgetPasswordPage.jsx";
+import ResetPasswordPage from "./ResetPasswordPage.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -31,7 +33,6 @@ const App = () => {
         <div className="flex">
           <div className="flex-grow">
             <Routes>
-              <Route path="verify-email" element={<VerifyEmailPage />} />
               <Route path="/" element={<Layout />}>
                 <Route index element={<LandingPage />} />
                 <Route path="about" element={<About />} />
@@ -44,6 +45,18 @@ const App = () => {
                 <Route
                   path="signup"
                   element={auth ? <LandingPage /> : <Signup />}
+                />
+                <Route
+                  path="verify-email"
+                  element={auth ? <LandingPage /> : <VerifyEmailPage />}
+                />
+                <Route
+                  path="forget-password"
+                  element={auth ? <LandingPage /> : <ForgetPasswordPage />}
+                />
+                <Route
+                  path="/reset-password/:token"
+                  element={auth ? <LandingPage /> : <ResetPasswordPage />}
                 />
 
                 <Route
@@ -104,6 +117,7 @@ const App = () => {
                   element={auth ? <EliteCoinConvert /> : <Login />}
                 />
               </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </div>

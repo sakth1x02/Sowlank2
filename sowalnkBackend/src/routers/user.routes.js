@@ -8,6 +8,9 @@ const router = Router();
 router.post("/signup", userAuthentication.signupUser);
 router.post("/login", userAuthentication.loginUser);
 router.post("/verify-email", userAuthentication.verifyEmail);
+router.post("/forgot-password", userAuthentication.forgotPassword);
+router.post("/reset-password/:token", userAuthentication.resetPassword);
+
 // Protected routes
 router.use(verifyJWT); // Apply middleware to all routes below
 router.post("/logout", userAuthentication.logoutUser);

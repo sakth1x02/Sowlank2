@@ -6,7 +6,13 @@ import bcrypt from "bcryptjs";
 import { DailyTask } from "../models/daily.model.js";
 import { weeklyTask } from "../models/weekly.model.js";
 import { yearlyTask } from "../models/yearly.model.js";
-import { sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js";
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
+} from "../mailtrap/emails.js";
+import crypto from "crypto";
 
 // Helper function to generate access token
 const generateAccessToken = (userId) => {
@@ -17,9 +23,8 @@ const generateAccessToken = (userId) => {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production", // Only use secure in production
-  sameSite: "lax", // Changed from strict to lax
+  sameSite: "strict", // Changed from strict to lax
   maxAge: 24 * 60 * 60 * 1000, // 1 day
-  path: "/", // Add explicit path
 };
 
 const userAuthentication = {
@@ -74,7 +79,8 @@ const userAuthentication = {
     const createdUser = await User.findById(user._id).select("-password");
 
     // Set cookie and send response with token
-    res.status(201).cookie("token", token, cookieOptions).json({
+    res.cookie("token", token, cookieOptions);
+    res.status(201).json({
       success: true,
       message: "User registered successfully",
       data: createdUser,
@@ -148,26 +154,94 @@ const userAuthentication = {
       await user.save();
 
       // Set cookie and send response with token
-      res.status(200).cookie("token", token, cookieOptions).json({
+      res.cookie("token", token, cookieOptions);
+      res.status(200).json({
         success: true,
         message: "User logged in successfully",
         data: loggedInUser,
         token,
       });
+    } else {
+      throw new ApiError(401, "Invalid credentials");
     }
   }),
 
   logoutUser: asyncHandler(async (req, res) => {
-    res
-      .clearCookie("token", {
-        httpOnly: true,
-        secure: true,
-      })
-      .status(200)
-      .json({
+    res.clearCookie("token");
+    res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
+  }),
+  forgotPassword: asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ success: false, message: "User not found" });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(20).toString("hex");
+      const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpiresAt = resetTokenExpiresAt;
+
+      await user.save();
+
+      // send email
+      await sendPasswordResetEmail(
+        user.email,
+        `${process.env.CORS_ORIGIN}/reset-password/${resetToken}`
+      );
+
+      res.status(200).json({
         success: true,
-        message: "User logged out successfully",
+        message: "Password reset link sent to your email",
       });
+    } catch (error) {
+      console.log("Error in forgotPassword ", error);
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }),
+
+  resetPassword: asyncHandler(async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { password } = req.body;
+
+      const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpiresAt: { $gt: Date.now() },
+      });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid or expired reset token" });
+      }
+
+      // update password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      user.password = hashedPassword;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpiresAt = undefined;
+      await user.save();
+
+      await sendResetSuccessEmail(user.email);
+
+      res
+        .status(200)
+        .json({ success: true, message: "Password reset successful" });
+    } catch (error) {
+      console.log("Error in resetPassword ", error);
+      res.status(400).json({ success: false, message: error.message });
+    }
   }),
 
   // Protected route to get current user

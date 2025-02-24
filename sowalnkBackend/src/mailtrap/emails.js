@@ -19,8 +19,6 @@ export const sendVerificationEmail = async (email, verificationToken) => {
       ),
       category: "Email Verification",
     });
-
-    console.log("Email sent successfully", response);
   } catch (error) {
     console.error(`Error sending verification`, error);
 
@@ -41,8 +39,6 @@ export const sendWelcomeEmail = async (email, name) => {
         name: name,
       },
     });
-
-    console.log("Welcome email sent successfully", response);
   } catch (error) {
     console.error(`Error sending welcome email`, error);
 
