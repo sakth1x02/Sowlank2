@@ -13,8 +13,8 @@ const PLANS = {
   INTERMEDIATE: {
     amount: 75000, // Amount in paise (₹750)
     currency: "INR",
-    interval: "yearly",
-    period: 365, // days
+    interval: "monthly",
+    period: 90, // days
   },
   ADVANCED: {
     amount: 155000, // Amount in paise (₹1550)
@@ -35,13 +35,14 @@ const createSubscription = asyncHandler(async (req, res) => {
   const plan = PLANS[planType];
 
   try {
-    const subscription = await razorpay.subscriptions.create({
+    const subscription = razorpay.subscriptions.create({
       plan_id:
         planType === "INTERMEDIATE"
           ? process.env.RAZORPAY_INTERMEDIATE_PLAN_ID
           : process.env.RAZORPAY_ADVANCED_PLAN_ID,
       customer_notify: 1,
-      total_count: 12, // 12 months for yearly subscription
+      total_count: 1, // 3 months for INTERMEDIATE, 12 months for ADVANCED
+      quantity: 1,
       quantity: 1,
       notes: {
         userId: userId.toString(),
@@ -93,9 +94,15 @@ const verifySubscription = asyncHandler(async (req, res) => {
   subscription.status = "active";
   subscription.razorpayPaymentId = razorpay_payment_id;
   subscription.startDate = new Date();
+  const plan = PLANS[subscription.planType];
   subscription.endDate = new Date(
-    Date.now() + PLANS[subscription.planType].period * 24 * 60 * 60 * 1000
+    Date.now() + plan.period * 24 * 60 * 60 * 1000
   );
+
+  //if the above part is'nt work  then this will i try
+  // const duration = subscription.planType === "INTERMEDIATE" ? 90 : 365; // 3 months for INTERMEDIATE, 1 year for ADVANCED
+  // subscription.endDate = new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
+
   await subscription.save();
 
   return res.status(200).json({

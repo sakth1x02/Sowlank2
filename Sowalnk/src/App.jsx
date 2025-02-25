@@ -25,6 +25,7 @@ import Reminders from "./Components/Reminders.jsx";
 import VerifyEmailPage from "./Components/VerifyEmailPage.jsx";
 import ForgetPasswordPage from "./Components/ForgetPasswordPage.jsx";
 import ResetPasswordPage from "./ResetPasswordPage.jsx";
+import ContactUs from "./Components/ContactUs.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="about" element={<About />} />
                 <Route path="features" element={<Feature />} />
                 <Route path="pricing" element={<Subscription />} />
+                <Route path="contact" element={<ContactUs />} />
                 <Route
                   path="login"
                   element={auth ? <LandingPage /> : <Login />}

@@ -46,6 +46,28 @@ export const sendWelcomeEmail = async (email, name) => {
   }
 };
 
+export const sendEmail = async (email, name, message) => {
+  // const recipient = [{ email }];
+  // const sender = {
+  //   email: "hello@demomailtrap.com",
+  //   name: "Mailtrap Test",
+  // };
+  try {
+    const response = await mailtrapClient.send({
+      from: sender,
+      to: [{ email: "ay614838@gmail.com" }],
+      subject: `New Contact Form Submission from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+      html: `<strong>Name:</strong> ${name}<br><strong>Email:</strong> ${email}<br><strong>Message:</strong> ${message}`,
+    });
+    console.log("Email sent successfully", response);
+  } catch (error) {
+    console.error(`Error in sending email`, error);
+
+    throw new Error(`Error in sending email: ${error}`);
+  }
+};
+
 export const sendPasswordResetEmail = async (email, resetURL) => {
   const recipient = [{ email }];
 
