@@ -33,7 +33,7 @@ const ContactUs = () => {
         toast.error(result.error);
       }
     } catch (error) {
-      setStatus("Failed to send email. Please try again later.");
+      toast.error("Failed to send email. Please try again later.");
     }
   };
 

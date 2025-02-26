@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoggedInUser } from "../store/user-slice";
 import Sidebar from "./Sidebar.jsx";
+// import { signOut } from "firebase/auth";
+
 const Header = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const navigate = useNavigate();
@@ -15,13 +17,19 @@ const Header = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    dispatch(setLoggedInUser(null));
-    toast.success("Logged out successfully");
-    navigate("/login");
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      // await signOut(auth);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      dispatch(setLoggedInUser(null));
+      toast.success("Logged out successfully");
+      navigate("/login");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Invalid logout response");
+    }
   };
 
   useEffect(() => {

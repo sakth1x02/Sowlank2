@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import About from "./About";
 import Feature from "./Feature";
 import Subscription from "./Subscription";
@@ -14,17 +14,20 @@ const LandingPage = () => {
   const testimonials = [
     {
       name: "Praveen",
-      feedback: "This app completely transformed my productivity! It's intuitive and easy to use.",
+      feedback:
+        "This app completely transformed my productivity! It's intuitive and easy to use.",
       image: "/api/placeholder/150/150",
     },
     {
       name: "Sumithra",
-      feedback: "I love how customizable the app is! It's perfect for organizing my day and tasks.",
+      feedback:
+        "I love how customizable the app is! It's perfect for organizing my day and tasks.",
       image: "/api/placeholder/150/150",
     },
     {
       name: "Ravi",
-      feedback: "Highly recommend! The reminders and due dates feature helped me stay on top of my tasks.",
+      feedback:
+        "Highly recommend! The reminders and due dates feature helped me stay on top of my tasks.",
       image: "/api/placeholder/150/150",
     },
   ];
@@ -37,14 +40,15 @@ const LandingPage = () => {
           <h1 className="text-4xl lg:text-5xl font-bold text-violet-700 mb-6">
             Welcome to Sowalnk
           </h1>
-          
+
           <section className="bg-violet-200 text-black py-16 lg:py-32 rounded-lg">
             <div className="container mx-auto text-center px-4">
               <h1 className="text-3xl lg:text-5xl font-bold mb-6">
                 Master Your Day with Sowalnk
               </h1>
               <p className="text-base lg:text-xl mb-8">
-                A to-do list app that adapts to your productivity level—whether you're keeping it simple or aiming higher.
+                A to-do list app that adapts to your productivity level—whether
+                you're keeping it simple or aiming higher.
               </p>
               <button
                 onClick={scrollToSignUp}
@@ -67,9 +71,9 @@ const LandingPage = () => {
         </div>
 
         {/* Subscription Section */}
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <Subscription />
-        </div>
+        </div> */}
 
         {/* Testimonials Section */}
         <section className="bg-gray-100 py-12 mt-8">

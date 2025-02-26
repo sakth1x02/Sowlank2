@@ -47,18 +47,24 @@ export const sendWelcomeEmail = async (email, name) => {
 };
 
 export const sendEmail = async (email, name, message) => {
-  // const recipient = [{ email }];
-  // const sender = {
-  //   email: "hello@demomailtrap.com",
-  //   name: "Mailtrap Test",
-  // };
   try {
     const response = await mailtrapClient.send({
       from: sender,
-      to: [{ email: "ay614838@gmail.com" }],
+      to: [{ email: "support@sowalnk.com" }],
       subject: `New Contact Form Submission from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-      html: `<strong>Name:</strong> ${name}<br><strong>Email:</strong> ${email}<br><strong>Message:</strong> ${message}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4CAF50; text-align: center;">New Contact Form Submission</h2>
+          <div style="background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Name:</strong> ${name}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Email:</strong> ${email}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Message:</strong> ${message}</p>
+          </div>
+          <hr style="border: 0; height: 1px; background: #ddd;">
+      <p style="text-align: center; color: #666; font-size: 14px;">This message was sent via your website contact form.</p>
+        </div>
+      `,
     });
     console.log("Email sent successfully", response);
   } catch (error) {

@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { setLoggedInUser } from "../store/user-slice";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../utils/firebase.js"; // Import Firebase auth and provider
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -56,9 +58,20 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    // Handle Google sign in logic
-    console.log("Google sign in clicked");
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Save user data to localStorage and Redux
+      localStorage.setItem("user", JSON.stringify(user));
+      dispatch(setLoggedInUser(user));
+      toast.success("Logged in with Google successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Error during Google login:", error);
+      toast.error("Failed to log in with Google");
+    }
   };
 
   const handleEmailSignIn = () => {

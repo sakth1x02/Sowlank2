@@ -14,5 +14,9 @@ const store = configureStore({
     yearly: yearlyReducerFun,
     user: userReducerFun,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 export default store;
