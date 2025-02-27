@@ -17,32 +17,38 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+    authMethod: {
+      type: String,
+      enum: ["email", "google"],
+      default: "email",
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return this.authMethod === "email";
+      },
       validate: {
         validator: function (v) {
           // At least 8 chars, 1 uppercase, 1 lowercase, 1 number
+          if (this.authMethod !== "email") return true;
           return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(v);
         },
         message:
           "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number",
       },
     },
-    confirmPassword: {
-      type: String,
-    },
     phone: {
       type: String,
-      required: true,
+      required: function () {
+        // Conditional requirement
+        return this.authMethod === "email";
+      },
       unique: true,
-      trim: true,
       validate: {
         validator: function (v) {
-          // Basic phone number validation (adjust regex as needed)
-          return /^\+?[1-9]\d{1,14}$/.test(v); // E.164 format
+          return /^\+?[1-9]\d{1,14}$/.test(v);
         },
-        message: (props) => `${props.value} is not a valid phone number!`,
+        message: "Invalid phone number format",
       },
     },
     positivePoints: {

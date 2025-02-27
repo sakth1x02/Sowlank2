@@ -35,15 +35,12 @@ const createSubscription = asyncHandler(async (req, res) => {
   const plan = PLANS[planType];
 
   try {
-    const subscription = razorpay.subscriptions.create({
-      plan_id:
-        planType === "INTERMEDIATE"
-          ? process.env.RAZORPAY_INTERMEDIATE_PLAN_ID
-          : process.env.RAZORPAY_ADVANCED_PLAN_ID,
-      customer_notify: 1,
-      total_count: 1, // 3 months for INTERMEDIATE, 12 months for ADVANCED
-      quantity: 1,
-      quantity: 1,
+    // Create order instead of subscription
+    const order = await razorpay.orders.create({
+      amount: plan.amount,
+      currency: plan.currency,
+      receipt: `order_${Date.now()}`,
+      payment_capture: 1,
       notes: {
         userId: userId.toString(),
         planType,
@@ -51,39 +48,41 @@ const createSubscription = asyncHandler(async (req, res) => {
     });
 
     // Create subscription record in database
-    await Subscription.create({
+    const subscription = await Subscription.create({
       userId,
       planType,
-      razorpaySubscriptionId: subscription.id,
-      status: "inactive",
+      razorpayOrderId: order.id,
+      status: "created",
+      amount: plan.amount,
     });
+    await subscription.save();
 
     return res.status(200).json({
       success: true,
-      data: subscription,
-      message: "Subscription created successfully",
+      data: order,
+      message: "Order created successfully",
     });
   } catch (error) {
-    throw new ApiError(500, "Failed to create subscription");
+    throw new ApiError(500, "Failed to create order: " + error.message);
   }
 });
 
 const verifySubscription = asyncHandler(async (req, res) => {
-  const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } =
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
     req.body;
 
   const subscription = await Subscription.findOne({
-    razorpaySubscriptionId: razorpay_subscription_id,
+    razorpayOrderId: razorpay_order_id,
   });
 
   if (!subscription) {
-    throw new ApiError(404, "Subscription not found");
+    throw new ApiError(404, "Order not found");
   }
 
   // Verify signature
   const generatedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest("hex");
 
   if (generatedSignature !== razorpay_signature) {
@@ -99,16 +98,12 @@ const verifySubscription = asyncHandler(async (req, res) => {
     Date.now() + plan.period * 24 * 60 * 60 * 1000
   );
 
-  //if the above part is'nt work  then this will i try
-  // const duration = subscription.planType === "INTERMEDIATE" ? 90 : 365; // 3 months for INTERMEDIATE, 1 year for ADVANCED
-  // subscription.endDate = new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
-
   await subscription.save();
 
   return res.status(200).json({
     success: true,
     data: subscription,
-    message: "Subscription verified successfully",
+    message: "Payment verified successfully",
   });
 });
 

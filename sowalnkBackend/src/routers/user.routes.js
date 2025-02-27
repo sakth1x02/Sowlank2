@@ -10,6 +10,7 @@ router.post("/login", userAuthentication.loginUser);
 router.post("/verify-email", userAuthentication.verifyEmail);
 router.post("/forgot-password", userAuthentication.forgotPassword);
 router.post("/reset-password/:token", userAuthentication.resetPassword);
+router.post("/google-auth", userAuthentication.googleAuth);
 
 // Protected routes
 router.use(verifyJWT); // Apply middleware to all routes below

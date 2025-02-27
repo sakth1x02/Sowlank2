@@ -23,7 +23,7 @@ const generateAccessToken = (userId) => {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production", // Only use secure in production
-  sameSite: "strict", // Changed from strict to lax
+  sameSite: "strict",
   maxAge: 24 * 60 * 60 * 1000, // 1 day
 };
 
@@ -122,6 +122,42 @@ const userAuthentication = {
       res.status(500).json({ success: false, message: "Server error" });
     }
   }),
+  // Add to userAuthentication object in user.controller.js
+  googleAuth: asyncHandler(async (req, res) => {
+    const { email, name } = req.body;
+
+    // Check for existing user
+    let user = await User.findOne({ email });
+
+    // Create new user if not exists
+    if (!user) {
+      // const tempPassword = crypto.randomBytes(10).toString("hex"); // Generate random password
+      // const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+      user = await User.create({
+        name,
+        email,
+        // password: hashedPassword,
+        isVerified: true, // Skip email verification for Google users
+        authMethod: "google", // Add this field to track auth method
+      });
+    }
+
+    // Generate JWT token
+    const token = generateAccessToken(user._id);
+    const userData = await User.findById(user._id).select("-password");
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Return token and user data
+    res.cookie("token", token, cookieOptions);
+    res.status(200).json({
+      success: true,
+      message: "Google authentication successful",
+      data: userData,
+      token,
+    });
+  }),
 
   loginUser: asyncHandler(async (req, res) => {
     // Step 1: Extract email and password from the request body
@@ -140,7 +176,7 @@ const userAuthentication = {
 
     if (user.isVerified) {
       // Step 4: Compare the provided password with the hashed password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         throw new ApiError(401, "Invalid credentials");
       }

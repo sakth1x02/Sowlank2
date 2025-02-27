@@ -2,8 +2,9 @@ import React from "react";
 import About from "./About";
 import Feature from "./Feature";
 import Subscription from "./Subscription";
-
+import { useSelector } from "react-redux";
 const LandingPage = () => {
+  const auth = useSelector((state) => state.user.loggedInUser);
   const scrollToSignUp = () => {
     const signUpSection = document.getElementById("signup");
     if (signUpSection) {
@@ -16,19 +17,19 @@ const LandingPage = () => {
       name: "Praveen",
       feedback:
         "This app completely transformed my productivity! It's intuitive and easy to use.",
-      image: "/api/placeholder/150/150",
+      image: "/vite.svg",
     },
     {
       name: "Sumithra",
       feedback:
         "I love how customizable the app is! It's perfect for organizing my day and tasks.",
-      image: "/api/placeholder/150/150",
+      image: "/vite.svg",
     },
     {
       name: "Ravi",
       feedback:
         "Highly recommend! The reminders and due dates feature helped me stay on top of my tasks.",
-      image: "/api/placeholder/150/150",
+      image: "/vite.svg",
     },
   ];
 
@@ -71,9 +72,7 @@ const LandingPage = () => {
         </div>
 
         {/* Subscription Section */}
-        {/* <div className="mt-8">
-          <Subscription />
-        </div> */}
+        <div className="mt-8">{auth && <Subscription />}</div>
 
         {/* Testimonials Section */}
         <section className="bg-gray-100 py-12 mt-8">

@@ -114,9 +114,11 @@ const Subscription = () => {
       // Initialize Razorpay
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        subscription_id: data.data.id,
+        amount: data.data.amount,
+        currency: "INR",
         name: "Sowalnk",
         description: `${planName} Plan Subscription`,
+        order_id: data.data.id,
         handler: async function (response) {
           try {
             // Verify payment
@@ -130,7 +132,7 @@ const Subscription = () => {
                 },
                 body: JSON.stringify({
                   razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_subscription_id: response.razorpay_subscription_id,
+                  razorpay_order_id: response.razorpay_order_id,
                   razorpay_signature: response.razorpay_signature,
                 }),
               }
@@ -158,7 +160,6 @@ const Subscription = () => {
         },
         prefill: {
           email: "user@example.com", // You can get this from your user context
-          contact: "", // User's phone number if available
         },
         theme: {
           color: "#7C3AED",

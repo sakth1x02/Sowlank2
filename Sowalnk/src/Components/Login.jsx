@@ -63,14 +63,37 @@ const Login = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Save user data to localStorage and Redux
-      localStorage.setItem("user", JSON.stringify(user));
-      dispatch(setLoggedInUser(user));
-      toast.success("Logged in with Google successfully!");
+      // Send to backend for token generation
+      const response = await fetch(
+        "http://localhost:1000/api/v1/user/google-auth",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+            name: user.displayName,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Google authentication failed");
+      }
+
+      // Store token and user data
+      localStorage.setItem("user", JSON.stringify(data.data));
+      localStorage.setItem("token", data.token);
+      dispatch(setLoggedInUser(data.data));
+      toast.success("Google login successful!");
       navigate("/");
     } catch (error) {
-      console.error("Error during Google login:", error);
-      toast.error("Failed to log in with Google");
+      console.error("Google login error:", error);
+      toast.error(error.message || "Google login failed");
     }
   };
 
