@@ -16,17 +16,14 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     try {
       isLoading = true;
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/forgot-password",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await fetch("/api/v1/user/forgot-password", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
       const resData = response.json();
       console.log(resData);
       setIsSubmitted(true);

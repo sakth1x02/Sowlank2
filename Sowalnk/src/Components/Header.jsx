@@ -57,7 +57,9 @@ const Header = () => {
           {/* Branding */}
           <div className="flex justify-between items-center">
             <Sidebar />
-            <div className="text-2xl font-bold ml-2 pt-2">SOWALNK</div>
+            <div className="text-2xl font-bold ml-2 pt-2 lg:hidden">
+              SOWALNK
+            </div>
           </div>
 
           {/* Desktop Menu */}

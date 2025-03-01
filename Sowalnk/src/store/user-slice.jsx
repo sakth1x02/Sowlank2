@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchUsers = createAsyncThunk("user/fetchUsers", async () => {
-  const response = await fetch("http://localhost:1000/api/v1/user/users", {
+  const response = await fetch("/api/v1/user/users", {
     credentials: "include",
   });
   const res = await response.json();
@@ -12,17 +12,14 @@ export const updatePoints = createAsyncThunk(
   "user/updatePoints",
   async ({ userId, completed, taskId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/update-points",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, completed, taskId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/update-points", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, completed, taskId }),
+      });
 
       if (response.ok) {
         const res = await response.json();
@@ -37,17 +34,14 @@ export const increaseNormalCoins = createAsyncThunk(
   "user/increaseNormalCoins",
   async ({ userId, taskId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/increase-normal-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, taskId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/increase-normal-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, taskId }),
+      });
       if (response.ok) {
         const res = await response.json();
         return res.data;
@@ -62,17 +56,14 @@ export const increaseGoldCoins = createAsyncThunk(
   "user/increaseGoldCoins",
   async ({ userId, taskId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/increase-gold-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, taskId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/increase-gold-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, taskId }),
+      });
       if (response.ok) {
         const res = await response.json();
         return res.data;
@@ -86,17 +77,14 @@ export const increaseEliteCoins = createAsyncThunk(
   "user/increaseEliteCoins",
   async ({ userId, taskId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/increase-elite-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId, taskId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/increase-elite-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, taskId }),
+      });
       if (response.ok) {
         const res = await response.json();
         return res.data;
@@ -111,17 +99,14 @@ export const convertNormalCoinsToCoupon = createAsyncThunk(
   "user/convertNormalCoinsToCoupon",
   async ({ userId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/convert-normal-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/convert-normal-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
 
       if (response.ok) {
         const res = await response.json();
@@ -137,17 +122,14 @@ export const convertGoldCoinsToCoupon = createAsyncThunk(
   "user/convertGoldCoinsToCoupon",
   async ({ userId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/convert-gold-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/convert-gold-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
       if (response.ok) {
         const res = await response.json();
         return res.data;
@@ -162,17 +144,14 @@ export const convertEliteCoinsToCoupon = createAsyncThunk(
   "user/convertEliteCoinsToCoupon",
   async ({ userId }) => {
     try {
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/convert-elite-coins",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
+      const response = await fetch("/api/v1/user/convert-elite-coins", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
       if (response.ok) {
         const res = await response.json();
         return res.data;

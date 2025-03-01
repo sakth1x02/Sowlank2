@@ -66,17 +66,14 @@ const Signup = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const response = await fetch(
-          "http://localhost:1000/api/v1/user/signup",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(formData),
-          }
-        );
+        const response = await fetch("/api/v1/user/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(formData),
+        });
 
         const data = await response.json();
 

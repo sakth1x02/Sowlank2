@@ -94,14 +94,11 @@ function DailyTask() {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const response = await fetch(
-        `http://localhost:1000/api/v1/task/daily/${taskId}/upload`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
+      const response = await fetch(`/api/v1/task/daily/${taskId}/upload`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
 
       if (response.ok) {
         const data = await response.json();

@@ -47,17 +47,14 @@ const VerifyEmailPage = () => {
   const verifyEmail = async (verificationCode) => {
     try {
       isLoading = true;
-      const response = await fetch(
-        "http://localhost:1000/api/v1/user/verify-email",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ verificationCode }),
-        }
-      );
+      const response = await fetch("/api/v1/user/verify-email", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ verificationCode }),
+      });
       const data = await response.json();
       if (!response.ok) {
         error = data.message || "Error In verifying code";

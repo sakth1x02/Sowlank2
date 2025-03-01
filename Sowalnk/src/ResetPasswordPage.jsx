@@ -24,17 +24,14 @@ const ResetPasswordPage = () => {
     }
     isLoading = true;
     try {
-      const res = await fetch(
-        `http://localhost:1000/api/v1/user/reset-password/${token}`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ password }),
-        }
-      );
+      const res = await fetch(`/api/v1/user/reset-password/${token}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
 
       toast.success(
         "Password reset successfully, redirecting to login page..."

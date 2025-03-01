@@ -23,14 +23,11 @@ const Subscription = () => {
     const checkSubscriptionStatus = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          "http://localhost:1000/api/v1/subscription/status",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch("/api/v1/subscription/status", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
 
         data.data.subscription.forEach((plan) => {
@@ -93,17 +90,14 @@ const Subscription = () => {
       const token = localStorage.getItem("token");
 
       // Create subscription
-      const response = await fetch(
-        "http://localhost:1000/api/v1/subscription/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ planType: planName }),
-        }
-      );
+      const response = await fetch("/api/v1/subscription/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planType: planName }),
+      });
 
       const data = await response.json();
 
@@ -122,21 +116,18 @@ const Subscription = () => {
         handler: async function (response) {
           try {
             // Verify payment
-            const verifyResponse = await fetch(
-              "http://localhost:1000/api/v1/subscription/verify",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
-              }
-            );
+            const verifyResponse = await fetch("/api/v1/subscription/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
 
             const verifyData = await verifyResponse.json();
 

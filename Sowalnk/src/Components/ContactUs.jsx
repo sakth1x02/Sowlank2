@@ -16,7 +16,7 @@ const ContactUs = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:1000/api/v1/send-email", {
+      const response = await fetch("/api/v1/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
