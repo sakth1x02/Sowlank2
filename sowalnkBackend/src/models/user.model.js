@@ -43,7 +43,10 @@ const userSchema = new Schema(
         // Conditional requirement
         return this.authMethod === "email";
       },
-      unique: true,
+      unique: function () {
+        // Conditional requirement
+        return this.authMethod === "email";
+      },
       validate: {
         validator: function (v) {
           return /^\+?[1-9]\d{1,14}$/.test(v);
