@@ -50,7 +50,7 @@ export const sendEmail = async (email, name, message) => {
   try {
     const response = await mailtrapClient.send({
       from: sender,
-      to: [{ email: "support@sowalnk.com" }],
+      to: [{ email: process.env.MAILTAP_SEND_TO }],
       subject: `New Contact Form Submission from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
       html: `
