@@ -40,13 +40,10 @@ const userSchema = new Schema(
     phone: {
       type: String,
       required: function () {
-        // Conditional requirement
         return this.authMethod === "email";
       },
-      unique: function () {
-        // Conditional requirement
-        return this.authMethod === "email";
-      },
+      unique: true, // Keep the unique constraint
+      sparse: true, // Add sparse index
       validate: {
         validator: function (v) {
           return /^\+?[1-9]\d{1,14}$/.test(v);
