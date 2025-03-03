@@ -2,22 +2,20 @@ import {
   PASSWORD_RESET_REQUEST_TEMPLATE,
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
+  WELCOME_EMAIL_TEMPLATE,
 } from "./emailTemplate.js";
-import { mailtrapClient, sender } from "./mailtrap.config.js";
+import { transporter } from "./mailtrap.config.js";
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-  const recipient = [{ email }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: email,
       subject: "Verify your email",
       html: VERIFICATION_EMAIL_TEMPLATE.replace(
         "{verificationCode}",
         verificationToken
       ),
-      category: "Email Verification",
     });
   } catch (error) {
     console.error(`Error sending verification`, error);
@@ -27,17 +25,12 @@ export const sendVerificationEmail = async (email, verificationToken) => {
 };
 
 export const sendWelcomeEmail = async (email, name) => {
-  const recipient = [{ email }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
-      template_uuid: "f5167911-281c-4ef2-991a-c9433a7bac54",
-      template_variables: {
-        company_info_name: "Sowalnk Company",
-        name: name,
-      },
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: email,
+      subject: "Welcome to Sowalnk!",
+      html: WELCOME_EMAIL_TEMPLATE.replace("{name}", name),
     });
   } catch (error) {
     console.error(`Error sending welcome email`, error);
@@ -48,11 +41,10 @@ export const sendWelcomeEmail = async (email, name) => {
 
 export const sendEmail = async (email, name, message) => {
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: [{ email: process.env.MAILTAP_SEND_TO }],
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: "support@sowalnk.com",
       subject: `New Contact Form Submission from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4CAF50; text-align: center;">New Contact Form Submission</h2>
@@ -66,7 +58,6 @@ export const sendEmail = async (email, name, message) => {
         </div>
       `,
     });
-    console.log("Email sent successfully", response);
   } catch (error) {
     console.error(`Error in sending email`, error);
 
@@ -75,15 +66,12 @@ export const sendEmail = async (email, name, message) => {
 };
 
 export const sendPasswordResetEmail = async (email, resetURL) => {
-  const recipient = [{ email }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: email,
       subject: "Reset your password",
       html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL),
-      category: "Password Reset",
     });
   } catch (error) {
     console.error(`Error sending password reset email`, error);
@@ -93,15 +81,12 @@ export const sendPasswordResetEmail = async (email, resetURL) => {
 };
 
 export const sendResetSuccessEmail = async (email) => {
-  const recipient = [{ email }];
-
   try {
-    const response = await mailtrapClient.send({
-      from: sender,
-      to: recipient,
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: email,
       subject: "Password Reset Successful",
       html: PASSWORD_RESET_SUCCESS_TEMPLATE,
-      category: "Password Reset",
     });
 
     console.log("Password reset email sent successfully", response);

@@ -149,6 +149,8 @@ const userAuthentication = {
     user.lastLogin = new Date();
     await user.save();
 
+    await sendWelcomeEmail(user.email, user.name);
+
     // Return token and user data
     res.cookie("token", token, cookieOptions);
     res.status(200).json({

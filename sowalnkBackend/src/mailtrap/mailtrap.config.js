@@ -1,28 +1,13 @@
-import { MailtrapClient } from "mailtrap";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
-export const mailtrapClient = new MailtrapClient({
-  endpoint: process.env.MAILTRAP_ENDPOINT,
-  token: process.env.MAILTRAP_TOKEN,
+
+export const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  secre: true,
+  auth: {
+    user: process.env.BREVO_EMAIL,
+    pass: process.env.BREVO_SMTP_KEY,
+  },
 });
-
-export const sender = {
-  email: "hello@demomailtrap.com",
-  name: "Mailtrap Test",
-};
-// const recipients = [
-//   {
-//     email: "ay614838@gmail.com",
-//   },
-// ];
-
-// mailtrapClient
-//   .send({
-//     from: sender,
-//     to: recipients,
-//     subject: "You are awesome!",
-//     text: "Congrats for sending test email with Mailtrap!",
-//     category: "Integration Test",
-//   })
-//   .then(console.log, console.error);

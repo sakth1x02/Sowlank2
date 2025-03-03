@@ -6,29 +6,12 @@ dotenv.config({
   path: "./env",
 });
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
-// REST API endpoint to send email
 app.post("/api/v1/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
     return res.status(400).json({ error: "All fields are required" });
   }
-
-  // const mailOptions = {
-  //   from: process.env.EMAIL_USER,
-  //   to: process.env.EMAIL_TO,
-  //   subject: `New Contact Form Submission from ${name}`,
-  //   text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-  // };
-
   try {
     await sendEmail(email, name, message);
     res.status(200).json({ message: "Email sent successfully!" });

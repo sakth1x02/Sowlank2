@@ -85,7 +85,7 @@ const Signup = () => {
         navigate("/verify-email");
       } catch (error) {
         console.error("Error during registration:", error);
-        toast.error(error.message || "Error registering user");
+        toast.error("Error registering user");
       }
     }
   };

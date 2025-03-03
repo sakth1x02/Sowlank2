@@ -1,3 +1,92 @@
+export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Sowalnk!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .content h1 {
+            color: #333333;
+        }
+        .content p {
+            color: #555555;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 20px 0;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            background-color: #333333;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        Welcome to Sowalnk!
+    </div>
+    <div class="content">
+        <h1>Hello, {name}! 👋</h1>
+        <p>We're thrilled to have you join us at <strong>Sowalnk</strong>! 🎉</p>
+        <p>Get ready to explore amazing features and opportunities tailored just for you.</p>
+        <p>Click below to get started:</p>
+        <a href="https://google.com" class="cta-button">Explore Now</a>
+        <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@sowalnk.com">support@sowalnk.com</a>.</p>
+    </div>
+    <div class="footer">
+        &copy; 2025 Sowalnk. All rights reserved. <br>
+        <a href="https://sowalnk.com">Visit our website</a>
+    </div>
+</div>
+
+</body>
+</html>
+`;
+
 export const VERIFICATION_EMAIL_TEMPLATE = `
 <!DOCTYPE html>
 <html lang="en">

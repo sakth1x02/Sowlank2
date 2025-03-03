@@ -42,10 +42,12 @@ const userSchema = new Schema(
       required: function () {
         return this.authMethod === "email";
       },
+      default: "",
       unique: true, // Keep the unique constraint
       sparse: true, // Add sparse index
       validate: {
         validator: function (v) {
+          if (this.authMethod !== "email") return true;
           return /^\+?[1-9]\d{1,14}$/.test(v);
         },
         message: "Invalid phone number format",

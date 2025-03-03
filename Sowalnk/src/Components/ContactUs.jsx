@@ -28,9 +28,9 @@ const ContactUs = () => {
 
       if (response.ok) {
         toast.success(result.message);
-        setFormData({ name: "", email: "", message: "" }); // Clear form
+        setFormData({ name: "", email: "", message: "" });
       } else {
-        toast.error(result.error);
+        toast.error("Failed to send email. Please try again later.");
       }
     } catch (error) {
       toast.error("Failed to send email. Please try again later.");
