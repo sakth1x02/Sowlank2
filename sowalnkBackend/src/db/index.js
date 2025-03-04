@@ -6,6 +6,10 @@ const connectDB = async () => {
     const connectionPart = await mongoose.connect(
       `${process.env.MONGODB_URL}/${DATABASE_NAME}`
     );
+    const result = await mongoose.connection.db
+      .collection("users")
+      .updateMany({ phone: "" }, { $set: { phone: null } });
+    // console.log(`Updated ${result.modifiedCount} documents`);
     console.log(
       `Successfully Connected DB 😁 DB HOST ${connectionPart.connection.host}`
     );
