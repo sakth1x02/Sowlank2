@@ -9,12 +9,12 @@ phases:
   install:
     commands:
       - echo "Installing dependencies..."
-      - pnpm install
+      - npm install
 
   build:
     commands:
       - echo "Building the React app..."
-      - pnpm run build
+      - npm run build
 
 artifacts:
   files:

@@ -19,7 +19,7 @@ phases:
   install:
     commands:
       - echo "Installing dependencies..."
-      - pnpm install
+      - npm install
 
   build:
     commands:
