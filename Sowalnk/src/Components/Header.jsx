@@ -50,10 +50,8 @@ const Header = () => {
   return (
     <nav className="bg-purple-800 text-white">
       <div className="container mx-auto px-4 py-3 ">
-        {/* <Sidebar /> */}
         {/* Desktop Navigation */}
         <div className="flex justify-between items-center">
-          {/* <Sidebar /> */}
           {/* Branding */}
           <div className="flex justify-between items-center">
             <Sidebar />

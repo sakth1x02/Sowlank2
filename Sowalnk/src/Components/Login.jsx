@@ -25,17 +25,20 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/v1/user/login", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/v1/user/login`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -64,17 +67,20 @@ const Login = () => {
       const user = result.user;
 
       // Send to backend for token generation
-      const response = await fetch("/api/v1/user/google-auth", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: user.email,
-          name: user.displayName,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/v1/user/google-auth`,
+        {
+          method: "POST",
+          withCredentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+            name: user.displayName,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -92,11 +98,6 @@ const Login = () => {
       console.error("Google login error:", error);
       toast.error(error.message || "Google login failed");
     }
-  };
-
-  const handleEmailSignIn = () => {
-    // Handle Email sign in logic
-    console.log("Email sign in clicked");
   };
 
   return (
@@ -189,18 +190,12 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6 text-center">
             <button
               onClick={handleGoogleSignIn}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              className="w-[70%] inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
             >
               Google
-            </button>
-            <button
-              onClick={handleEmailSignIn}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            >
-              Email
             </button>
           </div>
         </div>
