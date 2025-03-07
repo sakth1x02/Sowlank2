@@ -29,10 +29,10 @@ const Login = () => {
         `${import.meta.env.VITE_API_URL}/v1/user/login`,
         {
           method: "POST",
-          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({
             email,
             password,
@@ -71,10 +71,10 @@ const Login = () => {
         `${import.meta.env.VITE_API_URL}/v1/user/google-auth`,
         {
           method: "POST",
-          withCredentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({
             email: user.email,
             name: user.displayName,

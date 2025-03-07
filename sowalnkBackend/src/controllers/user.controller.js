@@ -92,7 +92,6 @@ const userAuthentication = {
     try {
       const user = await User.findOne({
         verificationToken: verificationCode,
-        verificationTokenExpiresAt: { $gt: Date.now() },
       });
 
       if (!user) {

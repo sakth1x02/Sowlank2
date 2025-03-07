@@ -53,7 +53,7 @@ const Layout = () => {
           style={{ width: `${progressPercentage}%` }}
         ></div>
         <div className="absolute inset-0 flex items-center justify-center text-black font-bold">
-          {remainingTime} minutes remaining until midnight
+          {remainingTime} minutes remaining
         </div>
       </div>
       <div className="flex flex-row min-h-screen">

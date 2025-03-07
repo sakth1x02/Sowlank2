@@ -65,6 +65,16 @@ function WeeklyTask() {
     year: "numeric",
   });
 
+  // Effect to set endDate to the end of the week when startDate changes
+  useEffect(() => {
+    if (startDate) {
+      const start = new Date(startDate);
+      const endOfWeek = new Date(start);
+      endOfWeek.setDate(start.getDate() + (6 - start.getDay())); // Set to Sunday
+      setEndDate(endOfWeek.toISOString().split("T")[0]);
+    }
+  }, [startDate]);
+
   const handleAddTask = () => {
     if (!taskName || !priority || !startDate || !endDate) {
       alert("Please fill out all fields.");
@@ -110,7 +120,6 @@ function WeeklyTask() {
     dispatch(addWeeklyTask(newTask));
     resetForm();
   };
-  //issue number 3 if i add weekly task start date and end date on same date then it showing the progress 100%
 
   const resetForm = () => {
     setTaskName("");
@@ -143,30 +152,30 @@ function WeeklyTask() {
     dispatch(deleteWeeklyTask(taskId));
   };
 
-  const handleFileChange = async (taskId, file) => {
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const response = await fetch(
-        `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/upload`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
+  // const handleFileChange = async (taskId, file) => {
+  //   if (!file) return;
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:1000/api/v1/weeklytask/weekly/${taskId}/upload`,
+  //       {
+  //         method: "POST",
+  //         credentials: "include",
+  //         body: formData,
+  //       }
+  //     );
 
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(setWeeklyTaskProofWork({ taskId, fileURL: data.proofOfWork }));
-      } else {
-        console.error("Failed to upload file");
-      }
-    } catch (err) {
-      console.error("Error uploading file:", err);
-    }
-  };
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       dispatch(setWeeklyTaskProofWork({ taskId, fileURL: data.proofOfWork }));
+  //     } else {
+  //       console.error("Failed to upload file");
+  //     }
+  //   } catch (err) {
+  //     console.error("Error uploading file:", err);
+  //   }
+  // };
 
   const weeklyTasks = useMemo(
     () =>
@@ -186,12 +195,12 @@ function WeeklyTask() {
     return "#6DA951";
   };
 
-  const checkIfTaskExceededTime = (task) => {
-    const taskEndTime = new Date(`${formattedDate} ${task?.endDate}`);
-    const currentTime = new Date();
+  // const checkIfTaskExceededTime = (task) => {
+  //   const taskEndTime = new Date(`${formattedDate} ${task?.endDate}`);
+  //   const currentTime = new Date();
 
-    return taskEndTime < currentTime && !task?.isCompleted;
-  };
+  //   return taskEndTime < currentTime && !task?.isCompleted;
+  // };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -263,14 +272,15 @@ function WeeklyTask() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-1/3 p-3 border rounded-md"
-                min={today.toISOString().split("T")[0]}
+                min={firstDayOfWeek.toISOString().split("T")[0]}
+                max={lastDayOfWeek.toISOString().split("T")[0]}
               />
-              <input
+              {/* <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-1/3 p-3 border rounded-md"
-              />
+              /> */}
             </div>
             <button
               onClick={handleAddTask}
@@ -317,8 +327,6 @@ function WeeklyTask() {
                 <th className="px-4 py-3">Start Date</th>
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Progress</th>
-                {/* <th className="px-4 py-3">Completed</th>
-                <th className="px-4 py-3">Proof of Work</th> */}
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -347,45 +355,6 @@ function WeeklyTask() {
                       </span>
                     </div>
                   </td>
-                  {/* <td className="px-4 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={task.proofOfWork !== "" && task?.isCompleted}
-                      onChange={() => toggleCompletion(task)}
-                      className={`h-4 w-4 ${
-                        task.isCompleted || task.proofOfWork === ""
-                          ? "cursor-not-allowed"
-                          : ""
-                      }`}
-                      disabled={task.isCompleted}
-                    />
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    {!task.proofOfWork && (
-                      <input
-                        type="file"
-                        onChange={(e) =>
-                          handleFileChange(task?._id, e.target.files[0])
-                        }
-                        disabled={checkIfTaskExceededTime(task)}
-                        className={`text-sm ${
-                          checkIfTaskExceededTime(task)
-                            ? "cursor-not-allowed"
-                            : ""
-                        }`}
-                      />
-                    )}
-                    {task?.proofOfWork && (
-                      <a
-                        href={task.proofOfWork || ""}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        View Proof
-                      </a>
-                    )}
-                  </td> */}
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => handleDelete(task._id)}
