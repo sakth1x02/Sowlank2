@@ -7,8 +7,9 @@ const VerifyEmailPage = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
-  let error = false;
-  let isLoading = false;
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (index, value) => {
     const newCode = [...code];
@@ -42,7 +43,9 @@ const VerifyEmailPage = () => {
 
   const verifyEmail = async (verificationCode) => {
     try {
-      isLoading = true;
+      // Set loading state (assuming useState is used)
+      setIsLoading(true);
+
       const response = await fetch("/api/v1/user/verify-email", {
         method: "POST",
         credentials: "include",
@@ -51,17 +54,31 @@ const VerifyEmailPage = () => {
         },
         body: JSON.stringify({ verificationCode }),
       });
+
       const data = await response.json();
+
       if (!response.ok) {
-        error = data.message || "Error In verifying code";
-        throw new Error(data.message || "Error In verifying code");
+        // Set error state and show error message
+        setError(data.message || "Error in verifying code");
+        toast.error(data.message || "Error in verifying code");
+        throw new Error(data.message || "Error in verifying code");
       }
-      isLoading = false;
-      error = false;
-      navigate("/login");
+
+      // Reset loading and error states
+      setIsLoading(false);
+      setError(null);
+
+      // Show success message and navigate
       toast.success(data.message);
+      navigate("/login");
     } catch (error) {
-      console.log(error, "Invalid verification code");
+      // Handle errors and provide user feedback
+      console.error(error, "Invalid verification code");
+      setError("Invalid verification code");
+      toast.error("Invalid verification code");
+    } finally {
+      // Ensure loading state is reset
+      setIsLoading(false);
     }
   };
 
