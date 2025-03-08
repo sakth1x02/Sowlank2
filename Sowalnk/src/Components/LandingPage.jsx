@@ -3,13 +3,13 @@ import About from "./About";
 import Feature from "./Feature";
 import Subscription from "./Subscription";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 const LandingPage = () => {
+  const navigate = useNavigate();
   const auth = useSelector((state) => state.user.loggedInUser);
   const scrollToSignUp = () => {
-    const signUpSection = document.getElementById("signup");
-    if (signUpSection) {
-      signUpSection.scrollIntoView({ behavior: "smooth" });
-    }
+    auth ? navigate("/dashboard") : navigate("/login");
   };
 
   const testimonials = [

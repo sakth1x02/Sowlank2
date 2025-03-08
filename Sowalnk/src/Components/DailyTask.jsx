@@ -238,7 +238,16 @@ function DailyTask() {
             Completed Tasks: {tasks.filter((task) => task?.isCompleted).length}
           </p>
           <p>
-            Pending Tasks: {tasks.filter((task) => !task?.isCompleted).length}
+            Pending Tasks:{" "}
+            {
+              tasks.filter(
+                (task) => !task?.isCompleted && !task?.hasExceededTime
+              ).length
+            }
+          </p>
+          <p>
+            Incompleted Tasks:{" "}
+            {tasks.filter((task) => task?.hasExceededTime).length}
           </p>
         </div>
       </div>
