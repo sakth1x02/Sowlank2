@@ -38,21 +38,34 @@ const userAuthentication = {
         (field) => !field?.trim()
       )
     ) {
-      throw new ApiError(400, "All fields are required");
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
     if (!email.includes("@")) {
-      throw new ApiError(400, "Invalid email format");
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format",
+      });
     }
 
     if (password !== confirmPassword) {
-      throw new ApiError(400, "Password are not same");
+      return res.status(400).json({
+        success: false,
+        message: "Password are not same",
+      });
     }
 
     // Step 3: Check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw new ApiError(409, "User with this email already exists");
+      return res.status(400).json({
+        success: false,
+        message:
+          "User with this email already exists try google login or forget passowrd",
+      });
     }
 
     // Step 4: Hash the password

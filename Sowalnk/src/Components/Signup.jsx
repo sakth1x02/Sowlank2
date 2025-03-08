@@ -3,7 +3,7 @@ import PasswordStrengthMeter from "./PasswordStrengthMeter.jsx";
 import { User, Mail, Lock, Phone } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import { Loader } from "lucide-react";
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -14,6 +14,7 @@ const Signup = () => {
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -66,6 +67,7 @@ const Signup = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
+        setLoading(true);
         const response = await fetch("/api/v1/user/signup", {
           method: "POST",
           headers: {
@@ -80,12 +82,13 @@ const Signup = () => {
         if (!response.ok) {
           throw new Error(data.message || "Error registering user");
         }
-
-        // toast.success("User registered successfully!");
+        setLoading(false);
         navigate("/verify-email");
       } catch (error) {
-        console.error("Error during registration:", error);
-        toast.error("Error registering user");
+        console.error("Error during registration:", error.message);
+        toast.error("Error registering user try google login");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -164,9 +167,14 @@ const Signup = () => {
           <PasswordStrengthMeter password={formData.password} />
           <button
             type="submit"
+            disabled={loading}
             className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600"
           >
-            Register
+            {loading ? (
+              <Loader className="w-6 h-6 text-white  animate-spin mx-auto" />
+            ) : (
+              "Register"
+            )}
           </button>
           <Link
             to="/login"

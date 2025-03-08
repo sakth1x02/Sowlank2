@@ -6,12 +6,13 @@ import { useDispatch } from "react-redux";
 import { setLoggedInUser } from "../store/user-slice";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../utils/firebase.js"; // Import Firebase auth and provider
-
+import { Loader } from "lucide-react";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -25,6 +26,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/v1/user/login`,
         {
@@ -45,6 +47,7 @@ const Login = () => {
       if (!response.ok) {
         throw new Error(data.message || "Error logging in");
       }
+      setLoading(false);
       if (data?.data) {
         const userData = data.data;
         localStorage.setItem("user", JSON.stringify(userData));
@@ -58,11 +61,14 @@ const Login = () => {
     } catch (error) {
       console.error("Error during login:", error);
       toast.error("Invalid login response");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
+      setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
@@ -87,7 +93,7 @@ const Login = () => {
       if (!response.ok) {
         throw new Error(data.message || "Google authentication failed");
       }
-
+      setLoading(false);
       // Store token and user data
       localStorage.setItem("user", JSON.stringify(data.data));
       localStorage.setItem("token", data.token);
@@ -97,6 +103,8 @@ const Login = () => {
     } catch (error) {
       console.error("Google login error:", error);
       toast.error(error.message || "Google login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,9 +180,14 @@ const Login = () => {
           <div>
             <button
               type="submit"
+              disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Sign in
+              {loading ? (
+                <Loader className="w-6 h-6 text-white  animate-spin mx-auto" />
+              ) : (
+                " Sign in"
+              )}
             </button>
           </div>
         </form>

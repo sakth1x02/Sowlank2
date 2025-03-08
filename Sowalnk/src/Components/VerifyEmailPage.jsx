@@ -43,7 +43,6 @@ const VerifyEmailPage = () => {
 
   const verifyEmail = async (verificationCode) => {
     try {
-      // Set loading state (assuming useState is used)
       setIsLoading(true);
 
       const response = await fetch("/api/v1/user/verify-email", {
@@ -58,26 +57,21 @@ const VerifyEmailPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // Set error state and show error message
         setError(data.message || "Error in verifying code");
         toast.error(data.message || "Error in verifying code");
         throw new Error(data.message || "Error in verifying code");
       }
 
-      // Reset loading and error states
       setIsLoading(false);
       setError(null);
 
-      // Show success message and navigate
-      toast.success(data.message);
+      setTimeout(() => toast.success(data.message), 3000);
       navigate("/login");
     } catch (error) {
-      // Handle errors and provide user feedback
       console.error(error, "Invalid verification code");
       setError("Invalid verification code");
       toast.error("Invalid verification code");
     } finally {
-      // Ensure loading state is reset
       setIsLoading(false);
     }
   };
