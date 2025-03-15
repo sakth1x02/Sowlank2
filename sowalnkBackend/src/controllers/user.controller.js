@@ -19,17 +19,6 @@ const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
-// Update cookie options
-// const cookieOptions = {
-//   httpOnly: true,
-//   secure: true,
-//   // path: "/",
-//   sameSite: "none",
-//   // domain: ".sakthidev.site",
-//   maxAge: 24 * 60 * 60 * 1000,
-//   partitioned: true,
-// };
-
 const userAuthentication = {
   signupUser: asyncHandler(async (req, res) => {
     // Step 1: Extract user details from the request body
