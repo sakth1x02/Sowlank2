@@ -1,52 +1,8 @@
-import React, { useState } from "react";
-import { toast } from "react-toastify";
+import React from "react";
 const About = () => {
-  const [publicData, setPublicData] = useState("");
-  const [protectedData, setProtectedData] = useState("");
-  const handlePublicRoute = async () => {
-    try {
-      const res = await fetch("/api/v1/public");
-      const data = await res.json();
-      setPublicData(data.data);
-    } catch (error) {
-      toast.error("this error from public route button");
-      console.log(error);
-    }
-  };
-  const handleProtectedRoute = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/v1/protected", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      setProtectedData(data.message);
-    } catch (error) {
-      toast.error("this error from public route button");
-      console.log(error);
-    }
-  };
   return (
     <div className="min-h-screen bg-white text-gray-800 py-10">
       <div className="container mx-auto px-6 space-y-10">
-        <div className="flex flex-col items-center space-y-14">
-          <button
-            className="border text-lg bg-yellow-400 text-black p-2 rounded-lg"
-            onClick={handlePublicRoute}
-          >
-            Public route button to test
-          </button>
-          {publicData}
-          <button
-            className="border text-lg bg-yellow-400 text-black p-2 rounded-lg"
-            onClick={handleProtectedRoute}
-          >
-            Protected route button to test
-          </button>
-          {protectedData}
-        </div>
         <div className="text-center">
           <h1 className="text-5xl font-bold text-violet-700 mb-6">
             About Sowalnk

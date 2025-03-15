@@ -240,7 +240,7 @@ function YearlyTask() {
               {yearlyTask.map((task) => {
                 return (
                   <tr
-                    key={task._id}
+                    key={task?._id}
                     className={task.isCompleted ? "bg-[#E6F9E6]" : "bg-white"}
                   >
                     <td className="px-4 py-2 text-center text-black">

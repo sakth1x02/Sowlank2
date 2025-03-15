@@ -35,7 +35,7 @@ const CompletedTask = () => {
         {sortedDates.length > 0 ? (
           sortedDates.map((date, index) => {
             // Skip today's tasks
-            if (date === new Date().toDateString()) return null;
+            // if (date === new Date().toDateString()) return null;
 
             return (
               <div key={index} className="bg-white rounded-lg shadow-md p-6">

@@ -26,6 +26,7 @@ import VerifyEmailPage from "./Components/VerifyEmailPage.jsx";
 import ForgetPasswordPage from "./Components/ForgetPasswordPage.jsx";
 import ResetPasswordPage from "./ResetPasswordPage.jsx";
 import ContactUs from "./Components/ContactUs.jsx";
+import Settings from "./Components/Settings.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -120,6 +121,10 @@ const App = () => {
                 <Route
                   path="coupons/elite"
                   element={auth ? <EliteCoinConvert /> : <Login />}
+                />
+                <Route
+                  path="settings"
+                  element={auth ? <Settings /> : <Login />}
                 />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -419,9 +419,9 @@ function DailyTask() {
               </tr>
             </thead>
             <tbody className="bg-[#F0C1E1] ">
-              {filteredTasks?.map((task, index) => (
+              {filteredTasks?.map((task) => (
                 <tr
-                  key={index}
+                  key={task?._id}
                   className={`border-t overflow-scroll ${
                     task?.isCompleted ? "bg-green-100" : "bg-white"
                   }`}

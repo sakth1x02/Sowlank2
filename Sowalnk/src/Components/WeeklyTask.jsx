@@ -332,7 +332,7 @@ function WeeklyTask() {
             </thead>
             <tbody className="bg-[#F0C1E1] ">
               {weeklyTasks.map((task) => (
-                <tr key={task._id} className="border-t">
+                <tr key={task?._id} className="border-t">
                   <td className="px-4 py-2 text-center">
                     <div className="w-20 h-12 overflow-auto flex justify-start items-center">
                       {task.taskName}
