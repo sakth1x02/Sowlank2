@@ -10,9 +10,10 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "https://presntation-tier-alb-407003240.ap-south-1.elb.amazonaws.com", // Fixed typo here
+      "https://present-2102668087.ap-south-1.elb.amazonaws.com",
+      "http://present-2102668087.ap-south-1.elb.amazonaws.com", 
       "www.sowalnk.com",
-      "Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
+      "present-2102668087.ap-south-1.elb.amazonaws.com",
     ],
     proxy: {
       "/api": {

@@ -9,8 +9,8 @@ app.use(
     origin: [
       "sowalnk.com",
       "www.sowalnk.com",
-      "Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
-      "https://Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
+      "present-2102668087.ap-south-1.elb.amazonaws.com",
+      "http://present-2102668087.ap-south-1.elb.amazonaws.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
