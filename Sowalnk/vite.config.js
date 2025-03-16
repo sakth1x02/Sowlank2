@@ -10,7 +10,7 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "presntation-tier-LB-1486117083.ap-south-1.elb.amazonaws.com",
+      "presentation-tier-LB-1486117083.ap-south-1.elb.amazonaws.com", // Fixed typo here
       "www.sowalnk.com",
     ],
     proxy: {
@@ -22,6 +22,17 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: [
+      "some-package",
+      "another-package"
+    ],
+    exclude: [
+      "chunk-QUOHUE5D.js",
+      "chunk-Z7TGAZAL.js",
+      "chunk-TYRYANW4.js",
+      "chunk-OWFZW76L.js",
+      "chunk-7PNND6CJ.js"
+    ]
+  }
 });
-
-// http://localhost:2000
