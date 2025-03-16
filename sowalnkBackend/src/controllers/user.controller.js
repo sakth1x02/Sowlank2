@@ -13,11 +13,10 @@ import {
   sendResetSuccessEmail,
 } from "../mailtrap/emails.js";
 import crypto from "crypto";
-const JWT_SECRET =
-  "/Bg49ZwwW+ofRjU52ymGs/wg6wH5M948Egs18JpxklOsKaQ+oG0Px46S97gI2TL6oDGgnvrtNjDMlwu/SX/pfg==";
+
 // Helper function to generate access token
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "1d" });
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
 const userAuthentication = {
@@ -239,7 +238,7 @@ const userAuthentication = {
       // send email
       await sendPasswordResetEmail(
         user.email,
-        `http://localhost:5173/reset-password/${resetToken}`
+        `http://Presntation-tier-LB-1486117083.ap-south-1.elb.amazonaws.com/reset-password/${resetToken}`
       );
 
       res.status(200).json({
