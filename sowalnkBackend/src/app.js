@@ -7,7 +7,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://sowalnk.com",
+      "www.sowalnk.com",
       "https://internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
