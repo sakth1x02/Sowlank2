@@ -8,7 +8,9 @@ app.use(
   cors({
     origin: [
       "sowalnk.com",
-      "http://Presntation-tier-LB-1486117083.ap-south-1.elb.amazonaws.com",
+      "www.sowalnk.com",
+      "Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
+      "https://Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [

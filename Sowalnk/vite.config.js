@@ -10,13 +10,14 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "presentation-724941199.ap-south-1.elb.amazonaws.com", // Fixed typo here
+      "https://presntation-tier-alb-407003240.ap-south-1.elb.amazonaws.com", // Fixed typo here
       "www.sowalnk.com",
+      "Presntation-tier-ALB-407003240.ap-south-1.elb.amazonaws.com",
     ],
     proxy: {
       "/api": {
         target:
-          "http://internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
+          "https://internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
         changeOrigin: true,
         secure: false,
       },
@@ -36,3 +37,5 @@ export default defineConfig({
     ]
   }
 });
+
+
