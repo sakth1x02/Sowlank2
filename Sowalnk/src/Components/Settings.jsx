@@ -1,9 +1,8 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Trophy,
   Coins,
-  Award,
   Star,
   Calendar,
   Clock,
@@ -12,10 +11,40 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, animate } from "framer-motion";
+import { fetchUsers } from "../store/user-slice";
+import { Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+const CountUp = ({ value, duration = 2, className = "" }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const controls = animate(0, value, {
+      duration,
+      onUpdate: (latest) => {
+        setDisplayValue(Math.floor(latest));
+      },
+      ease: "easeOut",
+    });
+
+    return () => controls.stop();
+  }, [value, duration]);
+
+  return <span className={className}>{displayValue}</span>;
+};
 
 const Settings = () => {
-  const auth = useSelector((state) => state.user.loggedInUser);
+  const authData = useSelector((state) => state.user.loggedInUser);
+  const users = useSelector((state) => state.user.users);
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(fetchUsers()).then(() => setIsLoading(false));
+  }, [dispatch]);
+
+  const auth = users.find((user) => user._id === authData._id);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -40,10 +69,20 @@ const Settings = () => {
     show: { opacity: 1, y: 0 },
   };
 
-  const StatCard = ({ icon: Icon, title, value, className = "" }) => (
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    isNumber = false,
+    prefix = "",
+    suffix = "",
+    className = "",
+    onClick,
+  }) => (
     <motion.div
       variants={item}
       whileHover={{ scale: 1.02 }}
+      onClick={onClick}
       className={`bg-white rounded-xl p-6 shadow-sm backdrop-blur-sm bg-opacity-90 ${className}`}
     >
       <div className="flex items-center gap-4">
@@ -52,11 +91,21 @@ const Settings = () => {
         </div>
         <div>
           <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-xl font-semibold text-gray-900">{value}</p>
+          <p className="text-xl font-semibold text-gray-900">
+            {prefix}
+            {isNumber ? <CountUp value={value} /> : value}
+            {suffix}
+          </p>
         </div>
       </div>
     </motion.div>
   );
+
+  if (isLoading || !auth) {
+    return (
+      <Loader className="w-10 h-10 text-purple-700  animate-spin mx-auto" />
+    ); // Show a loading spinner while data is being fetched
+  }
 
   return (
     <motion.div
@@ -77,7 +126,7 @@ const Settings = () => {
               auth.name
             )}&background=random`}
             alt={auth.name}
-            className="w-24 h-24 rounded-full ring-4 ring-white shadow-xl"
+            className="w-24 h-24 rounded-full ring-4 ring-green-300 shadow-xl"
           />
           <div>
             <motion.h1
@@ -118,19 +167,26 @@ const Settings = () => {
           icon={Trophy}
           title="Total Points"
           value={auth.totalPoints}
+          isNumber={true}
           className="border-l-4 border-blue-500"
+          onClick={() => navigate("/rankings")}
         />
         <StatCard
           icon={Star}
           title="Current Streak"
-          value={`${auth.streak} days`}
+          value={auth.streak}
+          isNumber={true}
+          suffix=" days"
           className="border-l-4 border-yellow-500"
+          onClick={() => navigate("/dashboard")}
         />
         <StatCard
           icon={Coins}
           title="Total Coins"
           value={auth.normalCoins + auth.goldCoins + auth.eliteCoins}
+          isNumber={true}
           className="border-l-4 border-green-500"
+          onClick={() => navigate("/coupons")}
         />
       </motion.div>
 
@@ -149,7 +205,7 @@ const Settings = () => {
             >
               <span className="text-gray-600">Positive Points</span>
               <span className="font-medium text-green-600">
-                +{auth.positivePoints}
+                +<CountUp value={auth.positivePoints} />
               </span>
             </motion.div>
             <motion.div
@@ -159,7 +215,7 @@ const Settings = () => {
             >
               <span className="text-gray-600">Negative Points</span>
               <span className="font-medium text-red-600">
-                -{auth.negativePoints}
+                -<CountUp value={auth.negativePoints} />
               </span>
             </motion.div>
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">

@@ -239,7 +239,7 @@ const userAuthentication = {
       // send email
       await sendPasswordResetEmail(
         user.email,
-        `${process.env.CORS_ORIGIN}/reset-password/${resetToken}`
+        `http://localhost:5173/reset-password/${resetToken}`
       );
 
       res.status(200).json({

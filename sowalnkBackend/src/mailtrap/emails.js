@@ -88,8 +88,6 @@ export const sendResetSuccessEmail = async (email) => {
       subject: "Password Reset Successful",
       html: PASSWORD_RESET_SUCCESS_TEMPLATE,
     });
-
-    console.log("Password reset email sent successfully", response);
   } catch (error) {
     console.error(`Error sending password reset success email`, error);
 

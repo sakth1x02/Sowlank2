@@ -27,6 +27,7 @@ import ForgetPasswordPage from "./Components/ForgetPasswordPage.jsx";
 import ResetPasswordPage from "./ResetPasswordPage.jsx";
 import ContactUs from "./Components/ContactUs.jsx";
 import Settings from "./Components/Settings.jsx";
+import NotFound from "./Components/NotFound.jsx";
 const App = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   return (
@@ -127,7 +128,7 @@ const App = () => {
                   element={auth ? <Settings /> : <Login />}
                 />
               </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </div>

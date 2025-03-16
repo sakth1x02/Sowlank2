@@ -48,7 +48,7 @@ function WeeklyTask() {
   const currentWeekNumber = getWeekNumber(today);
 
   const lastDayOfWeek = new Date(firstDayOfWeek);
-  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 30);
   lastDayOfWeek.setHours(23, 59, 59, 999);
 
   const formattedStartOfWeek = firstDayOfWeek.toLocaleDateString("en-US", {
@@ -273,7 +273,7 @@ function WeeklyTask() {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-1/3 p-3 border rounded-md"
                 min={firstDayOfWeek.toISOString().split("T")[0]}
-                max={lastDayOfWeek.toISOString().split("T")[0]}
+                // max={lastDayOfWeek.toISOString().split("T")[0]}
               />
               {/* <input
                 type="date"
