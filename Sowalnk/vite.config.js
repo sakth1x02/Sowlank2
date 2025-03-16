@@ -9,13 +9,13 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     allowedHosts: [
-      "sakthidev.site",
-      "app-alb-990835184.us-east-2.elb.amazonaws.com",
+      "sowalnk.com",
+      "internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
     ],
     proxy: {
       "/api": {
-        // target: "https://app-alb-990835184.us-east-2.elb.amazonaws.com",
-        target: "http://localhost:2000",
+        target:
+          "https://internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
         changeOrigin: true,
         secure: false,
       },

@@ -7,9 +7,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://sakthidev.site",
-      "http://localhost:5173",
-      "https://3-tier-540623662.us-east-2.elb.amazonaws.com",
+      "https://sowalnk.com",
+      "https://internal-application-tier-ALb-221203325.ap-south-1.elb.amazonaws.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
