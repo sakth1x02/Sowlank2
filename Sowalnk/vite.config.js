@@ -1,24 +1,18 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { fileURLToPath, URL } from 'url';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      react: fileURLToPath(new URL('node_modules/react')),
-    },
-  },
   server: {
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "https://present-2102668087.ap-south-1.elb.amazonaws.com",
-      "http://present-2102668087.ap-south-1.elb.amazonaws.com", 
+      "https://application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com", 
       "www.sowalnk.com",
-      "present-2102668087.ap-south-1.elb.amazonaws.com",
+      "application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com",
     ],
     proxy: {
       "/api": {
@@ -43,3 +37,5 @@ export default defineConfig({
     ]
   }
 });
+
+
