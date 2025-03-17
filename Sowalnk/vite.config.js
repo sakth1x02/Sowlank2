@@ -20,16 +20,19 @@ export default defineConfig({
         secure: false,
       },
     },
+    hmr: {
+      overlay: false, // Disable error overlay
+    },
   },
-  optimizeDeps: {
-    include: ["some-package", "another-package"],
-    exclude: [
-      "chunk-QUOHUE5D.js",
-      "chunk-Z7TGAZAL.js",
-      "chunk-TYRYANW4.js",
-      "chunk-OWFZW76L.js",
-      "chunk-7PNND6CJ.js",
-    ],
-  },
+  // optimizeDeps: {
+  //   include: ["some-package", "another-package"],
+  //   exclude: [
+  //     "chunk-QUOHUE5D.js",
+  //     "chunk-Z7TGAZAL.js",
+  //     "chunk-TYRYANW4.js",
+  //     "chunk-OWFZW76L.js",
+  //     "chunk-7PNND6CJ.js",
+  //   ],
+  // },
 });
 // target: "http://localhost:2000",
