@@ -240,7 +240,7 @@ const userAuthentication = {
       // send email
       await sendPasswordResetEmail(
         user.email,
-        `http://Presntation-tier-LB-1486117083.ap-south-1.elb.amazonaws.com/reset-password/${resetToken}`
+        `https://application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com/reset-password/${resetToken}`
       );
 
       res.status(200).json({
