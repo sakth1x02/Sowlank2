@@ -14,10 +14,11 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         message: "Unauthorized request - No token provided",
       });
     }
-    const JWT_SECRET =
-      "/Bg49ZwwW+ofRjU52ymGs/wg6wH5M948Egs18JpxklOsKaQ+oG0Px46S97gI2TL6oDGgnvrtNjDMlwu/SX/pfg==";
+    // const JWT_SECRET =
+    //   "/Bg49ZwwW+ofRjU52ymGs/wg6wH5M948Egs18JpxklOsKaQ+oG0Px46S97gI2TL6oDGgnvrtNjDMlwu/SX/pfg==";
     try {
-      const decodedToken = jwt.verify(token, JWT_SECRET);
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("JWT Token", process.env.JWT_SECRET);
       const user = await User.findById(decodedToken?.userId).select(
         "-password"
       );
