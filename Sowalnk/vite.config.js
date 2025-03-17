@@ -9,8 +9,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "application-tier-alb-52084640.ap-south-1.elb.amazonaws.com", 
-      "www.sowalnk.com"
+      "application-tier-alb-52084640.ap-south-1.elb.amazonaws.com",
+      "www.sowalnk.com",
     ],
     proxy: {
       "/api": {
@@ -28,7 +28,8 @@ export default defineConfig({
       "chunk-Z7TGAZAL.js",
       "chunk-TYRYANW4.js",
       "chunk-OWFZW76L.js",
-      "chunk-7PNND6CJ.js"
+      "chunk-7PNND6CJ.js",
     ],
   },
 });
+// target: "http://localhost:2000",
