@@ -182,8 +182,8 @@ const Settings = () => {
         />
         <StatCard
           icon={Coins}
-          title="Total Coins"
-          value={auth.normalCoins + auth.goldCoins + auth.eliteCoins}
+          title="Normal Coins"
+          value={auth.normalCoins}
           isNumber={true}
           className="border-l-4 border-green-500"
           onClick={() => navigate("/coupons")}

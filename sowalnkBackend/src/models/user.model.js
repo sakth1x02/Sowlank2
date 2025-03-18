@@ -69,7 +69,7 @@ const userSchema = new Schema(
     },
     lastTaskDate: {
       type: Date,
-      default: null,
+      default: Date.now,
     },
     totalPoints: {
       type: Number,

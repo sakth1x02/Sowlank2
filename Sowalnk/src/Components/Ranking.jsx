@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { CircleUser } from "lucide-react";
 import { fetchUsers } from "../store/user-slice.jsx";
 import { updatePoints } from "../store/user-slice";
+import { debounce } from "lodash";
 const Ranking = () => {
   const { users } = useSelector((state) => state.user);
   const loggedInUser = useSelector((state) => state.user.loggedInUser);
@@ -13,31 +14,31 @@ const Ranking = () => {
     dispatch(fetchUsers());
   }, []);
 
+  const debouncedUpdatePoints = debounce((dispatch, payload) => {
+    dispatch(updatePoints(payload));
+  }, 100); // 500ms debounce delay
+
   useEffect(() => {
     if (dailyTask && loggedInUser) {
       dailyTask.forEach((task) => {
         if (!task.pointsAwarded) {
           if (task.isCompleted) {
-            dispatch(
-              updatePoints({
-                userId: loggedInUser._id,
-                completed: true,
-                taskId: task._id,
-              })
-            );
+            debouncedUpdatePoints(dispatch, {
+              userId: loggedInUser._id,
+              completed: true,
+              taskId: task._id,
+            });
           } else if (task.hasExceededTime) {
-            dispatch(
-              updatePoints({
-                userId: loggedInUser._id,
-                completed: false,
-                taskId: task._id,
-              })
-            );
+            debouncedUpdatePoints(dispatch, {
+              userId: loggedInUser._id,
+              completed: false,
+              taskId: task._id,
+            });
           }
         }
       });
     }
-  }, [dailyTask]);
+  }, [dailyTask, loggedInUser]);
 
   return (
     <div className="bg-gray-100 p-6 lg:min-h-screen flex flex-col items-center">
@@ -84,13 +85,15 @@ const Ranking = () => {
                 <td className="p-3 text-red-600">-{person?.negativePoints}</td>
                 <td className="p-3 font-bold">{person?.totalPoints}</td>
                 <td className="p-3">
-                  {person.streak > 0 && (
+                  {person.streak > 0 ? (
                     <div className="flex items-center">
                       <span className="text-yellow-600">🔥</span>
                       <span className="ml-1 font-semibold">
                         {person.streak} day{person.streak !== 1 ? "s" : ""}
                       </span>
                     </div>
+                  ) : (
+                    "0 day"
                   )}
                 </td>
               </tr>

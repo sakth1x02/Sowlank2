@@ -24,6 +24,7 @@ function DailyTask() {
   const [endTime, setEndTime] = useState("");
   const [yesterdaysTasks, setYesterdaysTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  // const [error, setError] = useState("");
   const dispatch = useDispatch();
   const today = new Date();
   const yesterday = new Date(today);
@@ -50,10 +51,14 @@ function DailyTask() {
 
   const handleAddTask = async () => {
     if (taskName.trim() === "" || !startTime || !endTime || !priority) {
+      toast.error("Missing required fields");
       console.error("Missing required fields");
       return;
     }
-
+    if (taskName.length < 3) {
+      toast.error("Task name must be at least 3 characters long");
+      return;
+    }
     if (
       dailyTask.some(
         (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
@@ -62,7 +67,7 @@ function DailyTask() {
         (task) => task.taskName.toLowerCase() === taskName.trim().toLowerCase()
       )
     ) {
-      alert("This task already exists!");
+      toast.error("This task already exists!");
       resetForm();
       return;
     }

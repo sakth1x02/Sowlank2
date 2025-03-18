@@ -76,6 +76,10 @@ function MonthlyTask() {
       setErrorMessage("Please fill in all required fields.");
       return;
     }
+    if (taskName.length < 3) {
+      toast.error("Task name must be at least 3 characters long");
+      return;
+    }
 
     const start = new Date(startDate);
     const end = new Date(endDate);

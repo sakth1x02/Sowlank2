@@ -77,19 +77,23 @@ function WeeklyTask() {
 
   const handleAddTask = () => {
     if (!taskName || !priority || !startDate || !endDate) {
-      alert("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
+      return;
+    }
+    if (taskName.length < 3) {
+      toast.error("Task name must be at least 3 characters long");
       return;
     }
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     if (start < today) {
-      alert("Start date cannot be before today.");
+      toast.error("Start date cannot be before today.");
       return;
     }
 
     if (start > end) {
-      alert("Start date cannot be later than the end date.");
+      toast.error("Start date cannot be later than the end date.");
       return;
     }
     if (
@@ -101,7 +105,7 @@ function WeeklyTask() {
           task.taskName.toLowerCase() === taskName.trim().toLocaleLowerCase()
       )
     ) {
-      alert("This task already exists!");
+      toast.error("This task already exists!");
       resetForm();
       return;
     }

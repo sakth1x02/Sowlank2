@@ -13,13 +13,10 @@ import {
   sendResetSuccessEmail,
 } from "../mailtrap/emails.js";
 import crypto from "crypto";
-// const JWT_SECRET =
-//   "/Bg49ZwwW+ofRjU52ymGs/wg6wH5M948Egs18JpxklOsKaQ+oG0Px46S97gI2TL6oDGgnvrtNjDMlwu/SX/pfg==";
-// Helper function to generate access token
+import mongoose from "mongoose";
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
-console.log("JWT_SECRET", process.env.JWT_SECRET);
 
 const userAuthentication = {
   signupUser: asyncHandler(async (req, res) => {
@@ -323,61 +320,125 @@ const userAuthentication = {
   updateTaskPoints: asyncHandler(async (req, res) => {
     const { userId, completed, taskId } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new ApiError(404, "User not found");
-    }
+    const session = await mongoose.startSession();
 
-    // Find and update the task
-    const task = await DailyTask.findById(taskId);
-    if (!task || task.pointsAwarded) {
-      return res.status(200).json({
-        success: true,
-        message: "Points already awarded",
-        data: user,
-      });
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (completed) {
-      user.positivePoints += 2;
-
-      if (user.lastTaskDate) {
-        const lastDate = new Date(user.lastTaskDate);
-        lastDate.setHours(0, 0, 0, 0);
-
-        const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) {
-          user.streak += 1;
-          if (user.streak % 5 === 0) {
-            user.positivePoints += 5;
+    try {
+      await session.withTransaction(async () => {
+        // Use findOneAndUpdate with session to atomically find and update the task
+        const task = await DailyTask.findOneAndUpdate(
+          {
+            _id: taskId,
+            pointsAwarded: { $ne: true }, // Only match if points haven't been awarded
+          },
+          { $set: { pointsAwarded: true } },
+          {
+            session,
+            new: true,
+            runValidators: true,
           }
-        } else if (diffDays > 1) {
-          user.streak = 1;
+        );
+
+        if (!task) {
+          return res.status(200).json({
+            success: true,
+            message: "Points already awarded or task not found",
+          });
         }
-      } else {
-        user.streak = 1;
-      }
 
-      user.lastTaskDate = today;
-    } else {
-      user.negativePoints += 2;
+        // Use findOneAndUpdate for atomic user updates
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let updateQuery = {};
+        let incrementQuery = {};
+
+        if (completed) {
+          incrementQuery.positivePoints = 2;
+
+          const user = await User.findById(userId).session(session);
+          if (!user) {
+            return res
+              .status(404)
+              .json({ success: false, message: "User not found" });
+          }
+          if (user.lastTaskDate) {
+            const lastDate = new Date(user.lastTaskDate);
+            lastDate.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.floor(
+              (today - lastDate) / (1000 * 60 * 60 * 24)
+            );
+
+            if (diffDays === 1) {
+              const newStreak = (user.streak || 0) + 1;
+              updateQuery.streak = newStreak;
+
+              if (newStreak % 5 === 0) {
+                incrementQuery.positivePoints += 5;
+              }
+            } else if (diffDays > 1) {
+              updateQuery.streak = 1;
+            }
+          } else {
+            updateQuery.streak = 1;
+          }
+
+          updateQuery.lastTaskDate = today;
+        } else {
+          incrementQuery.negativePoints = 2;
+        }
+
+        // Perform atomic update on user
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: userId },
+          {
+            $set: updateQuery,
+            $inc: incrementQuery,
+          },
+          {
+            session,
+            new: true,
+            runValidators: true,
+          }
+        );
+
+        if (!updatedUser) {
+          return res
+            .status(404)
+            .json({ success: false, message: "User not found" });
+        }
+
+        // Update total points atomically
+        const finalUser = await User.findOneAndUpdate(
+          { _id: userId },
+          [
+            {
+              $set: {
+                totalPoints: {
+                  $max: [
+                    0,
+                    { $subtract: ["$positivePoints", "$negativePoints"] },
+                  ],
+                },
+              },
+            },
+          ],
+          {
+            session,
+            new: true,
+            runValidators: true,
+          }
+        );
+
+        res.status(200).json({
+          success: true,
+          message: "Points updated successfully",
+          data: finalUser,
+        });
+      });
+    } finally {
+      session.endSession();
     }
-
-    user.totalPoints = Math.max(0, user.positivePoints - user.negativePoints);
-
-    task.pointsAwarded = true;
-    await task.save();
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Points updated successfully",
-      data: user,
-    });
   }),
   increaseNormalCoins: asyncHandler(async (req, res) => {
     const { userId, taskId } = req.body;
@@ -465,7 +526,7 @@ const userAuthentication = {
 
     // Deduct coins and add a coupon card
     user.normalCoins -= COUPON_COST;
-    user.couponCards.push(`Coupon Card ${user.couponCards.length + 1}`);
+    await user.couponCards.push(`Coupon Card ${user.couponCards.length + 1}`);
 
     await user.save();
 

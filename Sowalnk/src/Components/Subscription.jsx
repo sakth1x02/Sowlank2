@@ -70,7 +70,8 @@ const Subscription = () => {
   const plans = [
     {
       name: "BASIC",
-      price: "Daily limits",
+      of: "",
+      price: "Daily limits of 10 Tasks",
       features: [
         "Access to Daily Goals Only ",
         "Limited support",
@@ -79,6 +80,7 @@ const Subscription = () => {
     },
     {
       name: "INTERMEDIATE",
+      of: "₹1500/year",
       price: "₹750/year",
       features: [
         "Access upto Weekly Goals",
@@ -89,6 +91,7 @@ const Subscription = () => {
     },
     {
       name: "ADVANCED",
+      of: "₹3000/year",
       price: "₹1500/year",
       features: [
         "Remainders,Push Notification",
@@ -211,7 +214,7 @@ const Subscription = () => {
 
   return (
     <div className="lg:min-h-screen flex flex-col items-center bg-purple-200 p-8">
-      <div className="w-full overflow-hidden bg-black text-white py-2 flex items-center justify-center">
+      <div className="w-full rounded-lg overflow-hidden bg-black text-white py-2 flex items-center justify-center">
         <div className="text-xl font-bold animate-marquee">
           🎉 Special Offer: Get 50% off on your first 3 months! 🎉
         </div>
@@ -228,6 +231,7 @@ const Subscription = () => {
             className="p-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
           >
             <h2 className="text-2xl font-semibold mb-3">{plan.name}</h2>
+            <p className="text-lg mb-1 line-through italic">{plan.of}</p>
             <p className="text-lg mb-6">{plan.price}</p>
             <button
               onClick={() => showFeatures(plan.name)}
@@ -323,7 +327,7 @@ const Subscription = () => {
             transform: translateX(100%);
           }
           100% {
-            transform: translateX(-100%);
+            transform: translateX(-140%);
           }
         }
 

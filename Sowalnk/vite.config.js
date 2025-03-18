@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// import path from "path";
 
 export default defineConfig({
   plugins: [react()],
@@ -16,23 +17,18 @@ export default defineConfig({
       "/api": {
         target:
           "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com",
+        // target: "http://localhost:2000",
         changeOrigin: true,
         secure: false,
       },
     },
     hmr: {
-      overlay: false, // Disable error overlay
+      overlay: false,
+    },
+    fs: {
+      allow: [path.resolve(__dirname, "Sowalnk")],
     },
   },
-  // optimizeDeps: {
-  //   include: ["some-package", "another-package"],
-  //   exclude: [
-  //     "chunk-QUOHUE5D.js",
-  //     "chunk-Z7TGAZAL.js",
-  //     "chunk-TYRYANW4.js",
-  //     "chunk-OWFZW76L.js",
-  //     "chunk-7PNND6CJ.js",
-  //   ],
-  // },
 });
+
 // target: "http://localhost:2000",

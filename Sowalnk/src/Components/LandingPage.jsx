@@ -75,7 +75,7 @@ const LandingPage = () => {
         <div className="mt-8">{auth && <Subscription />}</div>
 
         {/* Testimonials Section */}
-        <section className="bg-gray-100 py-12 mt-8">
+        {/* <section className="bg-gray-100 py-12 mt-8">
           <div className="container mx-auto px-4 lg:px-6 text-center">
             <h2 className="text-2xl lg:text-3xl font-semibold mb-6 text-gray-800">
               What Our Users Say
@@ -99,7 +99,7 @@ const LandingPage = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );
