@@ -25,9 +25,6 @@ export default defineConfig({
     hmr: {
       overlay: false,
     },
-    fs: {
-      allow: [path.resolve(__dirname, "Sowalnk")],
-    },
   },
 });
 
