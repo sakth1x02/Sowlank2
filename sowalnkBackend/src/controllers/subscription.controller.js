@@ -63,7 +63,10 @@ const createSubscription = asyncHandler(async (req, res) => {
       message: "Order created successfully",
     });
   } catch (error) {
-    throw new ApiError(500, "Failed to create order: " + error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create order :" + error.error.description,
+    });
   }
 });
 

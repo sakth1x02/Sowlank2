@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { verifyJWT } from "./middleware/auth.middleware.js";
+
 const app = express();
 app.use(cookieParser());
 app.use(
@@ -11,6 +11,7 @@ app.use(
       "www.sowalnk.com",
       "application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com",
       "https://application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com",
+      // "http://localhost:5173",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
@@ -32,14 +33,6 @@ app.use("/api/v1/public", (req, res) => {
   res.status(200).json({
     success: true,
     data: "This is a public route message after clicking public button",
-  });
-});
-
-app.use("/api/v1/protected", verifyJWT, (req, res) => {
-  res.status(200).json({
-    success: true,
-    message:
-      "This is a protected route message after clicking protected button if token is verifyed and user is authenticated",
   });
 });
 

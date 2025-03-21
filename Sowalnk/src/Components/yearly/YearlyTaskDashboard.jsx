@@ -20,7 +20,6 @@ const YearlyTaskDashboard = ({ openYearlyTask, setOpenYearlyTask }) => {
       new Date(task.dateOnCreated).getMonth()
     )
   );
-  console.log(monthlyUniqueData.size);
 
   const completedValue =
     monthlyUniqueData.size >= 12 || data.some((item) => item.isCompleted);

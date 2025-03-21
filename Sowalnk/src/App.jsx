@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./Components/LandingPage";
 import About from "./Components/About";
@@ -28,13 +28,52 @@ import ResetPasswordPage from "./ResetPasswordPage.jsx";
 import ContactUs from "./Components/ContactUs.jsx";
 import Settings from "./Components/Settings.jsx";
 import NotFound from "./Components/NotFound.jsx";
+import Feedback from "./Components/Feedback.jsx";
 const App = () => {
+  const [showPopup, setShowPopup] = useState(false);
   const auth = useSelector((state) => state.user.loggedInUser);
+  useEffect(() => {
+    if (auth) {
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [auth]);
+
+  const handleSubmitFeedback = async (feedback) => {
+    try {
+      console.log(feedback);
+      // const response = await fetch("/api/v1/send-feedback", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(feedback),
+      // });
+
+      // if (response.ok) {
+      //   alert("Thank you for your feedback!");
+      // } else {
+      //   alert("Failed to send feedback.");
+      // }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
   return (
     <>
       <BrowserRouter>
         <div className="flex">
           <div className="flex-grow">
+            {/* Your existing content */}
+            {showPopup && (
+              <Feedback
+                onClose={() => setShowPopup(false)}
+                onSubmit={handleSubmitFeedback}
+              />
+            )}
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<LandingPage />} />

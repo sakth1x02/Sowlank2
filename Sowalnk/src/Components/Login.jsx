@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { setLoggedInUser } from "../store/user-slice";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../utils/firebase.js"; // Import Firebase auth and provider
+import { auth, googleProvider } from "../utils/firebase.js";
 import { Loader } from "lucide-react";
 const Login = () => {
   const [email, setEmail] = useState("");

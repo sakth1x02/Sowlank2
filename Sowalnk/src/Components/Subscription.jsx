@@ -3,14 +3,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { setIntermediateMember, setAdvanceMember } from "../store/ui-slice";
 import { TriangleAlert } from "lucide-react";
 import { toast } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState();
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { intermediateMember, advanceMember } = useSelector(
     (state) => state.ui
   );
+  const { loggedInUser } = useSelector((state) => state.user);
 
   const [remainingIntermediateDays, setRemainingIntermediateDays] = useState(0);
   const [remainingAdvancedDays, setRemainingAdvancedDays] = useState(0);
@@ -26,9 +28,11 @@ const Subscription = () => {
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       try {
-        const token = await localStorage.getItem("token");
+        const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error("Authentication required. Please login.");
+          toast.error("Authentication required. Please login.");
+          navigate("/login");
+          return;
         }
         const response = await fetch(`/api/v1/subscription/status`, {
           headers: {
@@ -112,11 +116,13 @@ const Subscription = () => {
 
     try {
       setLoading(true);
-      const token = await localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
       // Add proper error handling for missing token
       if (!token) {
-        throw new Error("Authentication required. Please login.");
+        toast.error("Authentication required. Please login.");
+        navigate("/login");
+        return;
       }
 
       // Create subscription
@@ -148,7 +154,9 @@ const Subscription = () => {
           try {
             const token = await localStorage.getItem("token");
             if (!token) {
-              throw new Error("Authentication required. Please login.");
+              toast.error("Authentication required. Please login.");
+              navigate("/login");
+              return;
             }
             const verifyResponse = await fetch(`/api/v1/subscription/verify`, {
               method: "POST",
@@ -185,8 +193,8 @@ const Subscription = () => {
           }
         },
         prefill: {
-          name: "User Name",
-          email: "user@example.com",
+          name: loggedInUser.name || "User",
+          email: loggedInUser.email || "user@example.com",
           contact: "+911234567890",
         },
         notes: {
