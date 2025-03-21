@@ -3,6 +3,7 @@ import express from "express";
 import connectDB from "./db/index.js";
 import { app } from "./app.js"; // Assuming `app.js` properly exports `app`
 import { sendEmail } from "./mailtrap/emails.js";
+import { verifyJWT } from "./middleware/auth.middleware.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -24,6 +25,21 @@ app.post("/api/v1/send-email", async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ error: "Failed to send email" });
+  }
+});
+
+app.post("/api/v1/send-feedback", verifyJWT, async (req, res) => {
+  const { rating, feedback } = req.body;
+  if (!rating) {
+    return res.status(400).json({ error: "rating is required" });
+  }
+  console.log(feedback, rating);
+  try {
+    // await sendEmail(feedback);
+    res.status(200).json({ message: "Thank you for your feedback!" });
+  } catch (error) {
+    console.error("Error sending feedback:", error);
+    res.status(500).json({ error: "Failed to send feedback" });
   }
 });
 

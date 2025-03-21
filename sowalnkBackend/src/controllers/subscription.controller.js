@@ -11,13 +11,13 @@ const razorpay = new Razorpay({
 
 const PLANS = {
   INTERMEDIATE: {
-    amount: 75000, // Amount in paise (₹750)
+    amount: 39900, // Amount in paise (₹750)
     currency: "INR",
     interval: "monthly",
     period: 90, // days
   },
   ADVANCED: {
-    amount: 155000, // Amount in paise (₹1550)
+    amount: 49900, // Amount in paise (₹1550)
     currency: "INR",
     interval: "yearly",
     period: 365, // days

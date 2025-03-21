@@ -17,11 +17,16 @@ const FeedbackPopup = ({ onClose, onSubmit }) => {
 
     setIsSubmitting(true);
     try {
-      await onSubmit({ rating, feedback });
+      const feedbackdata = {
+        rating,
+        feedback,
+      };
+      await onSubmit(feedbackdata);
       toast.success("Thank you for your feedback!");
       setRating(null);
       setFeedback("");
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       toast.error("Something went wrong");
       console.error("Error submitting feedback:", error);

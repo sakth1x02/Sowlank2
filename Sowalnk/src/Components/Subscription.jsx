@@ -84,8 +84,8 @@ const Subscription = () => {
     },
     {
       name: "INTERMEDIATE",
-      of: "₹1500/year",
-      price: "₹750/year",
+      of: "₹798/year",
+      price: "₹399/year",
       features: [
         "Access upto Weekly Goals",
         "Set Theme as your wish",
@@ -95,8 +95,8 @@ const Subscription = () => {
     },
     {
       name: "ADVANCED",
-      of: "₹3000/year",
-      price: "₹1500/year",
+      of: "₹998/year",
+      price: "₹499/year",
       features: [
         "Remainders,Push Notification",
         "support team",

@@ -29,36 +29,39 @@ import ContactUs from "./Components/ContactUs.jsx";
 import Settings from "./Components/Settings.jsx";
 import NotFound from "./Components/NotFound.jsx";
 import Feedback from "./Components/Feedback.jsx";
+import { toast } from "react-toastify";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
   const auth = useSelector((state) => state.user.loggedInUser);
-  useEffect(() => {
-    if (auth) {
-      const timer = setTimeout(() => {
-        setShowPopup(true);
-      }, 10000); // 10 seconds
+  // useEffect(() => {
+  //   if (auth) {
+  //     const timer = setTimeout(() => {
+  //       setShowPopup(true);
+  //     }, 10000); // 10 seconds
 
-      return () => clearTimeout(timer);
-    }
-  }, [auth]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [auth]);
 
-  const handleSubmitFeedback = async (feedback) => {
+  const handleSubmitFeedback = async (feedbackdata) => {
     try {
-      console.log(feedback);
-      // const response = await fetch("/api/v1/send-feedback", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(feedback),
-      // });
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/v1/send-feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(feedbackdata),
+      });
 
-      // if (response.ok) {
-      //   alert("Thank you for your feedback!");
-      // } else {
-      //   alert("Failed to send feedback.");
-      // }
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error);
+      }
+      toast.success(data.message);
     } catch (error) {
+      toast.error("Failed to send feedback.");
       console.error("Error:", error);
     }
   };
