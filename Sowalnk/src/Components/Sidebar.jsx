@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Clock3,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -57,6 +58,12 @@ const Sidebar = () => {
       path: "/yearly",
       label: "Yearly Task",
       icon: <Calendar className="h-5 w-5" />,
+      className: advanceMember === true ? "" : "hidden",
+    },
+    {
+      path: "/time-management",
+      label: "15 Time Methods",
+      icon: <Clock3 className="h-5 w-5" />,
       className: advanceMember === true ? "" : "hidden",
     },
     {

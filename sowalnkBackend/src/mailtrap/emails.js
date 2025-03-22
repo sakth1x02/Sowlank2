@@ -65,6 +65,32 @@ export const sendEmail = async (email, name, message) => {
   }
 };
 
+export const sendEmailFeedback = async (rating, feedback, email, name) => {
+  try {
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: "ay614838@gmail.com",
+      subject: `Feedback Form with rating Submission from ${name}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4CAF50; text-align: center;">Feedback form with rating Submission</h2>
+          <div style="background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Email:</strong> ${email}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Rating:</strong> ${rating}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong style="color: #4CAF50;">Feedback Message:</strong> ${feedback}</p>
+          </div>
+          <hr style="border: 0; height: 1px; background: #ddd;">
+      <p style="text-align: center; color: #666; font-size: 14px;">This message was sent via your website feedback form.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error(`Error in sending email`, error);
+
+    throw new Error(`Error in sending email: ${error}`);
+  }
+};
+
 export const sendPasswordResetEmail = async (email, resetURL) => {
   try {
     const response = await transporter.sendMail({

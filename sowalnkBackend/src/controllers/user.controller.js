@@ -147,7 +147,7 @@ const userAuthentication = {
         authMethod: "google", // Add this field to track auth method
       });
     }
-
+    // user.isVerified = true;
     // Generate JWT token
     const token = generateAccessToken(user._id);
     const userData = await User.findById(user._id).select("-password");

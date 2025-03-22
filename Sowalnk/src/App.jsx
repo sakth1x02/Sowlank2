@@ -15,7 +15,7 @@ import TaskChart from "./Components/TaskChart";
 import Ranking from "./Components/Ranking.jsx";
 import CompletedTask from "./Components/CompletedTask";
 import Coupons from "./Components/Coupons/Coupons.jsx";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import NormalCoinConvert from "./Components/Coupons/NormalCoinConvert.jsx";
 import GoldCoinConvert from "./Components/Coupons/GoldCoinConvert.jsx";
 import EliteCoinConvert from "./Components/Coupons/EliteCoinConvert.jsx";
@@ -30,18 +30,35 @@ import Settings from "./Components/Settings.jsx";
 import NotFound from "./Components/NotFound.jsx";
 import Feedback from "./Components/Feedback.jsx";
 import { toast } from "react-toastify";
+import { Loader } from "lucide-react";
+import { fetchUsers } from "./store/user-slice";
+import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
-  const auth = useSelector((state) => state.user.loggedInUser);
-  // useEffect(() => {
-  //   if (auth) {
-  //     const timer = setTimeout(() => {
-  //       setShowPopup(true);
-  //     }, 10000); // 10 seconds
+  // const [isLoading, setIsLoading] = useState(true);
 
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [auth]);
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.user.users);
+  const auth = useSelector((state) => state.user.loggedInUser);
+
+  useEffect(() => {
+    if (auth) {
+      dispatch(fetchUsers());
+    }
+  }, [auth, dispatch]);
+
+  const userFeedback = users.find((user) => user._id === auth._id);
+  useEffect(() => {
+    if (userFeedback !== undefined) {
+      const timer = setTimeout(() => {
+        if (!userFeedback?.isFeedback) {
+          setShowPopup(true);
+        }
+      }, 10000); // 10 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [userFeedback, dispatch]);
 
   const handleSubmitFeedback = async (feedbackdata) => {
     try {
@@ -59,12 +76,19 @@ const App = () => {
       if (!response.ok) {
         throw new Error(data.error);
       }
-      toast.success(data.message);
+      setShowPopup(false); // Close the popup after successful submission
     } catch (error) {
       toast.error("Failed to send feedback.");
       console.error("Error:", error);
     }
   };
+
+  // if (isLoading && auth) {
+  //   return (
+  //     <Loader className="w-10 h-10 text-purple-700 animate-spin mx-auto" />
+  //   );
+  // }
+
   return (
     <>
       <BrowserRouter>
@@ -127,6 +151,10 @@ const App = () => {
                 <Route
                   path="yearly"
                   element={auth ? <YearlyTask /> : <Login />}
+                />
+                <Route
+                  path="time-management"
+                  element={auth ? <TimeManage /> : <Login />}
                 />
                 <Route
                   path="taskchart"

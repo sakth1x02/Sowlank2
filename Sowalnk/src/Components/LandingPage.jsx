@@ -4,8 +4,6 @@ import Feature from "./Feature";
 import Subscription from "./Subscription";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import TimeManage from "./TimeManagement/TimeManage.jsx";
-
 const LandingPage = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.user.loggedInUser);
@@ -53,9 +51,6 @@ const LandingPage = () => {
 
         {/* Subscription Section */}
         <div className="mt-8">{auth && <Subscription />}</div>
-
-        {/* Chart Section */}
-        <TimeManage />
       </div>
     </div>
   );

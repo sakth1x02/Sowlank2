@@ -1,27 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Maximize, Minimize, Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 import TimeMethodCard from "./TimeMethodCard.jsx";
-
+import EisenhowerMethod from "./EisenhowerMethod.jsx";
+import ABCDEMethod from "./ABCDEMethod.jsx";
+import TwoMinuteRule from "./TwoMinuteRule.jsx";
 const TimeManage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeMethod, setActiveMethod] = useState(null);
-
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(
-          `Error attempting to enable full-screen mode: ${err.message}`
-        );
-      });
-      setIsFullScreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullScreen(false);
-      }
-    }
-  };
 
   useEffect(() => {
     const handleFullScreenChange = () => {
@@ -124,7 +110,7 @@ const TimeManage = () => {
       transition={{ duration: 0.8 }}
       className={`
         min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col
-        ${isFullScreen ? "fixed inset-0 z-50 bg-white" : ""}
+        
       `}
     >
       <header className="w-full pt-16 px-8 md:px-12 flex flex-col items-center justify-between z-10">
@@ -184,31 +170,19 @@ const TimeManage = () => {
                 Back to All Methods
               </button>
               <div className="grid place-items-center p-6">
-                <h2 className="text-2xl font-bold mb-4">
+                {/* <h2 className="text-2xl font-bold mb-4">
                   {timeMethods[activeMethod - 1].name}
                 </h2>
                 <p className="text-gray-500 mb-6">
                   {timeMethods[activeMethod - 1].description}
-                </p>
-                {/* Here we would show more detailed information about each method */}
+                </p> */}
+                {activeMethod === 2 && <EisenhowerMethod />}
+                {activeMethod === 3 && <ABCDEMethod />}
+                {activeMethod === 5 && <TwoMinuteRule />}
               </div>
             </motion.div>
           ) : (
             <div className="my-8">
-              {/* <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative overflow-hidden rounded-xl bg-white shadow-lg border border-gray-200"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-transparent z-0"></div>
-                <img
-                  src="/images/timeManagement.png"
-                  alt="Time Management Methods"
-                  className="w-full h-auto object-contain"
-                />
-              </motion.div> */}
-
               <div className="mt-16">
                 <h2 className="text-2xl font-bold mb-6 text-center">
                   Browse Time Management Methods

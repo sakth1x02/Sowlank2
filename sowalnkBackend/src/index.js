@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./db/index.js";
 import { app } from "./app.js"; // Assuming `app.js` properly exports `app`
-import { sendEmail } from "./mailtrap/emails.js";
+import { sendEmail, sendEmailFeedback } from "./mailtrap/emails.js";
 import { verifyJWT } from "./middleware/auth.middleware.js";
-
+import { User } from "./models/user.model.js";
 dotenv.config({ path: "./.env" });
 
 app.use(express.json()); // Middleware to parse JSON body
@@ -30,12 +30,15 @@ app.post("/api/v1/send-email", async (req, res) => {
 
 app.post("/api/v1/send-feedback", verifyJWT, async (req, res) => {
   const { rating, feedback } = req.body;
+  const { email, name } = req.user;
   if (!rating) {
     return res.status(400).json({ error: "rating is required" });
   }
-  console.log(feedback, rating);
   try {
-    // await sendEmail(feedback);
+    await sendEmailFeedback(rating, feedback, email, name);
+    const user = await User.findOne({ email });
+    user.isFeedback = true;
+    await user.save();
     res.status(200).json({ message: "Thank you for your feedback!" });
   } catch (error) {
     console.error("Error sending feedback:", error);

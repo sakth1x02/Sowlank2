@@ -107,6 +107,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isFeedback: {
+      type: Boolean,
+      default: false,
+    },
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
     verificationToken: String,
