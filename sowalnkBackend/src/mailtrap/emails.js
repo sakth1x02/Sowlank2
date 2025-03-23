@@ -69,7 +69,7 @@ export const sendEmailFeedback = async (rating, feedback, email, name) => {
   try {
     const response = await transporter.sendMail({
       from: process.env.BREVO_EMAIL,
-      to: "ay614838@gmail.com",
+      to: "support@sowalnk.com",
       subject: `Feedback Form with rating Submission from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto;">
