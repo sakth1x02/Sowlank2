@@ -5,6 +5,10 @@ import TimeMethodCard from "./TimeMethodCard.jsx";
 import EisenhowerMethod from "./EisenhowerMethod.jsx";
 import ABCDEMethod from "./ABCDEMethod.jsx";
 import TwoMinuteRule from "./TwoMinuteRule.jsx";
+import EatFrog from "./EatFrog.jsx";
+import GtdApp from "./GTD/GtdApp.jsx";
+import MSCWMethod from "./MSCWMethod.jsx";
+import ONEThreeFiveMethod from "./ONEThreeFiveMethod.jsx";
 const TimeManage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeMethod, setActiveMethod] = useState(null);
@@ -179,6 +183,10 @@ const TimeManage = () => {
                 {activeMethod === 2 && <EisenhowerMethod />}
                 {activeMethod === 3 && <ABCDEMethod />}
                 {activeMethod === 5 && <TwoMinuteRule />}
+                {activeMethod === 7 && <EatFrog />}
+                {activeMethod === 8 && <GtdApp />}
+                {activeMethod === 12 && <MSCWMethod />}
+                {activeMethod === 14 && <ONEThreeFiveMethod />}
               </div>
             </motion.div>
           ) : (
