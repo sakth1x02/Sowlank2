@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Info, X } from "lucide-react";
 
 const EisenhowerMethod = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [selectedQuadrant, setSelectedQuadrant] = useState("do");
+  const [showInfo, setShowInfo] = useState(false);
 
   const addTask = (e) => {
     e.preventDefault();
@@ -27,6 +28,85 @@ const EisenhowerMethod = () => {
   const getQuadrantTasks = (quadrant) => {
     return tasks.filter((task) => task.quadrant === quadrant);
   };
+
+  const InfoModal = () => (
+    <div className="fixed overflow-scroll inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white top-10  rounded-lg p-8 max-w-2xl w-full mx-4 relative">
+        <button
+          onClick={() => setShowInfo(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-4">The Eisenhower Method</h2>
+        <div className="space-y-4">
+          <section>
+            <h3 className="text-xl font-semibold mb-2">What is it?</h3>
+            <p className="text-gray-700">
+              The Eisenhower Method is a productivity and time-management
+              framework that helps you organize tasks based on their urgency and
+              importance. Named after President Dwight D. Eisenhower, this
+              method helps you prioritize tasks and make better decisions about
+              how to spend your time.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="text-xl font-semibold mb-2">The Four Quadrants</h3>
+            <ul className="space-y-3">
+              <li>
+                <span className="font-semibold text-red-600">
+                  Do First (Urgent & Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that require immediate attention and have significant
+                  consequences. These are your priorities.
+                </p>
+              </li>
+              <li>
+                <span className="font-semibold text-blue-600">
+                  Decide (Not Urgent & Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that contribute to long-term goals and should be
+                  scheduled for later.
+                </p>
+              </li>
+              <li>
+                <span className="font-semibold text-yellow-600">
+                  Delegate (Urgent & Not Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that need to be done soon but can be delegated to
+                  others.
+                </p>
+              </li>
+              <li>
+                <span className="font-semibold text-green-600">
+                  Delete (Not Urgent & Not Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that are distractions and should be eliminated or
+                  minimized.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-xl font-semibold mb-2">Benefits</h3>
+            <ul className="list-disc pl-5 text-gray-700">
+              <li>Better time management and productivity</li>
+              <li>Reduced stress and overwhelm</li>
+              <li>Improved decision-making</li>
+              <li>Clear prioritization of tasks</li>
+              <li>Better work-life balance</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
 
   const QuadrantSection = ({ title, type, description, bgColor }) => (
     <div className={`${bgColor} p-4 rounded-lg shadow-md`}>
@@ -52,11 +132,18 @@ const EisenhowerMethod = () => {
   );
 
   return (
-    <div className=" bg-gray-100 p-8">
+    <div className="bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          Eisenhower Matrix
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Eisenhower Matrix</h1>
+          <button
+            onClick={() => setShowInfo(true)}
+            className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors"
+            title="Learn about the Eisenhower Method"
+          >
+            <Info size={24} className="text-gray-700" />
+          </button>
+        </div>
 
         <form
           onSubmit={addTask}
@@ -117,6 +204,7 @@ const EisenhowerMethod = () => {
           />
         </div>
       </div>
+      {showInfo && <InfoModal />}
     </div>
   );
 };

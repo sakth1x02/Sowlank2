@@ -46,7 +46,11 @@ const Layout = () => {
     <>
       <Header />
       {/* Progress Bar Container */}
-      <div className={`flex ${auth ? "block" : "hidden"}`}>
+      <div
+        className={`flex ${
+          auth ? "block" : "hidden"
+        } top-16 relative z-30 min-w-full right-0`}
+      >
         <div className={`w-full h-10 bg-gray-200 relative`}>
           {/* Progress Bar */}
           <div
@@ -61,8 +65,8 @@ const Layout = () => {
       </div>
       <div className="flex flex-row min-h-screen">
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col bg-gray-100">
-          <main className="flex-1 relative p-4 lg:ml-64">
+        <div className="flex-1 flex flex-col  ">
+          <main className="flex-1 relative p-4 lg:ml-64 top-14">
             <Outlet />
           </main>
         </div>

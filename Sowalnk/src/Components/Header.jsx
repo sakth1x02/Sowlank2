@@ -55,16 +55,14 @@ const Header = () => {
   ];
 
   return (
-    <nav className="bg-purple-800 text-white">
+    <nav className="bg-purple-800 text-white fixed top-0 z-50 w-full">
       <div className="container mx-auto px-4 py-3 ">
         {/* Desktop Navigation */}
         <div className="flex justify-between items-center">
           {/* Branding */}
           <div className="flex justify-between items-center">
             <Sidebar />
-            <div className="text-2xl font-bold ml-2 pt-2 lg:hidden">
-              SOWALNK
-            </div>
+            <div className="text-2xl font-bold ml-2 pt-2 ">SOWALNK</div>
           </div>
 
           {/* Desktop Menu */}

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { PlusCircle, CheckCircle2, XCircle } from "lucide-react";
+import { PlusCircle, CheckCircle2, XCircle, Info, X } from "lucide-react";
+
 const MSCWMethod = () => {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("must-have");
+  const [showInfo, setShowInfo] = useState(false);
 
   const categories = {
     "must-have": {
@@ -70,11 +72,20 @@ const MSCWMethod = () => {
   };
 
   return (
-    <div className=" bg-gray-50 py-8 px-4">
+    <div className="bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-2 text-gray-800">
-          MSCW Prioritization Tool
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-gray-800">
+            MSCW Prioritization Tool
+          </h1>
+          <button
+            onClick={() => setShowInfo(true)}
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+            aria-label="Show information about MSCW Method"
+          >
+            <Info className="w-6 h-6 text-gray-600" />
+          </button>
+        </div>
         <p className="text-center text-gray-600 mb-8">
           Organize and prioritize your project requirements
         </p>
@@ -110,7 +121,7 @@ const MSCWMethod = () => {
         </form>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(categories).map(([key, category]) => (
             <div
               key={key}
@@ -184,8 +195,92 @@ const MSCWMethod = () => {
             </div>
           ))}
         </div>
+
+        {/* Info Modal */}
+        {showInfo && (
+          <div className="fixed inset-0 overflow-scroll bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white top-40 rounded-lg p-8 max-w-2xl mx-4 relative">
+              <button
+                onClick={() => setShowInfo(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                About the MoSCoW Method
+              </h2>
+
+              <div className="space-y-4 text-gray-600">
+                <p>
+                  The MoSCoW method is a prioritization technique used in
+                  project management and business analysis to reach a common
+                  understanding with stakeholders on the importance of each
+                  requirement or task.
+                </p>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  Categories Explained:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    <strong>Must-Have:</strong> Non-negotiable requirements that
+                    are critical for success
+                  </li>
+                  <li>
+                    <strong>Should-Have:</strong> Important requirements that
+                    add significant value but are not vital
+                  </li>
+                  <li>
+                    <strong>Could-Have:</strong> Desirable requirements that
+                    would be nice to include if resources permit
+                  </li>
+                  <li>
+                    <strong>Won't-Have:</strong> Requirements that are not
+                    planned for the current delivery timeframe
+                  </li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  Benefits:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Clear prioritization of requirements</li>
+                  <li>Better resource allocation</li>
+                  <li>Improved stakeholder communication</li>
+                  <li>Realistic project planning</li>
+                  <li>Focused delivery approach</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  How to Use This Tool:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Add new requirements or tasks using the input field</li>
+                  <li>Select the appropriate category for each item</li>
+                  <li>Use the checkmark to mark completed items</li>
+                  <li>Heart icon to mark favorite or important items</li>
+                  <li>Delete items that are no longer relevant</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  Best Practices:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Keep Must-Haves to 60% or less of total requirements</li>
+                  <li>Regularly review and update priorities</li>
+                  <li>
+                    Involve all stakeholders in the prioritization process
+                  </li>
+                  <li>Document the reasoning behind priority decisions</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 export default MSCWMethod;
