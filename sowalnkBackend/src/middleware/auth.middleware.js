@@ -35,7 +35,10 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       console.error("Token verification error:", error);
       return res.status(401).json({
         success: false,
-        message: "Invalid access token User is not authenticated",
+        message: error.message.includes("expired")
+          ? "Token expired, please login again"
+          : "Invalid access token",
+        isTokenExpired: error.message.includes("expired"),
       });
     }
   } catch (e) {

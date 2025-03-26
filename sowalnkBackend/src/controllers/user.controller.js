@@ -15,7 +15,7 @@ import {
 import crypto from "crypto";
 import mongoose from "mongoose";
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 
 const userAuthentication = {

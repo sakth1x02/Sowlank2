@@ -65,6 +65,9 @@ const Subscription = () => {
         });
       } catch (error) {
         console.error("Failed to fetch subscription status:", error);
+        if (error.message.includes("expired")) {
+          localStorage.removeItem("token");
+        }
       }
     };
 

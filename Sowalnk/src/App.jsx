@@ -30,7 +30,6 @@ import Settings from "./Components/Settings.jsx";
 import NotFound from "./Components/NotFound.jsx";
 import Feedback from "./Components/Feedback.jsx";
 import { toast } from "react-toastify";
-import { Loader } from "lucide-react";
 import { fetchUsers } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
 const App = () => {
@@ -48,6 +47,7 @@ const App = () => {
   }, [auth, dispatch]);
 
   const userFeedback = users.find((user) => user._id === auth._id);
+
   useEffect(() => {
     if (userFeedback !== undefined) {
       const timer = setTimeout(() => {
