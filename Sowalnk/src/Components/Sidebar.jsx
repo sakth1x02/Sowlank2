@@ -104,7 +104,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="relative">
+    <div className="relative overflow-scroll h-full ">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className=" mt-[5px] z-50 p-2 bg-gray-800 rounded-lg lg:hidden"
@@ -118,9 +118,9 @@ const Sidebar = () => {
       </button>
 
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-800 transform transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 lg:top-16 left-0 h-full bg-gray-800 transform transition-all duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${isExpanded ? "w-64" : "w-20"} lg:translate-x-0 z-40`}
+        } ${isExpanded ? "w-64" : "w-20"} lg:translate-x-0 z-40 lg:pb-20`}
       >
         <div className="flex flex-col h-full">
           <div className="h-16 flex items-center justify-center">

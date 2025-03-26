@@ -7,11 +7,15 @@ import {
   Circle as CircleLetterE,
   Plus,
   Trash2,
+  Info,
+  X,
 } from "lucide-react";
+
 const ABCDEMethod = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("A");
+  const [showInfo, setShowInfo] = useState(false);
 
   const priorityInfo = {
     A: { label: "Most Important", icon: CircleLetterA, color: "text-red-600" },
@@ -45,13 +49,139 @@ const ABCDEMethod = () => {
     tasks: tasks.filter((task) => task.priority === priority),
   }));
 
+  const InfoModal = () => (
+    <div className="fixed inset-0 overflow-scroll max-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-8 top-44 max-w-2xl w-full mx-4 relative shadow-2xl">
+        <button
+          onClick={() => setShowInfo(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          The ABCDE Method
+        </h2>
+        <div className="space-y-6">
+          <section>
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">
+              What is it?
+            </h3>
+            <p className="text-gray-700 leading-relaxed">
+              The ABCDE Method is a powerful prioritization technique developed
+              by productivity expert Brian Tracy. It helps you organize tasks
+              based on their importance and consequences, ensuring you focus on
+              what truly matters.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">
+              Priority Levels
+            </h3>
+            <ul className="space-y-4">
+              <li className="p-4 rounded-lg bg-red-50 border border-red-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CircleLetterA className="text-red-600" />
+                  <span className="font-semibold text-red-600">
+                    A - Most Important
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  Tasks with serious consequences if not completed. Must be done
+                  first.
+                </p>
+              </li>
+              <li className="p-4 rounded-lg bg-orange-50 border border-orange-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CircleLetterB className="text-orange-500" />
+                  <span className="font-semibold text-orange-600">
+                    B - Important
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  Tasks with mild consequences. Should be done after A tasks.
+                </p>
+              </li>
+              <li className="p-4 rounded-lg bg-yellow-50 border border-yellow-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CircleLetterC className="text-yellow-500" />
+                  <span className="font-semibold text-yellow-600">
+                    C - Nice to Do
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  Tasks with no consequences. Can be done after B tasks.
+                </p>
+              </li>
+              <li className="p-4 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CircleLetterD className="text-blue-500" />
+                  <span className="font-semibold text-blue-600">
+                    D - Delegate
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  Tasks that can be delegated to others to free up your time.
+                </p>
+              </li>
+              <li className="p-4 rounded-lg bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <CircleLetterE className="text-gray-500" />
+                  <span className="font-semibold text-gray-600">
+                    E - Eliminate
+                  </span>
+                </div>
+                <p className="text-gray-700">
+                  Tasks that can be eliminated with little or no consequence.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">
+              Benefits
+            </h3>
+            <ul className="grid grid-cols-2 gap-4">
+              <li className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span className="text-gray-700">Increased productivity</span>
+              </li>
+              <li className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span className="text-gray-700">Better time management</span>
+              </li>
+              <li className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span className="text-gray-700">Reduced stress</span>
+              </li>
+              <li className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <span className="text-gray-700">Clear prioritization</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            ABCDE Method Task Manager
-          </h1>
+        <div className="bg-white rounded-xl shadow-xl p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              ABCDE Method Task Manager
+            </h1>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
+          </div>
 
           <form onSubmit={addTask} className="flex gap-4 mb-8">
             <input
@@ -74,7 +204,7 @@ const ABCDEMethod = () => {
             </select>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 shadow-md"
             >
               <Plus size={20} />
               Add Task
@@ -87,7 +217,7 @@ const ABCDEMethod = () => {
               return (
                 <div
                   key={priority}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 rounded-lg p-4 transition-transform hover:scale-[1.01]"
                 >
                   <div className="flex items-center gap-2 mb-4">
                     <Icon className={`${color} w-6 h-6`} />
@@ -104,12 +234,12 @@ const ABCDEMethod = () => {
                       {priorityTasks.map((task) => (
                         <li
                           key={task.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <span>{task.text}</span>
+                          <span className="text-gray-700">{task.text}</span>
                           <button
                             onClick={() => deleteTask(task.id)}
-                            className="text-red-500 hover:text-red-700 p-1"
+                            className="text-red-500 hover:text-red-700 p-1 transition-colors"
                           >
                             <Trash2 size={20} />
                           </button>
@@ -123,6 +253,7 @@ const ABCDEMethod = () => {
           </div>
         </div>
       </div>
+      {showInfo && <InfoModal />}
     </div>
   );
 };

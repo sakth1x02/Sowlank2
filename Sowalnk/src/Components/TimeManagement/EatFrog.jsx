@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { FaFrog, FaTrash, FaStar, FaRegStar } from "react-icons/fa";
+import { Info, X } from "lucide-react";
 
 const EatFrog = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState("medium");
+  const [showInfo, setShowInfo] = useState(false);
 
   const addTask = (e) => {
     e.preventDefault();
@@ -61,11 +63,20 @@ const EatFrog = () => {
 
   return (
     <div className="w-full bg-gray-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto relative">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center mb-8">
-            <FaFrog className="text-frog-green text-4xl mr-4" />
-            <h1 className="text-3xl font-bold text-frog-dark">Eat the Frog</h1>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center">
+              <FaFrog className="text-green-500 text-4xl mr-4" />
+              <h1 className="text-3xl font-bold text-gray-800">Eat the Frog</h1>
+            </div>
+            <button
+              onClick={() => setShowInfo(true)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Show information about Eat the Frog method"
+            >
+              <Info className="w-6 h-6 text-gray-600" />
+            </button>
           </div>
 
           <form onSubmit={addTask} className="mb-8">
@@ -75,12 +86,12 @@ const EatFrog = () => {
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="Enter your task..."
-                className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-frog-green"
+                className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-frog-green"
+                className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               >
                 <option value="high">High Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -89,7 +100,7 @@ const EatFrog = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-green-400 text-white py-3 rounded-lg hover:bg-frog-dark transition-colors"
+              className="w-full bg-green-400 text-white py-3 rounded-lg hover:bg-green-500 transition-colors"
             >
               Add Task
             </button>
@@ -139,6 +150,72 @@ const EatFrog = () => {
             ))}
           </div>
         </div>
+
+        {/* Info Modal */}
+        {showInfo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex overflow-auto items-center justify-center z-50">
+            <div className="bg-white top-7 rounded-lg p-8 max-w-2xl mx-4 relative">
+              <button
+                onClick={() => setShowInfo(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                About the Eat the Frog Method
+              </h2>
+
+              <div className="space-y-4 text-gray-600">
+                <p>
+                  The "Eat the Frog" method is a productivity technique based on
+                  a quote by Mark Twain: "If it's your job to eat a frog, it's
+                  best to do it first thing in the morning."
+                </p>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  How to Use:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    Identify your most important or challenging task (your
+                    "frog")
+                  </li>
+                  <li>
+                    Mark it with the star icon to designate it as your frog task
+                  </li>
+                  <li>
+                    Complete this task first before moving on to other tasks
+                  </li>
+                  <li>Use priority levels to organize remaining tasks</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  Benefits:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Increased productivity and focus</li>
+                  <li>Reduced procrastination</li>
+                  <li>Better time management</li>
+                  <li>Improved sense of accomplishment</li>
+                  <li>Reduced stress and anxiety about difficult tasks</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-gray-800 mt-6">
+                  Tips:
+                </h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Plan your tasks the night before</li>
+                  <li>Focus on one frog (major task) at a time</li>
+                  <li>
+                    Break down large tasks into smaller, manageable pieces
+                  </li>
+                  <li>Celebrate completing your frog task</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
