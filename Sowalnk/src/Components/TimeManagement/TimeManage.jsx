@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, act } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock } from "lucide-react";
 import TimeMethodCard from "./TimeMethodCard.jsx";
@@ -9,6 +9,16 @@ import EatFrog from "./EatFrog.jsx";
 import GtdApp from "./GTD/GtdApp.jsx";
 import MSCWMethod from "./MSCWMethod.jsx";
 import ONEThreeFiveMethod from "./ONEThreeFiveMethod.jsx";
+import Pomodoro from "./Pomodoro/Pomodoro.jsx";
+import DeepWorkTimer from "./333Method/DeepWorker.jsx";
+import Pareto80_20 from "./Pareto80/20.jsx";
+import TaskBatchingApp from "./TaskBatching.jsx";
+import WarrenBuffett525 from "./WarrenBuffett525.jsx";
+import KanbanBoard from "./Kanbanboard.jsx";
+import Pickle from "./PickleJAr.jsx";
+import TimeBlocking from "./TimeBlocking/TimeBlocking.jsx";
+
+
 const TimeManage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeMethod, setActiveMethod] = useState(null);
@@ -180,13 +190,21 @@ const TimeManage = () => {
                 <p className="text-gray-500 mb-6">
                   {timeMethods[activeMethod - 1].description}
                 </p> */}
+                {activeMethod ===1 && <Pomodoro/>}
                 {activeMethod === 2 && <EisenhowerMethod />}
                 {activeMethod === 3 && <ABCDEMethod />}
+                {activeMethod === 4 && <DeepWorkTimer/>}
                 {activeMethod === 5 && <TwoMinuteRule />}
+                {activeMethod === 6 && <Pareto80_20/>}
                 {activeMethod === 7 && <EatFrog />}
                 {activeMethod === 8 && <GtdApp />}
+                {activeMethod === 9 && <KanbanBoard/>}
+                {activeMethod === 10 && <TaskBatchingApp/>}
+                {activeMethod === 11 && <WarrenBuffett525/>}
                 {activeMethod === 12 && <MSCWMethod />}
+                {activeMethod === 13 && <TimeBlocking/>}
                 {activeMethod === 14 && <ONEThreeFiveMethod />}
+                {activeMethod === 15 && <Pickle/>}
               </div>
             </motion.div>
           ) : (
