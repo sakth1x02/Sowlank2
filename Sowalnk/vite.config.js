@@ -16,8 +16,8 @@ export default defineConfig({
     proxy: {
       "/api": {
         // target:
-          // "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com",
-         target: "http://localhost:2000",
+        // "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com",
+        target: "http://localhost:2000",
         changeOrigin: true,
         secure: false,
       },

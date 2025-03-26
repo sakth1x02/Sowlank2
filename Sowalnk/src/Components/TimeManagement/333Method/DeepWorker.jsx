@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HelpModal from './HelpModal';
 import { FaClock, FaTasks, FaCogs, FaHistory, FaListOl } from 'react-icons/fa';
+import { Info } from 'lucide-react';
 
 // Helper to generate unique IDs
 const generateId = () => Date.now() + Math.random().toString(36).substring(2, 9);
@@ -600,13 +601,12 @@ function DeepWorkTimer() {
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 max-w-7xl mx-auto">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 font-[Inter] mb-4 sm:mb-0">3-3-3 Method</h1>
         <button
-          onClick={() => setShowHelp(true)}
-          className="relative bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-lg sm:text-xl md:text-2xl transform hover:scale-110"
-          title="How it works"
-        >
-          ?
-          <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-        </button>
+                      onClick={() => setShowHelp(true)}
+                      className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+                      title="Learn about the ABCDE Method"
+                    >
+                      <Info size={24} className="text-gray-700" />
+                    </button>
       </div>
 
       {/* Navigation Bar */}

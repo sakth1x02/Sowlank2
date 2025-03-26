@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { FaTrash, FaEdit, FaCheck, FaUndo, FaQuestionCircle, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import toast, { Toaster } from 'react-hot-toast';
+import { Info, X } from 'lucide-react';
 
 const Pickle = () => {
   const [tasks, setTasks] = useState(() => {
@@ -107,13 +108,12 @@ const Pickle = () => {
       <header className="p-4 md:p-8 shadow-lg flex justify-between items-center">
         <h1 className="text-2xl md:text-4xl font-bold font-[Inter] text-black">Pickle Jar</h1>
         <button
-          onClick={handleHelpClick}
-          className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-xl md:text-2xl transform hover:scale-110"
-          title="How it works"
-        >
-          ?
-          <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-        </button>
+              onClick={() => setShowPopup(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
       </header>
 
       {/* Help Popup */}

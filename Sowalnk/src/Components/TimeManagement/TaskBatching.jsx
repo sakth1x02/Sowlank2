@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 function TaskBatchingApp() {
@@ -228,13 +229,12 @@ function TaskBatchingApp() {
             Task Batching
           </h1>
           <button
-            onClick={() => setShowInfo(true)}
-            className="relative bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-12 h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-2xl transform hover:scale-110"
-            title="How it works"
-          >
-            ?
-            <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-          </button>
+              onClick={() => setShowInfo(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
         </div>
 
         {/* Form */}

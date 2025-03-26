@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Info } from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -146,13 +147,12 @@ function Pareto80_20() {
             80/20 Method
           </h1>
           <button
-            onClick={() => setShowInfoModal(true)}
-            className="relative bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-2xl md:text-3xl transform hover:scale-110 mt-4 md:mt-0"
-            title="How it works"
-          >
-            ?
-            <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-          </button>
+              onClick={() => setShowInfoModal(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
         </div>
 
         {/* Info Modal */}

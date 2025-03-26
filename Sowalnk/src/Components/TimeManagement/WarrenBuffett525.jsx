@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FaTrash, FaChevronDown, FaChevronUp, FaQuestionCircle } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
+import { Info } from "lucide-react";
 
 function WarrenBuffett525() {
   const [tasks, setTasks] = useState(() => {
@@ -204,13 +205,12 @@ function WarrenBuffett525() {
             Warren Buffett 5/25 Rule
           </h1>
           <button
-          onClick={() => setShowHelp(true)}
-          className="relative bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-12 h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-2xl transform hover:scale-110"
-          title="How it works"
-        >
-          ?
-          <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-        </button>
+              onClick={() => setShowHelp(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
         </div>
 
         {/* Main Content */}

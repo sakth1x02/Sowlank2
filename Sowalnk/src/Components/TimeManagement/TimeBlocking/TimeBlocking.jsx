@@ -3,6 +3,7 @@ import toast, { Toaster } from "react-hot-toast";
 import TaskList from "./TaskList";
 import TimeBlockSchedule from "./TimeBlockSchedule";
 import TaskHistory from "./TaskHistory";
+import { Info } from "lucide-react";
 
 const initialTimeBlocks = [
   { id: "deepWork", start: "08:00", end: "11:00", title: "Deep Work", description: "Focus on your most important tasks." },
@@ -222,13 +223,12 @@ function TimeBlocking() {
       <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-3xl md:text-5xl font-bold text-black">Time Blocking</h1>
         <button
-          onClick={() => setShowHelp(true)}
-          className="self-start md:self-center bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 text-xl md:text-2xl transform hover:scale-110"
-          title="How it works"
-        >
-          ?
-          <span className="absolute inset-0 rounded-full bg-purple-500 opacity-25 animate-ping"></span>
-        </button>
+              onClick={() => setShowHelp(true)}
+              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
+              title="Learn about the ABCDE Method"
+            >
+              <Info size={24} className="text-gray-700" />
+            </button>
       </div>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
