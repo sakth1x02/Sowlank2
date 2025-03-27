@@ -40,7 +40,7 @@ const Coupons = () => {
       color: "bg-yellow-500",
       icon: "💰",
       amount: loggedInUserData?.goldCoins,
-      locked: !intermediateMember,
+      locked: !intermediateMember && !advanceMember,
       link: "/coupons/gold",
     },
     {

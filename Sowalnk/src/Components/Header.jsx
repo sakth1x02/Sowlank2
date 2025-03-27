@@ -19,7 +19,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      const token = await localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/v1/user/logout`, {
         method: "POST",
         headers: {

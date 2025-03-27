@@ -16,7 +16,6 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     }
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      // console.log("JWT Token", process.env.JWT_SECRET);
       const user = await User.findById(decodedToken?.userId).select(
         "-password"
       );
@@ -32,7 +31,6 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       req.user = user;
       next();
     } catch (error) {
-      console.error("Token verification error:", error);
       return res.status(401).json({
         success: false,
         message: error.message.includes("expired")

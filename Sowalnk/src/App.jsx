@@ -30,12 +30,10 @@ import Settings from "./Components/Settings.jsx";
 import NotFound from "./Components/NotFound.jsx";
 import Feedback from "./Components/Feedback.jsx";
 import { toast } from "react-toastify";
-import { fetchUsers } from "./store/user-slice";
+import { fetchUsers, setLoggedInUser } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
-  // const [isLoading, setIsLoading] = useState(true);
-
   const dispatch = useDispatch();
   const users = useSelector((state) => state.user.users);
   const auth = useSelector((state) => state.user.loggedInUser);
@@ -46,20 +44,23 @@ const App = () => {
     }
   }, [auth, dispatch]);
 
+  //This gives the updated user's data which is currently logged In
   const userFeedback = users.find((user) => user._id === auth._id);
 
+  //here if user have not given feedback then after 10 sec it will show the feedback popup
   useEffect(() => {
     if (userFeedback !== undefined) {
       const timer = setTimeout(() => {
         if (!userFeedback?.isFeedback) {
           setShowPopup(true);
         }
-      }, 10000); // 10 seconds
+      }, 10000);
 
       return () => clearTimeout(timer);
     }
   }, [userFeedback, dispatch]);
 
+  //This function will send the feedback to the backend
   const handleSubmitFeedback = async (feedbackdata) => {
     try {
       const token = localStorage.getItem("token");
@@ -76,19 +77,43 @@ const App = () => {
       if (!response.ok) {
         throw new Error(data.error);
       }
-      setShowPopup(false); // Close the popup after successful submission
+      setShowPopup(false);
     } catch (error) {
       toast.error("Failed to send feedback.");
       console.error("Error:", error);
     }
   };
 
-  // if (isLoading && auth) {
-  //   return (
-  //     <Loader className="w-10 h-10 text-purple-700 animate-spin mx-auto" />
-  //   );
-  // }
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/v1/check-auth", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        if (data.isTokenExpired) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          dispatch(setLoggedInUser(null));
+          alert("Token expired, please login again");
+          return window.location.replace("/login");
+        }
+      }
+    } catch (error) {
+      console.error("Auth Check Error:", error);
+      return false;
+    }
+  };
 
+  //This will check the user is authenticated or not and only run after user logged in.
+  useEffect(() => {
+    if (auth) {
+      checkAuth();
+    }
+  }, [auth]);
   return (
     <>
       <BrowserRouter>

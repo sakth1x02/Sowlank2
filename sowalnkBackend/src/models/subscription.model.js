@@ -23,8 +23,8 @@ const subscriptionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["created", "active", "inactive"],
-      default: "created",
+      enum: ["created", "active", "inactive", "trail"],
+      default: "inactive",
     },
     amount: {
       type: Number,
@@ -52,4 +52,19 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// subscriptionSchema.methods.isInTrialPeriod = function () {
+//   if (this.status === "trial" && this.startDate) {
+//     const trialEnd = new Date(this.startDate);
+//     trialEnd.setDate(trialEnd.getDate() + 10);
+//     return new Date() < trialEnd;
+//   }
+//   return false;
+// };
+
+// userSchema.methods.getEffectivePlan = function() {
+//   if (this.isInTrialPeriod()) {
+//     return 'advanced'; // Give full access during trial
+//   }
+//   return this.subscriptionPlan;
+// };
 export const Subscription = mongoose.model("Subscription", subscriptionSchema);

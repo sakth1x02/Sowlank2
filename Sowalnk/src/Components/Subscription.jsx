@@ -46,6 +46,7 @@ const Subscription = () => {
         setRemainingAdvancedDays(0);
 
         data.data.subscription.forEach((plan) => {
+          // console.log(plan);
           const isActive = new Date(plan.endDate) >= new Date();
           if (plan.planType === "INTERMEDIATE" && isActive) {
             const timeDifference = new Date(plan.endDate) - new Date();
@@ -64,10 +65,7 @@ const Subscription = () => {
           }
         });
       } catch (error) {
-        console.error("Failed to fetch subscription status:", error);
-        if (error.message.includes("expired")) {
-          localStorage.removeItem("token");
-        }
+        console.error("Failed to fetch subscription status:", error.message);
       }
     };
 

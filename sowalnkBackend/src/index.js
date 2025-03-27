@@ -5,6 +5,9 @@ import { app } from "./app.js"; // Assuming `app.js` properly exports `app`
 import { sendEmail, sendEmailFeedback } from "./mailtrap/emails.js";
 import { verifyJWT } from "./middleware/auth.middleware.js";
 import { User } from "./models/user.model.js";
+import { Subscription } from "./models/subscription.model.js";
+import cron from "node-cron";
+
 dotenv.config({ path: "./.env" });
 
 app.use(express.json()); // Middleware to parse JSON body
@@ -43,6 +46,33 @@ app.post("/api/v1/send-feedback", verifyJWT, async (req, res) => {
   } catch (error) {
     console.error("Error sending feedback:", error);
     res.status(500).json({ error: "Failed to send feedback" });
+  }
+});
+
+//For checking the token expired or not
+app.get("/api/v1/check-auth", verifyJWT, async (req, res) => {
+  res.status(200).json({ message: "Valid Token" });
+});
+
+cron.schedule("0 0 * * *", async () => {
+  try {
+    console.log("Running subscription cleanup job...");
+    const currentDate = new Date();
+    const result = await Subscription.updateMany(
+      {
+        status: { $in: ["trial", "active"] },
+        endDate: { $lt: currentDate },
+      },
+      {
+        $set: { status: "inactive" },
+      }
+    );
+
+    console.log(
+      `Updated ${result.modifiedCount} expired subscriptions to inactive`
+    );
+  } catch (error) {
+    console.error("Error in subscription cron job:", error);
   }
 });
 

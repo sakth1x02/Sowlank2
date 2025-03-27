@@ -37,7 +37,7 @@ const FeedbackPopup = ({ onClose, onSubmit }) => {
 
   return (
     <div className="fixed overflow-auto min-h-screen top-0 inset-0 z-50 bg-black bg-opacity-50 flex justify-center">
-      <div className="sm:max-w-md p-0 max-h-[430px] mt-20 overflow-hidden rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg">
+      <div className="sm:max-w-md p-0 max-h-[430px] mt-20 overflow-hidden rounded-xl bg-white border border-slate-200 shadow-lg">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -50,7 +50,7 @@ const FeedbackPopup = ({ onClose, onSubmit }) => {
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Feedback
               </span>
-              <h2 className="text-2xl font-medium mt-1">
+              <h2 className="text-2xl text-purple-500 font-medium mt-1">
                 How was your experience?
               </h2>
             </div>

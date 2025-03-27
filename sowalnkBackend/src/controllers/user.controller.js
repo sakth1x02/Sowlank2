@@ -14,8 +14,10 @@ import {
 } from "../mailtrap/emails.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import { Subscription } from "../models/subscription.model.js";
+
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 const userAuthentication = {
@@ -75,13 +77,23 @@ const userAuthentication = {
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
     });
 
+    //creating the trail subscription for the user's
+    const subscription = await Subscription.create({
+      userId: user._id,
+      planType: "ADVANCED",
+      status: "trail",
+      amount: 0,
+      startDate: new Date(),
+      endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
+    });
+
     // Generate token
     const token = generateAccessToken(user._id);
     await sendVerificationEmail(user.email, verificationToken);
 
     // Step 6: Remove the password from the response
     const createdUser = await User.findById(user._id).select("-password");
-
+    await subscription.save();
     // Return token in the response body
     res.status(201).json({
       success: true,
@@ -143,11 +155,21 @@ const userAuthentication = {
       user = await User.create({
         name,
         email,
-        isVerified: true, // Skip email verification for Google users
-        authMethod: "google", // Add this field to track auth method
+        isVerified: true,
+        authMethod: "google",
       });
+      const subscription = await Subscription.create({
+        userId: user._id,
+        planType: "ADVANCED",
+        status: "trail",
+        amount: 0,
+        startDate: new Date(),
+        endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
+      });
+      await subscription.save();
     }
-    // user.isVerified = true;
+
+    user.isVerified = true;
     // Generate JWT token
     const token = generateAccessToken(user._id);
     const userData = await User.findById(user._id).select("-password");

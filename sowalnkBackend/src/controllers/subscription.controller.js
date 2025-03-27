@@ -111,10 +111,11 @@ const verifySubscription = asyncHandler(async (req, res) => {
 });
 
 const getSubscriptionStatus = asyncHandler(async (req, res) => {
+  const currentDate = new Date();
   const subscription = await Subscription.find({
     userId: req.user._id,
-    status: "active",
-    endDate: { $gt: new Date() },
+    status: { $in: ["trail", "active"] },
+    endDate: { $gte: currentDate },
   });
 
   return res.status(200).json({
