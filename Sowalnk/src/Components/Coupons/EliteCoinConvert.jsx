@@ -76,7 +76,7 @@ const EliteCoinConvert = () => {
               : "bg-purple-600 hover:bg-purple-500"
           }`}
         >
-          Redeem ₹1000 Coupon(5 Elite Coins)
+          Redeem ₹250 Above Coupon(5 Elite Coins)
         </button>
       </div>
 
@@ -93,7 +93,7 @@ const EliteCoinConvert = () => {
               <div className="flex flex-col justify-between mb-4 gap-4">
                 <div className="flex justify-between items-center gap-2 mb-2">
                   <h2 className="md:text-3xl text-xl font-medium text-gray-700">
-                    FLAT<span className="font-bold">₹1000 OFF</span>
+                    FLAT<span className="font-bold">₹250 Above OFF</span>
                   </h2>
                   <div className="flex items-center ml-2 gap-1 text-green-600">
                     <CheckCircle className="h-5 w-5" />
@@ -101,7 +101,7 @@ const EliteCoinConvert = () => {
                   </div>
                 </div>
                 <p className="text-gray-700 md:text-lg">
-                  Grab Flat Rs 1000 OFF on your orders
+                  Grab Flat ₹250 Above OFF on your orders
                 </p>
 
                 <div className="flex items-center gap-2 justify-end text-sm md:text-base">
@@ -118,12 +118,12 @@ const EliteCoinConvert = () => {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setShowCode(true)}
-                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 text-white px-6"
+                    <a
+                      href="https://www.grabon.in/coupon-codes/186620/"
+                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 place-content-center text-white px-6"
                     >
                       SHOW COUPON CODE
-                    </button>
+                    </a>
                   )}
                 </div>
               </div>

@@ -114,12 +114,12 @@ const NormalCoinConvert = () => {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setShowCode(true)}
-                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 text-white px-6"
+                    <a
+                      href="https://www.grabon.in/coupon-codes/206690/"
+                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 text-white place-content-center px-6"
                     >
                       SHOW COUPON CODE
-                    </button>
+                    </a>
                   )}
                 </div>
               </div>

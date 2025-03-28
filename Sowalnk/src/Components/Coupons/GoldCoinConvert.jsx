@@ -90,7 +90,7 @@ const GoldCoinConvert = () => {
               <div className="flex flex-col justify-between mb-4 gap-4">
                 <div className="flex justify-between items-center gap-2 mb-2">
                   <h2 className="md:text-3xl text-xl font-medium text-gray-700">
-                    FLAT<span className="font-bold">₹500 OFF</span>
+                    FLAT<span className="font-bold">₹100 Above OFF</span>
                   </h2>
                   <div className="flex items-center ml-2 gap-1 text-green-600">
                     <CheckCircle className="h-5 w-5" />
@@ -98,7 +98,7 @@ const GoldCoinConvert = () => {
                   </div>
                 </div>
                 <p className="text-gray-700 md:text-lg">
-                  Grab Flat Rs 500 OFF on your orders
+                  Grab Flat Rs 100 Above OFF on your orders
                 </p>
 
                 <div className="flex items-center gap-2 justify-end text-sm md:text-base">
@@ -115,12 +115,12 @@ const GoldCoinConvert = () => {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setShowCode(true)}
-                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 text-white px-6"
+                    <a
+                      href="https://www.grabon.in/coupon-codes/205025/"
+                      className="bg-blue-500 rounded-lg hover:bg-blue-600 h-12 place-content-center text-white px-6"
                     >
                       SHOW COUPON CODE
-                    </button>
+                    </a>
                   )}
                 </div>
               </div>
