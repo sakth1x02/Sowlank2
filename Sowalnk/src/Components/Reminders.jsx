@@ -11,8 +11,6 @@ const Reminders = () => {
     (task) => !task.isCompleted && !task.hasExceededTime
   );
 
-  // console.log(dailyTaskData);
-
   // Group tasks by date
   const groupedTasks = dailyTaskData.reduce((acc, task) => {
     const date = new Date(task.date.split("T")[0]).toDateString();

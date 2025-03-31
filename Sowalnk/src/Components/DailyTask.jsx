@@ -518,9 +518,11 @@ function DailyTask() {
                     <button
                       onClick={() => handleDelete(task?._id)}
                       className={`py-1 px-2 rounded-md bg-red-500 text-white ${
-                        task?.hasExceededTime ? "cursor-not-allowed" : ""
+                        task?.hasExceededTime || task?.isCompleted
+                          ? "cursor-not-allowed"
+                          : ""
                       }`}
-                      disabled={task?.hasExceededTime}
+                      disabled={task?.hasExceededTime || task?.isCompleted}
                     >
                       Delete
                     </button>

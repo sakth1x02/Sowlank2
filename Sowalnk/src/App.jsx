@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./Components/LandingPage";
 import About from "./Components/About";
 import Feature from "./Components/Feature";
@@ -32,8 +32,10 @@ import Feedback from "./Components/Feedback.jsx";
 import { toast } from "react-toastify";
 import { fetchUsers, setLoggedInUser } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
+
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
+  const hasShownFeedback = useRef(false);
   const dispatch = useDispatch();
   const users = useSelector((state) => state.user.users);
   const auth = useSelector((state) => state.user.loggedInUser);
@@ -49,16 +51,23 @@ const App = () => {
 
   //here if user have not given feedback then after 10 sec it will show the feedback popup
   useEffect(() => {
-    if (userFeedback !== undefined) {
+    // Reset the flag when user logs out
+    if (!auth) {
+      hasShownFeedback.current = false;
+      return;
+    }
+
+    if (userFeedback !== undefined && !hasShownFeedback.current) {
       const timer = setTimeout(() => {
         if (!userFeedback?.isFeedback) {
           setShowPopup(true);
+          hasShownFeedback.current = true;
         }
       }, 10000);
 
       return () => clearTimeout(timer);
     }
-  }, [userFeedback, dispatch]);
+  }, [userFeedback, auth]); // Only dependencies trigger the effect.
 
   //This function will send the feedback to the backend
   const handleSubmitFeedback = async (feedbackdata) => {
