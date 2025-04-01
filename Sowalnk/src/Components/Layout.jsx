@@ -6,53 +6,85 @@ import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Bell } from "lucide-react";
 import Notification from "./Notification/Notification.jsx";
+import { io } from "socket.io-client";
 
 const Layout = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   const [showNotifications, setShowNotifications] = useState(false);
   const [remainingTime, setRemainingTime] = useState(calculateRemainingTime());
   const [unreadCount, setUnreadCount] = useState(0);
-  const { dailyTask } = useSelector((state) => state.task);
-  const countedTasksRef = useRef(new Set()); // Track which tasks we've already counted
+  // const { dailyTask } = useSelector((state) => state.task);
+  // const countedTasksRef = useRef(new Set()); // Track which tasks we've already counted
+  const [socket, setSocket] = useState(null);
 
-  const getPendingTasks = () => {
-    return dailyTask.filter(
-      (task) => !task.isCompleted && !task.hasExceededTime
-    );
-  };
-
-  // Generate notifications 5 minute before end time
   useEffect(() => {
-    const pendingTasks = getPendingTasks();
-    const now = new Date();
-    let newCount = 0;
+    const newSocket = io("http://localhost:2000"); // Your backend URL
+    setSocket(newSocket);
 
-    pendingTasks.forEach((task) => {
-      if (!task.endTime) return;
+    return () => newSocket.disconnect();
+  }, []);
 
-      // Parse the HH:mm time string
-      const [hours, minutes] = task.endTime.split(":").map(Number);
-
-      // Create a Date object for today with this end time
-      const endTimeToday = new Date();
-      endTimeToday.setHours(hours, minutes, 0, 0);
-
-      // Calculate difference in minutes
-      const timeDiff = (endTimeToday - now) / (1000 * 60);
-
-      if (timeDiff <= 5 && timeDiff >= 0) {
-        // Only count if we haven't counted this task before
-        if (!countedTasksRef.current.has(task._id)) {
-          countedTasksRef.current.add(task._id);
-          newCount++;
-        }
-      }
-    });
-
-    if (newCount > 0) {
-      setUnreadCount((prev) => prev + newCount);
+  // Authenticate socket when user logs in
+  useEffect(() => {
+    if (socket && auth?._id) {
+      socket.emit("authenticate", auth._id);
     }
-  }, [dailyTask]);
+  }, [socket, auth]);
+
+  // Listen for task notifications
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleTaskNotification = (data) => {
+      setUnreadCount((prev) => prev + 1);
+      // You could also play a sound or show a toast here
+    };
+
+    socket.on("task-ending-soon", handleTaskNotification);
+
+    return () => {
+      socket.off("task-ending-soon", handleTaskNotification);
+    };
+  }, [socket]);
+
+  // const getPendingTasks = () => {
+  //   return dailyTask.filter(
+  //     (task) => !task.isCompleted && !task.hasExceededTime
+  //   );
+  // };
+
+  // // Generate notifications 5 minute before end time
+  // useEffect(() => {
+  //   const pendingTasks = getPendingTasks();
+  //   const now = new Date();
+  //   let newCount = 0;
+
+  //   pendingTasks.forEach((task) => {
+  //     if (!task.endTime) return;
+
+  //     // Parse the HH:mm time string
+  //     const [hours, minutes] = task.endTime.split(":").map(Number);
+
+  //     // Create a Date object for today with this end time
+  //     const endTimeToday = new Date();
+  //     endTimeToday.setHours(hours, minutes, 0, 0);
+
+  //     // Calculate difference in minutes
+  //     const timeDiff = (endTimeToday - now) / (1000 * 60);
+
+  //     if (timeDiff <= 5 && timeDiff >= 0) {
+  //       // Only count if we haven't counted this task before
+  //       if (!countedTasksRef.current.has(task._id)) {
+  //         countedTasksRef.current.add(task._id);
+  //         newCount++;
+  //       }
+  //     }
+  //   });
+
+  //   if (newCount > 0) {
+  //     setUnreadCount((prev) => prev + newCount);
+  //   }
+  // }, [dailyTask]);
 
   // Calculate remaining time function
   function calculateRemainingTime() {
@@ -108,7 +140,6 @@ const Layout = () => {
                 // Reset count when opening notifications
                 if (!showNotifications) {
                   setUnreadCount(0);
-                  countedTasksRef.current.clear();
                 }
               }}
               className="relative p-1 hover:bg-gray-300 rounded-full duration-300"
@@ -127,7 +158,11 @@ const Layout = () => {
 
       {/* Pass the update function to Notification */}
       {showNotifications && (
-        <Notification onClose={() => setShowNotifications(false)} />
+        <Notification
+          onClose={() => setShowNotifications(false)}
+          unreadCount={unreadCount}
+          setUnreadCount={setUnreadCount}
+        />
       )}
 
       <div className="flex flex-row min-h-screen">

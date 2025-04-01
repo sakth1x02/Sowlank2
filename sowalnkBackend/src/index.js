@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./db/index.js";
-import { app } from "./app.js"; // Assuming `app.js` properly exports `app`
+import { app, server } from "./app.js"; // Assuming `app.js` properly exports `app`
 import { sendEmail, sendEmailFeedback } from "./mailtrap/emails.js";
 import { verifyJWT } from "./middleware/auth.middleware.js";
 import { User } from "./models/user.model.js";
@@ -78,7 +78,7 @@ cron.schedule("0 0 * * *", async () => {
 
 connectDB()
   .then(() => {
-    app.listen(process.env.PORT || 2000, () => {
+    server.listen(process.env.PORT || 2000, () => {
       console.log(`Listening on port ${process.env.PORT || 2000}`);
     });
   })

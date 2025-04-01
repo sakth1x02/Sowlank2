@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { X, Check } from "lucide-react";
 
-const Notification = ({ onClose }) => {
+const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
   const { dailyTask } = useSelector((state) => state.task);
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState("unread");
@@ -63,13 +63,16 @@ const Notification = ({ onClose }) => {
           : notification
       )
     );
+    setUnreadCount((prev) => prev - 1);
   };
 
   // Mark all as read
   const markAllAsRead = () => {
+    const unreadNotifications = notifications.filter((n) => !n.isRead).length;
     setNotifications((prev) =>
       prev.map((notification) => ({ ...notification, isRead: true }))
     );
+    setUnreadCount((prev) => prev - unreadNotifications);
   };
 
   // Clear all notifications

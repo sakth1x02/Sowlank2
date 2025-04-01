@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { DailyTask } from "./models/daily.model.js";
 
 const app = express();
 app.use(cookieParser());
@@ -24,6 +27,21 @@ app.use(
   })
 );
 
+//Socket.io creating server and configure cors to allow origins.
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "sowalnk.com",
+      "www.sowalnk.com",
+      "https://application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com",
+      "application-tier-ALB-52084640.ap-south-1.elb.amazonaws.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  },
+});
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kbs" }));
 app.use(express.static("public"));
@@ -43,6 +61,74 @@ app.use("/api/v1/monthlytask", monthlyTaskRouter);
 app.use("/api/v1/yearlytask", yearlyTaskRouter);
 app.use("/api/v1/subscription", subscriptionRouter);
 
-export { app };
+//Socket.io
+const activeUsers = new Map(); // userId -> socketId mapping
+
+io.on("connection", (socket) => {
+  console.log("New client connected:", socket.id);
+  // Handle user authentication
+  socket.on("authenticate", (userId) => {
+    activeUsers.set(userId, socket.id);
+    console.log("data of activeUsers", activeUsers);
+    console.log(`User ${userId} connected with socket ID: ${socket.id}`);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    // Remove user from active users
+    for (const [userId, socketId] of activeUsers.entries()) {
+      if (socketId === socket.id) {
+        activeUsers.delete(userId);
+        console.log(`User ${userId} disconnected`);
+        break;
+      }
+    }
+  });
+});
+
+// Function to check for tasks ending soon
+async function checkEndingTasks() {
+  try {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Fetch tasks from MongoDB where isCompleted is false
+    const tasks = await DailyTask.find({
+      isCompleted: false,
+      hasExceededTime: false,
+    });
+
+    tasks.forEach((task) => {
+      if (!task.endTime) return;
+
+      const [hours, minutes] = task.endTime.split(":").map(Number);
+      const taskMinutes = hours * 60 + minutes;
+      const timeDiff = taskMinutes - currentMinutes;
+
+      if (timeDiff <= 5 && timeDiff >= 0) {
+        // Send notification to the task owner
+        const userId = task.user.toString();
+        const userSocketId = activeUsers.get(userId);
+
+        if (userSocketId) {
+          io.to(userSocketId).emit("task-ending-soon", {
+            taskId: task._id,
+            title: task.taskName,
+            endTime: task.endTime,
+            minutesRemaining: timeDiff,
+          });
+          console.log(`Notification sent to ${task.userId}`);
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error checking tasks:", error);
+  }
+}
+
+// Check every minute
+setInterval(checkEndingTasks, 60000);
+
+export { app, server };
 
 // http://localhost:5173
