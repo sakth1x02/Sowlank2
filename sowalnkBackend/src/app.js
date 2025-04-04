@@ -65,21 +65,17 @@ app.use("/api/v1/subscription", subscriptionRouter);
 const activeUsers = new Map(); // userId -> socketId mapping
 
 io.on("connection", (socket) => {
-  console.log("New client connected:", socket.id);
-  // Handle user authentication
   socket.on("authenticate", (userId) => {
     activeUsers.set(userId, socket.id);
-    console.log("data of activeUsers", activeUsers);
     console.log(`User ${userId} connected with socket ID: ${socket.id}`);
   });
 
   // Handle disconnection
   socket.on("disconnect", () => {
-    // Remove user from active users
     for (const [userId, socketId] of activeUsers.entries()) {
       if (socketId === socket.id) {
         activeUsers.delete(userId);
-        console.log(`User ${userId} disconnected`);
+        console.log(`Disconnected with this ID ->${userId} disconnected`);
         break;
       }
     }
@@ -92,42 +88,48 @@ async function checkEndingTasks() {
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    // Fetch tasks from MongoDB where isCompleted is false
-    const tasks = await DailyTask.find({
-      isCompleted: false,
-      hasExceededTime: false,
-    });
+    // Iterate through all connected users
+    for (const [userId, socketId] of activeUsers.entries()) {
+      try {
+        // Fetch tasks only for this specific user
+        const tasks = await DailyTask.find({
+          user: userId, // Filter by the authenticated user's ID
+          isCompleted: false,
+          hasExceededTime: false,
+          isRead: false, // Only unread notifications
+          notified: false,
+        });
 
-    tasks.forEach((task) => {
-      if (!task.endTime) return;
+        tasks.forEach((task) => {
+          if (!task.endTime) return;
 
-      const [hours, minutes] = task.endTime.split(":").map(Number);
-      const taskMinutes = hours * 60 + minutes;
-      const timeDiff = taskMinutes - currentMinutes;
+          const [hours, minutes] = task.endTime.split(":").map(Number);
+          const taskMinutes = hours * 60 + minutes;
+          const timeDiff = taskMinutes - currentMinutes;
 
-      if (timeDiff <= 5 && timeDiff >= 0) {
-        // Send notification to the task owner
-        const userId = task.user.toString();
-        const userSocketId = activeUsers.get(userId);
-
-        if (userSocketId) {
-          io.to(userSocketId).emit("task-ending-soon", {
-            taskId: task._id,
-            title: task.taskName,
-            endTime: task.endTime,
-            minutesRemaining: timeDiff,
-          });
-          console.log(`Notification sent to ${task.userId}`);
-        }
+          if (timeDiff <= 5 && timeDiff >= 0) {
+            // Send notification to this specific user
+            io.to(socketId).emit("task-ending-soon", {
+              taskId: task._id,
+              title: task.taskName,
+              endTime: task.endTime,
+              minutesRemaining: timeDiff,
+            });
+            task.notified = true;
+            task.save();
+          }
+        });
+      } catch (error) {
+        console.error(`Error processing tasks for user ${userId}:`, error);
       }
-    });
+    }
   } catch (error) {
-    console.error("Error checking tasks:", error);
+    console.error("Error in checkEndingTasks:", error);
   }
 }
 
 // Check every minute
-setInterval(checkEndingTasks, 60000);
+setInterval(checkEndingTasks, 30000);
 
 export { app, server };
 

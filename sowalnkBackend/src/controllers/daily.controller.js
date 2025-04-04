@@ -182,6 +182,65 @@ const dailyTaskController = {
       task: deletedTask,
     });
   }),
+  // Mark single notification as read
+  markNotificationAsRead: asyncHandler(async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user._id;
+
+      const task = await DailyTask.findOneAndUpdate(
+        { _id: id, user: userId },
+        { isRead: true },
+        { new: true }
+      );
+
+      if (!task) {
+        return res.status(404).json({
+          success: false,
+          message: "Task not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Notification marked as read",
+        task,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error marking notification as read",
+        error: error.message,
+      });
+    }
+  }),
+
+  // Mark all notifications as read
+  markAllNotificationsAsRead: asyncHandler(async (req, res) => {
+    try {
+      const userId = req.user._id;
+
+      const task = await DailyTask.updateMany(
+        {
+          user: userId,
+          isRead: false,
+          isCompleted: false,
+          hasExceededTime: false,
+        },
+        { isRead: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "All notifications marked as read",
+        task,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error marking notifications as read",
+        error: error.message,
+      });
+    }
+  }),
 };
 
 export { dailyTaskController };

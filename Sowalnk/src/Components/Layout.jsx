@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import "./Layout.css";
@@ -21,13 +21,13 @@ const Layout = () => {
     const newSocket = io("http://localhost:2000"); // Your backend URL
     setSocket(newSocket);
 
-    return () => newSocket.disconnect();
+    return () => newSocket.disconnect(); //This is basically cleaner function which is run before re-render.
   }, []);
 
   // Authenticate socket when user logs in
   useEffect(() => {
     if (socket && auth?._id) {
-      socket.emit("authenticate", auth._id);
+      socket.emit("authenticate", auth._id); //this sending the logged in user id to backend-- this emit (io().emit('nickname',value))
     }
   }, [socket, auth]);
 
@@ -37,55 +37,14 @@ const Layout = () => {
 
     const handleTaskNotification = (data) => {
       setUnreadCount((prev) => prev + 1);
-      // You could also play a sound or show a toast here
     };
 
-    socket.on("task-ending-soon", handleTaskNotification);
+    socket.on("task-ending-soon", handleTaskNotification); //this on is listening the event wiht name "task-ending-soon"
 
     return () => {
       socket.off("task-ending-soon", handleTaskNotification);
     };
   }, [socket]);
-
-  // const getPendingTasks = () => {
-  //   return dailyTask.filter(
-  //     (task) => !task.isCompleted && !task.hasExceededTime
-  //   );
-  // };
-
-  // // Generate notifications 5 minute before end time
-  // useEffect(() => {
-  //   const pendingTasks = getPendingTasks();
-  //   const now = new Date();
-  //   let newCount = 0;
-
-  //   pendingTasks.forEach((task) => {
-  //     if (!task.endTime) return;
-
-  //     // Parse the HH:mm time string
-  //     const [hours, minutes] = task.endTime.split(":").map(Number);
-
-  //     // Create a Date object for today with this end time
-  //     const endTimeToday = new Date();
-  //     endTimeToday.setHours(hours, minutes, 0, 0);
-
-  //     // Calculate difference in minutes
-  //     const timeDiff = (endTimeToday - now) / (1000 * 60);
-
-  //     if (timeDiff <= 5 && timeDiff >= 0) {
-  //       // Only count if we haven't counted this task before
-  //       if (!countedTasksRef.current.has(task._id)) {
-  //         countedTasksRef.current.add(task._id);
-  //         newCount++;
-  //       }
-  //     }
-  //   });
-
-  //   if (newCount > 0) {
-  //     setUnreadCount((prev) => prev + newCount);
-  //   }
-  // }, [dailyTask]);
-
   // Calculate remaining time function
   function calculateRemainingTime() {
     const now = new Date();

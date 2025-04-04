@@ -65,6 +65,14 @@ const dailyTaskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    notified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timeseries: true,

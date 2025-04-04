@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { X, Check } from "lucide-react";
+import { fetchTasks } from "../../store/task-slice";
 
-const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
+const Notification = ({ onClose }) => {
   const { dailyTask } = useSelector((state) => state.task);
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState("unread");
+  const dispatch = useDispatch();
 
   // Filter tasks that are incomplete and not exceeded time
   const getPendingTasks = () => {
@@ -13,6 +15,9 @@ const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
       (task) => !task.isCompleted && !task.hasExceededTime
     );
   };
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch, dailyTask]);
 
   // Generate notifications 5 minute before end time
   useEffect(() => {
@@ -41,7 +46,7 @@ const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
         fullEndTime: new Date().setHours(
           ...task.endTime.split(":").map(Number)
         ),
-        isRead: false,
+        isRead: task.isRead,
         createdAt: new Date().toISOString(),
       }));
 
@@ -55,29 +60,45 @@ const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
   }, [dailyTask]);
 
   // Mark notification as read
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    setUnreadCount((prev) => prev - 1);
+  const markAsRead = async (id) => {
+    try {
+      const res = await fetch(`/api/v1/task/daily/notification-read/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      await res.json();
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === id
+            ? { ...notification, isRead: true }
+            : notification
+        )
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
   };
 
-  // Mark all as read
-  const markAllAsRead = () => {
-    const unreadNotifications = notifications.filter((n) => !n.isRead).length;
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, isRead: true }))
-    );
-    setUnreadCount((prev) => prev - unreadNotifications);
-  };
+  const markAllAsRead = async () => {
+    try {
+      const data = await fetch("/api/v1/task/daily/all-notifications-read", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      await data.json();
 
-  // Clear all notifications
-  const clearAll = () => {
-    setNotifications([]);
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, isRead: true }))
+      );
+    } catch (err) {
+      console.error("Failed to mark all notifications as read", err);
+    }
   };
 
   // Filter notifications based on active tab
@@ -152,16 +173,12 @@ const Notification = ({ onClose, unreadCount, setUnreadCount }) => {
       <div className="p-3 border-t border-gray-200 flex justify-between">
         <button
           onClick={markAllAsRead}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className={`${
+            activeTab === "all" ? "hidden" : ""
+          } text-sm text-blue-600 hover:text-blue-800`}
         >
           Mark all as read
         </button>
-        {/* <button
-          onClick={clearAll}
-          className="text-sm text-red-600 hover:text-red-800"
-        >
-          Clear all
-        </button> */}
       </div>
     </div>
   );

@@ -22,4 +22,13 @@ router.patch(
   dailyTaskController.toggleHasExceededTime
 );
 
+router.patch(
+  "/daily/notification-read/:id",
+  dailyTaskController.markNotificationAsRead
+);
+router.patch(
+  "/daily/all-notifications-read",
+  dailyTaskController.markAllNotificationsAsRead
+);
+
 export default router;
