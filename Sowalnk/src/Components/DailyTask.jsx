@@ -55,6 +55,33 @@ function DailyTask() {
       console.error("Missing required fields");
       return;
     }
+    // Check for minimum 5-minute difference
+    if (startTime === endTime) {
+      toast.error("Start and end time cannot be the same");
+      return;
+    }
+
+    // Calculate time difference in minutes
+    const [startHours, startMinutes] = startTime.split(":").map(Number);
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+
+    // Check if end time is before start time
+    if (endTotalMinutes < startTotalMinutes) {
+      toast.error("End time cannot be before start time");
+      return;
+    }
+
+    // Check for minimum 5-minute difference
+    if (endTotalMinutes - startTotalMinutes < 5) {
+      toast.error(
+        "Minimum 5 minutes difference required between start and end time"
+      );
+      return;
+    }
+
     if (taskName.length < 3) {
       toast.error("Task name must be at least 3 characters long");
       return;
