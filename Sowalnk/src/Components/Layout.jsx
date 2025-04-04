@@ -37,6 +37,12 @@ const Layout = () => {
 
     const handleTaskNotification = (data) => {
       setUnreadCount((prev) => prev + 1);
+      const audio = new Audio("/notification.mp3");
+      audio
+        .play()
+        .catch((error) =>
+          console.error("Failed to play notification sound:", error)
+        );
     };
 
     socket.on("task-ending-soon", handleTaskNotification); //this on is listening the event wiht name "task-ending-soon"
