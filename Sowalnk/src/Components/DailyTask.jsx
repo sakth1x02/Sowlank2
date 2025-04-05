@@ -49,13 +49,27 @@ function DailyTask() {
     year: "numeric",
   });
 
+  const getCurrentTime = () => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
   const handleAddTask = async () => {
     if (taskName.trim() === "" || !startTime || !endTime || !priority) {
       toast.error("Missing required fields");
       console.error("Missing required fields");
       return;
     }
-    // Check for minimum 5-minute difference
+
+    const currentTime = getCurrentTime();
+    // Check if start time is before current time
+    if (startTime < currentTime) {
+      toast.error("Start time cannot be before current time");
+      return;
+    }
+
     if (startTime === endTime) {
       toast.error("Start and end time cannot be the same");
       return;
