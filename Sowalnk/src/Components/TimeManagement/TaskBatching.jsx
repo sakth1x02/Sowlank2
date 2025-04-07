@@ -1,70 +1,110 @@
-import { Info } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { Info } from "lucide-react";
+import Confetti from "react-confetti";
 
 function TaskBatchingApp() {
-  const [newTask, setNewTask] = useState('');
-  const [category, setCategory] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [priority, setPriority] = useState('medium');
-  const [notes, setNotes] = useState('');
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('batchTasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+  const [newTask, setNewTask] = useState("");
+  const [category, setCategory] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [notes, setNotes] = useState("");
+  const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem("batchTasks")) || []);
   const [showInfo, setShowInfo] = useState(false);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState("all");
   const [timers, setTimers] = useState({});
   const [editingTask, setEditingTask] = useState(null);
+  const [points, setPoints] = useState(() => parseInt(localStorage.getItem("batchPoints")) || 0);
+  const [level, setLevel] = useState(() => parseInt(localStorage.getItem("batchLevel")) || 1);
+  const [badges, setBadges] = useState(() => JSON.parse(localStorage.getItem("batchBadges")) || []);
+  const [rewards, setRewards] = useState(() => JSON.parse(localStorage.getItem("batchRewards")) || []);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [showSummary, setShowSummary] = useState(false);
+  const [showRanking, setShowRanking] = useState(false);
 
-  const categories = ['Emails', 'Calls', 'Writing', 'Admin', 'Errands', 'Communication', 'Creative task'];
+  const categories = ["Emails", "Calls", "Writing", "Admin", "Errands", "Communication", "Creative task"];
 
   useEffect(() => {
-    localStorage.setItem('batchTasks', JSON.stringify(tasks));
-  }, [tasks]);
+    localStorage.setItem("batchTasks", JSON.stringify(tasks));
+    localStorage.setItem("batchPoints", points);
+    localStorage.setItem("batchLevel", level);
+    localStorage.setItem("batchBadges", JSON.stringify(badges));
+    localStorage.setItem("batchRewards", JSON.stringify(rewards));
+  }, [tasks, points, level, badges, rewards]);
+
+  const checkGamification = (action, task = {}) => {
+    const newLevel = Math.floor(points / 100) + 1;
+    if (newLevel > level) {
+      setLevel(newLevel);
+      setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 4000);
+    }
+
+    const addedTasks = tasks.length;
+    const completedTasks = tasks.filter((t) => t.completed).length;
+    const highPriorityCompleted = tasks.filter((t) => t.completed && t.priority === "high").length;
+
+    if (action === "add" && addedTasks >= 5 && !badges.includes("Batch Starter")) setBadges((prev) => [...prev, "Batch Starter"]);
+    if (action === "complete" && completedTasks >= 5 && !badges.includes("Batch Finisher")) setBadges((prev) => [...prev, "Batch Finisher"]);
+    if (action === "complete" && task.timeBlock && new Date().toLocaleTimeString([], { hour12: false }).slice(0, 5) <= task.timeBlock.end && !badges.includes("Time Master")) setBadges((prev) => [...prev, "Time Master"]);
+    if (action === "complete" && completedTasks >= 10 && !badges.includes("Task Champion")) setBadges((prev) => [...prev, "Task Champion"]);
+    if (action === "complete" && highPriorityCompleted >= 3 && !badges.includes("Priority Pro")) setBadges((prev) => [...prev, "Priority Pro"]);
+  };
 
   const handleAddTask = (e) => {
     e.preventDefault();
-    if (newTask.trim() && category && startTime && endTime) {
-      const taskObj = {
-        id: editingTask ? editingTask.id : Date.now(),
-        text: newTask.trim(),
-        category,
-        timeBlock: { start: startTime, end: endTime },
-        completed: editingTask ? editingTask.completed : false,
-        priority,
-        notes,
-        createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),
-      };
-      if (editingTask) {
-        setTasks((prev) => prev.map((task) => (task.id === editingTask.id ? taskObj : task)));
-        setEditingTask(null);
-      } else {
-        setTasks((prev) => [...prev, taskObj]);
-      }
-      resetForm();
+    if (!newTask.trim() || !category || !startTime || !endTime) return;
+    const taskObj = {
+      id: editingTask ? editingTask.id : Date.now(),
+      text: newTask.trim(),
+      category,
+      timeBlock: { start: startTime, end: endTime },
+      completed: editingTask ? editingTask.completed : false,
+      priority,
+      notes,
+      createdAt: editingTask ? editingTask.createdAt : new Date().toISOString(),
+    };
+    if (editingTask) {
+      setTasks((prev) => prev.map((t) => (t.id === editingTask.id ? taskObj : t)));
+      setEditingTask(null);
+    } else {
+      setTasks((prev) => [...prev, taskObj]);
+      setPoints((prev) => prev + 10);
+      checkGamification("add");
     }
+    resetForm();
   };
 
   const resetForm = () => {
-    setNewTask('');
-    setCategory('');
-    setStartTime('');
-    setEndTime('');
-    setPriority('medium');
-    setNotes('');
+    setNewTask("");
+    setCategory("");
+    setStartTime("");
+    setEndTime("");
+    setPriority("medium");
+    setNotes("");
   };
 
   const toggleTaskCompletion = (taskId) => {
     setTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
+      prev.map((task) => {
+        if (task.id === taskId) {
+          const newCompleted = !task.completed;
+          if (newCompleted) {
+            setPoints((prev) => prev + 25);
+            checkGamification("complete", task);
+          }
+          return { ...task, completed: newCompleted };
+        }
+        return task;
+      })
     );
   };
 
   const deleteTask = (taskId) => {
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    setPoints((prev) => Math.max(0, prev - 5));
   };
 
   const editTask = (task) => {
@@ -78,10 +118,10 @@ function TaskBatchingApp() {
   };
 
   const clearAllTasks = () => {
-    if (window.confirm('Are you sure you want to clear all tasks?')) {
+    if (window.confirm("Are you sure you want to clear all tasks?")) {
       setTasks([]);
-      localStorage.removeItem('batchTasks');
       setTimers({});
+      localStorage.removeItem("batchTasks");
     }
   };
 
@@ -89,9 +129,12 @@ function TaskBatchingApp() {
     if (!timers[category]) {
       setTimers((prev) => ({
         ...prev,
-        [category]: { time: 0, interval: setInterval(() => {
-          setTimers((p) => ({ ...p, [category]: { ...p[category], time: p[category].time + 1 } }));
-        }, 1000) }
+        [category]: {
+          time: 0,
+          interval: setInterval(() => {
+            setTimers((p) => ({ ...p, [category]: { ...p[category], time: p[category].time + 1 } }));
+          }, 1000),
+        },
       }));
     }
   };
@@ -106,26 +149,21 @@ function TaskBatchingApp() {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
   const getBatches = () => {
     const batches = {};
-    const filteredTasks = tasks.filter(task => {
-      if (filter === 'completed') return task.completed;
-      if (filter === 'pending') return !task.completed;
+    const filteredTasks = tasks.filter((task) => {
+      if (filter === "completed") return task.completed;
+      if (filter === "pending") return !task.completed;
       return true;
     });
-    
     filteredTasks.forEach((task) => {
-      if (!batches[task.category]) {
-        batches[task.category] = [];
-      }
+      if (!batches[task.category]) batches[task.category] = [];
       batches[task.category].push(task);
     });
-    Object.keys(batches).forEach((cat) => {
-      batches[cat].sort((a, b) => a.text.localeCompare(b.text));
-    });
+    Object.keys(batches).forEach((cat) => batches[cat].sort((a, b) => a.text.localeCompare(b.text)));
     return batches;
   };
 
@@ -135,82 +173,38 @@ function TaskBatchingApp() {
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
     return (
-      <div className="p-4 sm:p-6 rounded-xl shadow-lg w-full bg-gradient-to-br from-white to-purple-50 border border-purple-100">
-        <h3 className="text-lg sm:text-2xl font-bold text-black mb-2 capitalize tracking-tight">
-          {category}
-        </h3>
-        <p className="text-xs sm:text-sm text-gray-700 mb-3 font-medium">
-          Time: {batchTasks[0]?.timeBlock
-            ? `${batchTasks[0].timeBlock.start} - ${batchTasks[0].timeBlock.end}`
-            : 'Not scheduled'}
+      <div className="p-4 bg-white rounded-lg shadow-lg border border-purple-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 capitalize">{category}</h3>
+        <p className="text-sm text-gray-600 mb-2">
+          Time: {batchTasks[0]?.timeBlock ? `${batchTasks[0].timeBlock.start} - ${batchTasks[0].timeBlock.end}` : "Not scheduled"}
         </p>
-        {/* Timer Controls: vertical on mobile, horizontal on larger screens */}
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
-          <button
-            onClick={() => startTimer(category)}
-            className="px-2 sm:px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all text-xs sm:text-sm"
-          >
-            Start
-          </button>
-          <button
-            onClick={() => stopTimer(category)}
-            className="px-2 sm:px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-xs sm:text-sm"
-          >
-            Stop
-          </button>
-          <span className="font-medium text-gray-700 text-xs sm:text-sm">
-            {timers[category] ? formatTime(timers[category].time) : '00:00'}
-          </span>
+        <div className="flex items-center gap-2 mb-3">
+          <button onClick={() => startTimer(category)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">Start</button>
+          <button onClick={() => stopTimer(category)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">Stop</button>
+          <span className="text-sm font-medium text-gray-700">{timers[category] ? formatTime(timers[category].time) : "00:00"}</span>
         </div>
-        <div className="mb-4 sm:mb-6">
-          <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
-            <div
-              className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 sm:h-3 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            ></div>
+        <div className="mb-4">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-2 font-medium">
-            {completedTasks}/{totalTasks} completed
-          </p>
+          <p className="text-sm text-gray-600 mt-1">{completedTasks}/{totalTasks} completed</p>
         </div>
         {batchTasks.map((task) => (
-          <div
-            key={task.id}
-            className="flex flex-col p-3 sm:p-4 mb-3 sm:mb-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-all"
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => toggleTaskCompletion(task.id)}
-                  className="h-4 sm:h-5 w-4 sm:w-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                />
-                <span
-                  className={`text-sm sm:text-lg font-medium ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}
-                >
-                  {task.text}
-                </span>
+          <div key={task.id} className="flex flex-col p-3 mb-2 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={task.completed} onChange={() => toggleTaskCompletion(task.id)} className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500" />
+                <span className={`text-base ${task.completed ? "line-through text-gray-400" : "text-gray-800"}`}>{task.text}</span>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => editTask(task)}
-                  className="text-blue-500 hover:text-blue-700 font-semibold text-xs sm:text-sm transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteTask(task.id)}
-                  className="text-red-600 hover:text-red-800 font-semibold text-xs sm:text-sm transition-colors"
-                >
-                  Delete
-                </button>
+                <button onClick={() => editTask(task)} className="text-blue-500 hover:text-blue-700 text-sm">Edit</button>
+                <button onClick={() => deleteTask(task.id)} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">
-              Priority: <span className={`font-semibold ${task.priority === 'high' ? 'text-red-500' : task.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</span> | 
+            <p className="text-xs text-gray-500 mt-1">
+              Priority: <span className={`${task.priority === "high" ? "text-red-500" : task.priority === "medium" ? "text-yellow-500" : "text-green-500"}`}>{task.priority}</span> | 
               Added: {new Date(task.createdAt).toLocaleString()} | 
-              {task.notes && <span>Notes: {task.notes}</span>}
+              {task.notes && `Notes: ${task.notes}`}
             </p>
           </div>
         ))}
@@ -218,186 +212,342 @@ function TaskBatchingApp() {
     );
   };
 
+  const redeemReward = (reward) => {
+    if (rewards.includes(reward.name)) return alert("Reward already redeemed!");
+    if (points < reward.cost) return alert("Not enough points!");
+    setPoints((prev) => prev - reward.cost);
+    setRewards((prev) => [...prev, reward.name]);
+    if (reward.name === "Dark Theme") setTheme("dark");
+    if (reward.name === "Bonus 50 Points") setPoints((prev) => prev + 50);
+    if (reward.name === "Custom Badge") setBadges((prev) => [...prev, "Custom Star"]);
+    alert(`${reward.name} redeemed successfully!`);
+  };
+
+  const getRewardsList = () => [
+    { name: "Dark Theme", cost: 500, description: "Switch to a sleek dark mode." },
+    { name: "Bonus 50 Points", cost: 300, description: "Get an extra 50 points." },
+    { name: "Custom Badge", cost: 700, description: "Earn a unique 'Custom Star' badge." },
+  ];
+
+  const getProgress = () => {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((t) => t.completed).length;
+    return totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  };
+
+  const getSummaryData = () => {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((t) => t.completed).length;
+    const pendingTasks = totalTasks - completedTasks;
+    const byCategory = {};
+    tasks.forEach((task) => {
+      if (!byCategory[task.category]) {
+        byCategory[task.category] = { total: 0, completed: 0 };
+      }
+      byCategory[task.category].total += 1;
+      if (task.completed) byCategory[task.category].completed += 1;
+    });
+    return { totalTasks, completedTasks, pendingTasks, byCategory };
+  };
+
+  const getRankingData = () => {
+    const categoryStats = {};
+    tasks.forEach((task) => {
+      if (!categoryStats[task.category]) {
+        categoryStats[task.category] = { completed: 0, total: 0 };
+      }
+      categoryStats[task.category].total += 1;
+      if (task.completed) categoryStats[task.category].completed += 1;
+    });
+    return Object.entries(categoryStats)
+      .map(([category, { completed, total }]) => ({
+        category,
+        completed,
+        total,
+        completionRate: total > 0 ? (completed / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.completed - a.completed || b.completionRate - a.completionRate);
+  };
+
   const batches = getBatches();
+  const rewardsList = getRewardsList();
+  const progress = getProgress();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-3 sm:p-6 lg:p-10">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-10">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between bg-white p-3 sm:p-4 lg:p-6 rounded-xl shadow-lg">
-          <h1 className="text-xl sm:text-3xl lg:text-5xl font-extrabold text-black tracking-tight">
-            Task Batching
-          </h1>
-          <button
-              onClick={() => setShowInfo(true)}
-              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
-              title="Learn about the ABCDE Method"
-            >
-              <Info size={24} className="text-gray-700" />
-            </button>
-        </div>
+    <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gradient-to-br from-purple-50 via-white to-indigo-50 text-gray-800"} flex flex-col`}>
+      {showConfetti && <Confetti />}
+      {/* Header */}
+      <header className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} shadow-lg p-6 flex items-center justify-between sticky top-0 z-10 mb-4`}>
+        <h1 className={`text-3xl font-extrabold ${theme === "dark" ? "text-purple-300" : "text-purple-500"}`}>Task Batching</h1>
+        <button onClick={() => setShowInfo(true)} className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} p-3 rounded-full transition-all`}>
+          <Info size={24} className={theme === "dark" ? "text-purple-300" : "text-purple-500"} />
+        </button>
+      </header>
 
-        {/* Form */}
-        <form
-          onSubmit={handleAddTask}
-          className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg space-y-3 sm:space-y-4 lg:space-y-6"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-            <div className="space-y-3 sm:space-y-4">
+      {/* Main Layout */}
+      <div className="flex flex-1 gap-6 overflow-hidden">
+        {/* Sidebar: Gamification & Rewards */}
+        <aside className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} w-full md:w-96 shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}>
+          <div className="space-y-6">
+            <div className={`${theme === "dark" ? "bg-purple-700" : "bg-purple-500"} text-white p-6 rounded-xl shadow-lg`}>
+              <h3 className="text-2xl font-semibold">Level {level}</h3>
+              <p className="text-sm mt-2">Points: {points.toLocaleString()}</p>
+              <div className="mt-4">
+                <div className={`${theme === "dark" ? "bg-purple-600" : "bg-purple-400"} w-full rounded-full h-3`}>
+                  <div className="bg-white h-3 rounded-full transition-all duration-500" style={{ width: `${points % 100}%` }}></div>
+                </div>
+                <p className="text-xs mt-1 text-purple-100">{points % 100}/100 to Level {level + 1}</p>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Badges</h4>
+              <div className="flex flex-wrap gap-3">
+                {badges.length ? badges.map((badge, idx) => (
+                  <span key={idx} className="bg-yellow-500 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">{badge}</span>
+                )) : (
+                  <p className="text-sm italic">Earn badges by batching tasks!</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Rewards</h4>
+              <ul className="space-y-2">
+                {rewardsList.map((reward) => (
+                  <li key={reward.name} className="flex justify-between items-center">
+                    <span>{reward.name} ({reward.cost} pts): {reward.description}</span>
+                    <button
+                      onClick={() => redeemReward(reward)}
+                      disabled={rewards.includes(reward.name) || points < reward.cost}
+                      className={`px-2 py-1 text-sm rounded ${rewards.includes(reward.name) ? "bg-gray-400" : points < reward.cost ? "bg-gray-300" : "bg-green-500 hover:bg-green-600"} text-white`}
+                    >
+                      {rewards.includes(reward.name) ? "Redeemed" : "Redeem"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-semibold">Overall Progress</h2>
+              <span className="text-base font-medium">{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mb-6`}>
+            <form onSubmit={handleAddTask} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
                 placeholder="Add a new task..."
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
-                className="w-full p-2 sm:p-3 lg:p-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-xl bg-gray-50"
+                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
               />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className={`${theme === "dark" ? "bg-gray-700 border-purple-600 text-white" : "bg-purple-50 border-purple-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+              />
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className={`${theme === "dark" ? "bg-gray-700 border-purple-600 text-white" : "bg-purple-50 border-purple-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+              />
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
               <textarea
                 placeholder="Task notes (optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-2 sm:p-3 lg:p-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs sm:text-sm lg:text-lg bg-gray-50 h-16 sm:h-20 lg:h-24 resize-none"
+                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-20 resize-none md:col-span-2`}
               />
-            </div>
-            <div className="space-y-3 sm:space-y-4">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 sm:p-3 lg:p-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-xl bg-gray-50"
+              <button
+                type="submit"
+                className="md:col-span-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors font-semibold"
               >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full p-2 sm:p-3 lg:p-4 border border-purple-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 hover:bg-purple-100 text-sm sm:text-base lg:text-xl transition-all"
-                />
-                <span className="text-gray-700 text-xs sm:text-sm lg:text-lg font-medium">→</span>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full p-2 sm:p-3 lg:p-4 border border-purple-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 hover:bg-purple-100 text-sm sm:text-base lg:text-xl transition-all"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full p-2 sm:p-3 lg:p-4 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-xl bg-gray-50"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
+                {editingTask ? "Update Task" : "Add Task"}
+              </button>
+            </form>
+          </div>
+
+          {/* Batches Section */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-semibold">Your Batches</h2>
                 <button
-                  type="submit"
-                  className="w-full px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all font-semibold text-sm sm:text-base lg:text-xl shadow-md"
+                  onClick={() => setShowSummary(!showSummary)}
+                  className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
                 >
-                  {editingTask ? 'Update Task' : 'Add Task'}
+                  {showSummary ? "Hide Summary" : "Show Summary"}
                 </button>
+                <button
+                  onClick={() => setShowRanking(!showRanking)}
+                  className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
+                >
+                  {showRanking ? "Hide Ranking" : "Show Ranking"}
+                </button>
+              </div>
+              {tasks.length > 0 && (
+                <div className="flex gap-4">
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} p-2 border rounded-lg focus:ring-2 focus:ring-purple-500`}
+                  >
+                    <option value="all">Show All</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <button
+                    onClick={clearAllTasks}
+                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.keys(batches).length > 0 ? (
+                Object.entries(batches).map(([category, batchTasks]) => renderBatch(category, batchTasks))
+              ) : (
+                <p className="text-gray-500 italic col-span-full text-center py-8">No tasks yet. Add some above to get started!</p>
+              )}
+            </div>
+
+            {/* Summary Section */}
+            {showSummary && (
+              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mt-6`}>
+                <h3 className="text-2xl font-bold mb-4">Task Summary</h3>
+                <div className="space-y-4">
+                  {(() => {
+                    const { totalTasks, completedTasks, pendingTasks, byCategory } = getSummaryData();
+                    return (
+                      <>
+                        <div>
+                          <p><strong>Total Tasks:</strong> {totalTasks}</p>
+                          <p><strong>Completed:</strong> {completedTasks}</p>
+                          <p><strong>Pending:</strong> {pendingTasks}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-purple-600">By Category</h4>
+                          {Object.keys(byCategory).length > 0 ? (
+                            <ul className="list-disc pl-6 space-y-2">
+                              {Object.entries(byCategory).map(([cat, { total, completed }]) => (
+                                <li key={cat}>
+                                  {cat}: {completed}/{total} completed ({((completed / total) * 100).toFixed(1)}%)
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p>No tasks yet.</p>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Ranking Section */}
+            {showRanking && (
+              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mt-6`}>
+                <h3 className="text-2xl font-bold mb-4">Category Rankings</h3>
+                <div className="space-y-4">
+                  {(() => {
+                    const rankings = getRankingData();
+                    return rankings.length > 0 ? (
+                      <ul className="space-y-3">
+                        {rankings.map((rank, idx) => (
+                          <li key={rank.category} className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-purple-600">{idx + 1}.</span>
+                            <div>
+                              <p><strong>{rank.category}</strong></p>
+                              <p className="text-sm">Completed: {rank.completed}/{rank.total} ({rank.completionRate.toFixed(1)}%)</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No tasks to rank yet.</p>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Info Modal - Keeping this as a popup */}
+      {showInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+          <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-700"} p-6 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500`}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold">Task Batching Guide</h3>
+              <button onClick={() => setShowInfo(false)} className="text-3xl font-bold hover:text-gray-500">×</button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600">What is Task Batching?</h4>
+                <p>Group similar tasks into time blocks to reduce context switching.</p>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600">Benefits</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li><strong>Increased Focus:</strong> Less context switching.</li>
+                  <li><strong>Time Savings:</strong> Reduces setup time.</li>
+                  <li><strong>Reduced Stress:</strong> Organized approach.</li>
+                  <li><strong>Higher Productivity:</strong> More in less time.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600">Gamification & Rewards</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>+10 pts (add), +25 pts (complete), -5 pts (delete).</li>
+                  <li>Level up every 100 points.</li>
+                  <li>Badges: Starter (5 added), Finisher (5 completed), Time Master, Champion (10 completed), Priority Pro (3 high-priority).</li>
+                  <li>Rewards: Dark Theme (500 pts), Bonus 50 Points (300 pts), Custom Badge (700 pts).</li>
+                </ul>
               </div>
             </div>
-          </div>
-        </form>
-
-        {/* Batches Section */}
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-            <h2 className="text-lg sm:text-2xl lg:text-4xl font-semibold text-black tracking-tight">
-              Your Batches
-            </h2>
-            {tasks.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="p-2 sm:p-3 border border-gray-300 rounded-lg sm:rounded-xl text-sm sm:text-lg bg-white focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="all">Show All</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                </select>
-                <button
-                  onClick={clearAllTasks}
-                  className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg sm:rounded-xl hover:from-red-600 hover:to-red-700 transition-all font-semibold text-sm sm:text-xl shadow-md"
-                >
-                  Clear All
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {Object.keys(batches).length > 0 ? (
-              Object.entries(batches).map(([category, batchTasks]) =>
-                renderBatch(category, batchTasks)
-              )
-            ) : (
-              <p className="text-gray-500 italic col-span-full text-center py-6 sm:py-8 lg:py-10 text-sm sm:text-lg lg:text-xl bg-white rounded-xl sm:rounded-2xl shadow-lg">
-                No tasks yet. Add some above to get started!
-              </p>
-            )}
+            <button
+              onClick={() => setShowInfo(false)}
+              className="mt-6 w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600"
+            >
+              Start Batching!
+            </button>
           </div>
         </div>
-
-        {/* Info Modal */}
-        {showInfo && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-3 sm:px-4">
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-2xl max-w-md sm:max-w-lg lg:max-w-2xl w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold text-black tracking-tight">
-                  Task Batching Guide
-                </h3>
-                <button
-                  onClick={() => setShowInfo(false)}
-                  className="text-gray-600 hover:text-gray-800 text-2xl sm:text-3xl lg:text-4xl font-bold transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h4 className="text-sm sm:text-lg lg:text-xl font-semibold text-purple-600 mb-1 sm:mb-2">What is Task Batching?</h4>
-                  <p className="text-gray-700 text-xs sm:text-base lg:text-lg">
-                    Task batching is a productivity technique where you group similar tasks together and complete them in a dedicated time block. Instead of switching between different types of work, you focus on one category at a time.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm sm:text-lg lg:text-xl font-semibold text-purple-600 mb-1 sm:mb-2">Benefits</h4>
-                  <ul className="list-disc pl-4 sm:pl-6 text-gray-700 text-xs sm:text-base lg:text-lg space-y-1 sm:space-y-2">
-                    <li><strong>Increased Focus:</strong> Less context switching improves concentration</li>
-                    <li><strong>Time Savings:</strong> Reduces setup time between tasks</li>
-                    <li><strong>Reduced Stress:</strong> Organized approach feels less overwhelming</li>
-                    <li><strong>Higher Productivity:</strong> Complete more in less time</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-sm sm:text-lg lg:text-xl font-semibold text-purple-600 mb-1 sm:mb-2">How to Use</h4>
-                  <ol className="list-decimal pl-4 sm:pl-6 text-gray-700 text-xs sm:text-base lg:text-lg space-y-1 sm:space-y-2">
-                    <li>Add tasks with a category and time block</li>
-                    <li>Set priorities and add optional notes</li>
-                    <li>Work on one batch at a time during its scheduled period</li>
-                    <li>Check off tasks or edit them as needed</li>
-                    <li>Use filters and timers to manage your workflow</li>
-                  </ol>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowInfo(false)}
-                className="mt-4 sm:mt-6 lg:mt-8 w-full px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all font-semibold text-sm sm:text-base lg:text-xl shadow-md"
-              >
-                Start Batching!
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

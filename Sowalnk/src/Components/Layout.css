@@ -1,28 +1,83 @@
 /* General Layout Styles */
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  transition: transform 0.3s ease-in-out;
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+.sidebar.md:block {
+  transform: translateX(0);
+}
+
+/* Content Area */
+.main-content {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content.md\:ml-64 {
+  margin-left: 16rem; /* Matches the sidebar width */
+}
+
+/* Custom bounce animation if you want more control than Tailwind's default */
+@keyframes customBounce {
+  0%,
+  100% {
+    transform: translateY(0);
   }
-  
-  /* Sidebar Styling */
-  .sidebar {
-    transition: transform 0.3s ease-in-out;
+  50% {
+    transform: translateY(-15px);
   }
-  
-  .sidebar.hidden {
-    transform: translateX(-100%);
+}
+
+.animate-bounce {
+  animation: customBounce 2s infinite;
+}
+
+@keyframes redGlow {
+  0% {
+    box-shadow: 0 0 0px rgba(239, 68, 68, 0.8);
   }
-  
-  .sidebar.md:block {
-    transform: translateX(0);
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 1), 0 0 30px rgba(239, 68, 68, 0.7);
   }
-  
-  /* Content Area */
-  .main-content {
-    transition: margin-left 0.3s ease-in-out;
+  100% {
+    box-shadow: 0 0 0px rgba(239, 68, 68, 0.8);
   }
-  
-  .main-content.md\:ml-64 {
-    margin-left: 16rem; /* Matches the sidebar width */
+}
+
+.red-glow {
+  animation: redGlow 2s infinite;
+}
+
+/* Glow animation */
+.glow-effect {
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5), 0 0 10px rgba(255, 0, 0, 0.3),
+    0 0 15px rgba(255, 0, 0, 0.2), 0 0 20px rgba(255, 0, 0, 0.1);
+  animation: glow-pulse 2s infinite alternate;
+}
+
+@keyframes glow-pulse {
+  from {
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5), 0 0 10px rgba(255, 0, 0, 0.3),
+      0 0 15px rgba(255, 0, 0, 0.2), 0 0 20px rgba(255, 0, 0, 0.1);
   }
-  
+  to {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.6),
+      0 0 30px rgba(255, 0, 0, 0.4), 0 0 40px rgba(255, 0, 0, 0.2);
+  }
+}
+
+/* For a more intense glow on hover */
+.glow-effect:hover {
+  animation: none;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 0, 0, 0.6),
+    0 0 45px rgba(255, 0, 0, 0.4);
+}

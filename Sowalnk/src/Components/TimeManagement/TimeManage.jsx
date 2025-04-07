@@ -125,7 +125,11 @@ const TimeManage = () => {
       className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col"
     >
       <header className="w-full pt-16 px-8 md:px-12 flex flex-col items-center justify-between z-10">
-        <div className="container max-w-7xl">
+        <div
+          className={`${
+            activeMethod === null ? "" : "hidden"
+          } container max-w-7xl`}
+        >
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex flex-col items-center">
               <motion.div
@@ -163,14 +167,14 @@ const TimeManage = () => {
 
       <div className="my-1" />
 
-      <main className="flex-1 overflow-hidden px-6 py-4 md:px-10">
-        <div className="container mx-auto max-w-7xl">
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full">
           {activeMethod !== null ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="my-8"
+              className="h-full flex flex-col"
             >
               <button
                 onClick={() => setActiveMethod(null)}
@@ -254,8 +258,8 @@ const TimeManage = () => {
               </div>
             </motion.div>
           ) : (
-            <div className="my-8">
-              <div className="mt-16">
+            <div className="px-6 py-4 md:px-10">
+              <div className="container mx-auto max-w-7xl mt-16">
                 <h2 className="text-2xl font-bold mb-6 text-center">
                   Browse Time Management Methods
                 </h2>
@@ -287,9 +291,11 @@ const TimeManage = () => {
         </div>
       </main>
 
-      <footer className="w-full py-6 px-8 text-center text-gray-500 text-sm">
-        <p>Enhance your productivity with these time management techniques</p>
-      </footer>
+      {activeMethod === null && (
+        <footer className="w-full py-6 px-8 text-center text-gray-500 text-sm">
+          <p>Enhance your productivity with these time management techniques</p>
+        </footer>
+      )}
     </motion.div>
   );
 };

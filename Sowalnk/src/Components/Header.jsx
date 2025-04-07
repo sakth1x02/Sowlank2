@@ -55,7 +55,7 @@ const Header = () => {
   ];
 
   return (
-    <nav className="bg-purple-800 text-white fixed top-0 z-50 w-full">
+    <nav className="bg-purple-800 text-white fixed top-0 z-40 w-full">
       <div className="container mx-auto px-4 py-3 ">
         {/* Desktop Navigation */}
         <div className="flex justify-between items-center">

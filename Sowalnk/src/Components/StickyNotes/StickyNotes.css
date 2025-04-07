@@ -1,0 +1,138 @@
+.sticky-notes-container {
+  font-family: "Arial", sans-serif;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sticky-notes-container h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-note-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.add-note-btn:hover {
+  background-color: #45a049;
+}
+
+.new-note-form {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.new-note-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.color-option {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  border: 2px solid transparent;
+}
+
+.color-option:hover {
+  border-color: #333;
+}
+
+.note-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.note-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.note-actions button:first-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.note-actions button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
+.notes-container {
+  position: relative;
+  min-height: 300px;
+  margin-top: 20px;
+}
+
+.sticky-note {
+  position: absolute;
+  width: 250px;
+  min-height: 200px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: move;
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky-note textarea {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  resize: none;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  font-family: inherit;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+  padding: 0 5px;
+}
+
+.delete-btn:hover {
+  color: #f44336;
+}
