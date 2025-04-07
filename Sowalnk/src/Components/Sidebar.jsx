@@ -66,6 +66,12 @@ const Sidebar = () => {
       icon: <Clock3 className="h-5 w-5" />,
       className: advanceMember === true ? "" : "hidden",
     },
+
+    {
+      path: "/Motivation-Quotes",
+      label: "Community Page",
+      icon: <CalendarCheck className="h-5 w-5" />,
+    },
     {
       path: "/completed-task",
       label: "Completed Task",

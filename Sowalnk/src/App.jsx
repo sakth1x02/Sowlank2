@@ -33,6 +33,7 @@ import { toast } from "react-toastify";
 import { Loader } from "lucide-react";
 import { fetchUsers } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
+import Motivation from "./Components/MotivationPage/Motivation.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
   // const [isLoading, setIsLoading] = useState(true);
@@ -156,6 +157,11 @@ const App = () => {
                   path="time-management"
                   element={auth ? <TimeManage /> : <Login />}
                 />
+                <Route
+                  path="Motivation-Quotes"
+                  element={auth ? <Motivation /> : <Login />}
+                />
+                
                 <Route
                   path="taskchart"
                   element={auth ? <TaskChart /> : <Login />}

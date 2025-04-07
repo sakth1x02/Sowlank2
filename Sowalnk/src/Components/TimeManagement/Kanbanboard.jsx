@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { Info } from "lucide-react";
+import { Info, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import Confetti from "react-confetti";
 
 function KanbanBoard() {
   const [newTask, setNewTask] = useState("");
@@ -12,16 +13,50 @@ function KanbanBoard() {
     const savedTasks = localStorage.getItem("kanbanTasks");
     return savedTasks ? JSON.parse(savedTasks) : [];
   });
-  const [deletedTasks, setDeletedTasks] = useState([]);
+  const [deletedTasks, setDeletedTasks] = useState(() => {
+    const savedDeleted = localStorage.getItem("kanbanDeletedTasks");
+    return savedDeleted ? JSON.parse(savedDeleted) : [];
+  });
   const [editingTask, setEditingTask] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [points, setPoints] = useState(() => parseInt(localStorage.getItem("kanbanPoints")) || 0);
+  const [level, setLevel] = useState(() => parseInt(localStorage.getItem("kanbanLevel")) || 1);
+  const [badges, setBadges] = useState(() => JSON.parse(localStorage.getItem("kanbanBadges")) || []);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSummarySection, setShowSummarySection] = useState(false);
+  const [showRankingsSection, setShowRankingsSection] = useState(false);
   const stages = ["To Do", "Working On", "Completed"];
   const priorities = ["High", "Medium", "Low"];
 
+  // Load and save data to localStorage
   useEffect(() => {
     localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+    localStorage.setItem("kanbanDeletedTasks", JSON.stringify(deletedTasks));
+    localStorage.setItem("kanbanPoints", points);
+    localStorage.setItem("kanbanLevel", level);
+    localStorage.setItem("kanbanBadges", JSON.stringify(badges));
+  }, [tasks, deletedTasks, points, level, badges]);
+
+  // Check for due date alerts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tasks.forEach((task) => {
+        if (task.dueDate && task.status !== "Completed" && !task.alerted) {
+          const dueTime = new Date(task.dueDate).getTime();
+          const now = Date.now();
+          if (now >= dueTime) {
+            toast.error(`Task "${task.text}" is due now!`, { duration: 5000 });
+            setTasks((prev) =>
+              prev.map((t) => (t.id === task.id ? { ...t, alerted: true } : t))
+            );
+          }
+        }
+      });
+    }, 1000);
+    return () => clearInterval(interval);
   }, [tasks]);
 
+  // Add a task with gamification
   const handleAddTask = (e) => {
     e.preventDefault();
     if (!newTask.trim()) {
@@ -33,20 +68,27 @@ function KanbanBoard() {
       text: newTask.trim(),
       description: newDescription.trim(),
       priority: newPriority,
-      dueDate: newDueDate,
+      dueDate: newDueDate ? new Date(newDueDate).toISOString() : "",
       status: "To Do",
       createdAt: new Date().toISOString(),
+      alerted: false,
     };
     setTasks((prev) => [...prev, taskObj]);
     setNewTask("");
     setNewDescription("");
     setNewPriority("Medium");
     setNewDueDate("");
-    toast.success("Task added successfully!");
+    setPoints((prev) => prev + 10);
+    toast.success("Task added! +10 points");
+    checkGamification();
   };
 
+  // Edit task
   const handleEditTask = (task) => {
-    setEditingTask(task);
+    setEditingTask({
+      ...task,
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : "",
+    });
   };
 
   const handleSaveEdit = (e) => {
@@ -60,14 +102,15 @@ function KanbanBoard() {
         task.id === editingTask.id ? { ...editingTask } : task
       )
     );
-    toast.success(`Task updated successfully!`);
+    toast.success("Task updated successfully!");
     setEditingTask(null);
   };
 
+  // Delete task with undo
   const deleteTask = (taskId) => {
     const taskToDelete = tasks.find((task) => task.id === taskId);
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
-    setDeletedTasks((prev) => [...prev, taskToDelete]);
+    setDeletedTasks((prev) => [...prev, { ...taskToDelete, deletedAt: new Date().toISOString() }]);
     toast("Task deleted!", {
       icon: "🗑️",
       duration: 3000,
@@ -82,6 +125,15 @@ function KanbanBoard() {
     });
   };
 
+  // Restore deleted task
+  const restoreTask = (taskId) => {
+    const taskToRestore = deletedTasks.find((task) => task.id === taskId);
+    setTasks((prev) => [...prev, { ...taskToRestore, alerted: false }]);
+    setDeletedTasks((prev) => prev.filter((task) => task.id !== taskId));
+    toast.success("Task restored!");
+  };
+
+  // Move task with gamification and completion timestamp
   const moveTask = (taskId, currentStatus) => {
     let newStatus;
     if (currentStatus === "To Do") {
@@ -91,56 +143,113 @@ function KanbanBoard() {
     } else {
       return;
     }
-
     setTasks((prev) =>
       prev.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
+        task.id === taskId
+          ? {
+              ...task,
+              status: newStatus,
+              completedAt: newStatus === "Completed" ? new Date().toISOString() : task.completedAt,
+            }
+          : task
       )
     );
-    toast.success(`Task moved to ${newStatus}!`);
+    if (newStatus === "Completed") {
+      setPoints((prev) => prev + 25);
+      toast.success("Task completed! +25 points");
+      checkGamification();
+    } else {
+      toast.success(`Task moved to ${newStatus}!`);
+    }
   };
 
+  // Drag-and-drop handler
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
-
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const updatedTasks = [...tasks];
     const [movedTask] = updatedTasks.splice(source.index, 1);
     movedTask.status = destination.droppableId;
+    if (destination.droppableId === "Completed") {
+      movedTask.completedAt = new Date().toISOString();
+    }
     updatedTasks.splice(destination.index, 0, movedTask);
     setTasks(updatedTasks);
-    toast.success(`Task moved to ${destination.droppableId}!`);
+
+    if (destination.droppableId === "Completed") {
+      setPoints((prev) => prev + 25);
+      toast.success("Task completed! +25 points");
+      checkGamification();
+    } else {
+      toast.success(`Task moved to ${destination.droppableId}!`);
+    }
   };
 
+  // Gamification logic
+  const checkGamification = () => {
+    const newLevel = Math.floor(points / 100) + 1;
+    if (newLevel > level) {
+      setLevel(newLevel);
+      setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 4000);
+    }
+    const addedTasks = tasks.length + deletedTasks.length;
+    const completedTasks = tasks.filter((t) => t.status === "Completed").length;
+    if (addedTasks >= 5 && !badges.includes("Task Starter")) {
+      setBadges((prev) => [...prev, "Task Starter"]);
+    }
+    if (completedTasks >= 5 && !badges.includes("Task Finisher")) {
+      setBadges((prev) => [...prev, "Task Finisher"]);
+    }
+  };
+
+  // Kanban data
   const getKanban = () => {
     const kanban = {};
     stages.forEach((stage) => {
-      const stageTasks = tasks.filter((task) => task.status === stage);
-      kanban[stage] = stageTasks;
+      kanban[stage] = tasks.filter((task) => task.status === stage);
     });
     return kanban;
   };
 
   const getProgress = () => {
     const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(
-      (task) => task.status === "Completed"
-    ).length;
+    const completedTasks = tasks.filter((task) => task.status === "Completed").length;
     return totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   };
 
+  // Calculate completion regularity (mocked for single user)
+  const getCompletionRegularity = () => {
+    const completedTasks = tasks.filter((task) => task.status === "Completed" && task.completedAt);
+    if (completedTasks.length === 0) return [];
+
+    const completionByDay = {};
+    completedTasks.forEach((task) => {
+      const date = new Date(task.completedAt).toLocaleDateString();
+      completionByDay[date] = (completionByDay[date] || 0) + 1;
+    });
+
+    const days = Object.keys(completionByDay).length;
+    const totalCompleted = completedTasks.length;
+    const avgPerDay = totalCompleted / days;
+
+    return [
+      {
+        rank: 1,
+        name: "You",
+        completions: totalCompleted,
+        regularity: `${avgPerDay.toFixed(1)} tasks/day over ${days} days`,
+      },
+    ];
+  };
+
+  // Sticky Note Task Component
   const Task = ({ task, index }) => {
     const isOverdue =
-      task.dueDate &&
-      new Date(task.dueDate) < new Date() &&
-      task.status !== "Completed";
+      task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Completed";
     return (
       <Draggable draggableId={task.id} index={index}>
         {(provided) => (
@@ -148,76 +257,49 @@ function KanbanBoard() {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-5 mb-4 rounded-xl border shadow-md transition-all hover:shadow-lg cursor-move ${
+            className={`p-4 mb-4 rounded-lg shadow-lg transform transition-all hover:shadow-xl cursor-move sticky-note ${
               isOverdue
-                ? "border-red-500 bg-red-100"
+                ? "bg-red-200 border-red-500 rotate-2"
                 : task.priority === "High"
-                ? "border-red-300 bg-red-50"
+                ? "bg-red-100 border-red-300 -rotate-1"
                 : task.priority === "Medium"
-                ? "border-yellow-300 bg-yellow-50"
-                : "border-green-300 bg-green-50"
-            }`}
+                ? "bg-yellow-100 border-yellow-300 rotate-1"
+                : "bg-green-100 border-green-300 -rotate-2"
+            } border-2`}
           >
-            <div className="flex-1 mb-2 sm:mb-0">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <span className="text-gray-800 font-semibold text-base sm:text-lg">
-                  {task.text}
-                </span>
-                <span
-                  className={`text-xs sm:text-sm font-semibold px-2 py-0.5 rounded ${
-                    task.priority === "High"
-                      ? "bg-red-500 text-white"
-                      : task.priority === "Medium"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-green-500 text-white"
-                  }`}
-                >
-                  {task.priority}
-                </span>
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-gray-800 font-semibold text-base">{task.text}</span>
+                <p className="text-sm text-gray-600 mt-1">{task.description || "No description"}</p>
+                {task.dueDate && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Due: {new Date(task.dueDate).toLocaleString()}
+                    {isOverdue && <span className="text-red-600 font-semibold"> (Overdue)</span>}
+                  </p>
+                )}
               </div>
-              <p className="text-sm sm:text-base text-gray-500 truncate mt-1">
-                {task.description || "No description"}
-              </p>
-              {task.dueDate && (
-                <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                  Due: {new Date(task.dueDate).toLocaleDateString()}{" "}
-                  {isOverdue && (
-                    <span className="text-red-500 font-semibold">
-                      (Overdue)
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2 sm:gap-3">
-              {task.status === "To Do" && (
+              <div className="flex gap-2">
+                {task.status !== "Completed" && (
+                  <button
+                    onClick={() => moveTask(task.id, task.status)}
+                    className="text-green-500 hover:text-green-700 text-sm"
+                  >
+                    {task.status === "To Do" ? "Start" : "Complete"}
+                  </button>
+                )}
                 <button
-                  onClick={() => moveTask(task.id, task.status)}
-                  className="text-green-500 hover:text-green-700 text-sm sm:text-base font-semibold transition-colors"
+                  onClick={() => handleEditTask(task)}
+                  className="text-purple-500 hover:text-purple-700 text-sm"
                 >
-                  Start
+                  Edit
                 </button>
-              )}
-              {task.status === "Working On" && (
                 <button
-                  onClick={() => moveTask(task.id, task.status)}
-                  className="text-green-500 hover:text-green-700 text-sm sm:text-base font-semibold transition-colors"
+                  onClick={() => deleteTask(task.id)}
+                  className="text-red-500 hover:text-red-700 text-sm"
                 >
-                  Complete
+                  Delete
                 </button>
-              )}
-              <button
-                onClick={() => handleEditTask(task)}
-                className="text-purple-500 hover:text-purple-700 text-sm sm:text-base font-semibold transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-red-500 hover:text-red-700 text-sm sm:text-base font-semibold transition-colors"
-              >
-                Delete
-              </button>
+              </div>
             </div>
           </div>
         )}
@@ -226,30 +308,20 @@ function KanbanBoard() {
   };
 
   const renderKanbanStage = (stage, stageTasks) => (
-    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-purple-100 transform transition-all hover:-translate-y-1 hover:shadow-xl">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 capitalize">
-          {stage}
-        </h3>
-        <span className="bg-purple-100 text-purple-800 text-sm sm:text-base font-medium px-3 py-1 rounded-full">
+    <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 h-full">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-gray-800 capitalize">{stage}</h3>
+        <span className="bg-purple-100 text-purple-800 text-sm font-medium px-2 py-1 rounded-full">
           {stageTasks.length}
         </span>
       </div>
       <Droppable droppableId={stage}>
         {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="min-h-[200px]"
-          >
+          <div ref={provided.innerRef} {...provided.droppableProps} className="min-h-[200px]">
             {stageTasks.length > 0 ? (
-              stageTasks.map((task, index) => (
-                <Task key={task.id} task={task} index={index} />
-              ))
+              stageTasks.map((task, index) => <Task key={task.id} task={task} index={index} />)
             ) : (
-              <p className="text-gray-500 italic text-sm sm:text-base text-center py-4">
-                No tasks in this stage.
-              </p>
+              <p className="text-gray-500 italic text-center py-4">No tasks in this stage.</p>
             )}
             {provided.placeholder}
           </div>
@@ -260,133 +332,111 @@ function KanbanBoard() {
 
   const kanban = getKanban();
   const progress = getProgress();
+  const completionRegularity = getCompletionRegularity();
+
+  // Feature ranking data
+  const featureRankings = [
+    { rank: 1, name: "Task Management", description: "Add, edit, delete, and move tasks across stages." },
+    { rank: 2, name: "Drag-and-Drop Sticky Notes", description: "Organize tasks visually with draggable sticky notes." },
+    { rank: 3, name: "Gamification", description: "Earn points, level up, and unlock badges." },
+    { rank: 4, name: "Time-Based Reminders", description: "Get alerts for overdue tasks." },
+    { rank: 5, name: "Progress Bar", description: "Track completion percentage." },
+    { rank: 6, name: "Full-Page Layout", description: "Structured, responsive design." },
+    { rank: 7, name: "Undo Delete", description: "Revert task deletion via toast." },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8 lg:mb-10">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-800 tracking-tight">
-            Kanban Board
-          </h1>
-          <button
-              onClick={() => setShowInfo(true)}
-              className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
-              title="Learn about the ABCDE Method"
-            >
-              <Info size={24} className="text-gray-700" />
-            </button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex flex-col">
+      {showConfetti && <Confetti />}
+      {/* Header */}
+      <header className="bg-white shadow-lg p-6 flex items-center justify-between sticky top-0 z-10">
+        <h1 className="text-3xl font-extrabold text-purple-500">Kanban Board</h1>
+        <button
+          onClick={() => setShowInfo(true)}
+          className="p-3 rounded-full bg-purple-200 hover:bg-purple-300 transition-all"
+        >
+          <Info size={24} className="text-purple-500" />
+        </button>
+      </header>
 
-        {/* Progress Bar */}
-        <div className="mb-6 sm:mb-8 lg:mb-10">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800">
-              Overall Progress
-            </h2>
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-gray-600">
-              {Math.round(progress)}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4">
-            <div
-              className="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 sm:h-4 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {/* Task Input Form */}
-        <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg mb-6 sm:mb-8 lg:mb-10">
-          <form onSubmit={handleAddTask} className="flex flex-col gap-4 sm:gap-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <input
-                type="text"
-                placeholder="Task name..."
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow text-sm sm:text-base lg:text-lg bg-gray-50"
-              />
-              <input
-                type="text"
-                placeholder="Description (optional)"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow text-sm sm:text-base lg:text-lg bg-gray-50"
-              />
-              <select
-                value={newPriority}
-                onChange={(e) => setNewPriority(e.target.value)}
-                className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow text-sm sm:text-base lg:text-lg bg-gray-50"
-              >
-                {priorities.map((priority) => (
-                  <option key={priority} value={priority}>
-                    Priority: {priority}
-                  </option>
-                ))}
-              </select>
-           
-              <button
-                type="submit"
-                className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors font-semibold text-sm sm:text-base lg:text-lg shadow-md"
-              >
-                Add Task
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Kanban Board Display */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {stages.map((stage) => (
-              <div key={stage}>{renderKanbanStage(stage, kanban[stage])}</div>
-            ))}
-          </div>
-        </DragDropContext>
-
-        {/* Edit Task Modal */}
-        {editingTask && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-2xl max-w-md sm:max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
-                  Edit Task
-                </h3>
-                <button
-                  onClick={() => setEditingTask(null)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl sm:text-3xl font-bold transition-colors"
-                >
-                  ×
-                </button>
+      {/* Main Layout */}
+      <div className="flex flex-1 gap-x-6 overflow-hidden">
+        {/* Sidebar: Gamification */}
+        <aside className="w-full md:w-72 bg-white shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r border-gray-200">
+          <div className="space-y-6">
+            <div className="bg-purple-500 text-white p-6 rounded-xl shadow-lg">
+              <h3 className="text-2xl font-semibold">Level {level}</h3>
+              <p className="text-sm mt-2">Points: {points.toLocaleString()}</p>
+              <div className="mt-4">
+                <div className="w-full bg-purple-400 rounded-full h-3">
+                  <div
+                    className="bg-white h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${points % 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs mt-1 text-purple-100">
+                  {points % 100}/100 to Level {level + 1}
+                </p>
               </div>
-              <form onSubmit={handleSaveEdit} className="flex flex-col gap-4 sm:gap-6">
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">Badges</h4>
+              <div className="flex flex-wrap gap-3">
+                {badges.length ? (
+                  badges.map((badge, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-yellow-500 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md"
+                    >
+                      {badge}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic">Earn badges by managing tasks!</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-semibold text-gray-800">Overall Progress</h2>
+              <span className="text-base font-medium text-gray-600">{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div
+                className="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Task Input Form */}
+          <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+            <form onSubmit={handleAddTask} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input
                   type="text"
-                  value={editingTask.text}
-                  onChange={(e) =>
-                    setEditingTask({ ...editingTask, text: e.target.value })
-                  }
-                  className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-lg"
+                  placeholder="Task name..."
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
                 />
-                <textarea
-                  value={editingTask.description}
-                  onChange={(e) =>
-                    setEditingTask({
-                      ...editingTask,
-                      description: e.target.value,
-                    })
-                  }
+                <input
+                  type="text"
                   placeholder="Description (optional)"
-                  className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-lg h-24 resize-none"
-                  rows="3"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
                 />
                 <select
-                  value={editingTask.priority}
-                  onChange={(e) =>
-                    setEditingTask({ ...editingTask, priority: e.target.value })
-                  }
-                  className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-lg"
+                  value={newPriority}
+                  onChange={(e) => setNewPriority(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
                 >
                   {priorities.map((priority) => (
                     <option key={priority} value={priority}>
@@ -395,120 +445,300 @@ function KanbanBoard() {
                   ))}
                 </select>
                 <input
-                  type="date"
-                  value={editingTask.dueDate || ""}
-                  onChange={(e) =>
-                    setEditingTask({ ...editingTask, dueDate: e.target.value })
-                  }
-                  className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-lg"
+                  type="datetime-local"
+                  value={newDueDate}
+                  onChange={(e) => setNewDueDate(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
                 />
-                <select
-                  value={editingTask.status}
-                  onChange={(e) =>
-                    setEditingTask({ ...editingTask, status: e.target.value })
-                  }
-                  className="p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base lg:text-lg"
-                >
-                  {stages.map((stage) => (
-                    <option key={stage} value={stage}>
-                      Status: {stage}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors text-sm sm:text-base lg:text-lg"
-                >
-                  Save Changes
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Info Modal */}
-        {showInfo && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
-            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-2xl max-w-md sm:max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
-                  About Kanban Board
-                </h3>
-                <button
-                  onClick={() => setShowInfo(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl sm:text-3xl font-bold transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="text-gray-700 space-y-4">
-                <div>
-                  <h4 className="text-base sm:text-lg font-semibold text-purple-600 mb-2">
-                    What is a Kanban Board?
-                  </h4>
-                  <p className="text-sm sm:text-base lg:text-lg">
-                    A Kanban Board is a visual tool used to manage tasks and workflows. It organizes tasks into columns representing different stages of progress (e.g., To Do, Working On, Completed), helping you track and manage your work efficiently.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-base sm:text-lg font-semibold text-purple-600 mb-2">
-                    Benefits of Using a Kanban Board
-                  </h4>
-                  <ul className="list-disc list-inside space-y-2 text-sm sm:text-base lg:text-lg">
-                    <li>
-                      <strong>Visual Clarity:</strong> Easily see the status of all tasks at a glance.
-                    </li>
-                    <li>
-                      <strong>Improved Workflow:</strong> Identify bottlenecks and optimize task flow.
-                    </li>
-                    <li>
-                      <strong>Enhanced Focus:</strong> Prioritize tasks and reduce multitasking.
-                    </li>
-                    <li>
-                      <strong>Team Collaboration:</strong> Share progress with team members in real-time.
-                    </li>
-                    <li>
-                      <strong>Flexibility:</strong> Adapt to changing priorities with ease.
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-base sm:text-lg font-semibold text-purple-600 mb-2">
-                    How to Use This Kanban Board
-                  </h4>
-                  <ul className="list-decimal list-inside space-y-2 text-sm sm:text-base lg:text-lg">
-                    <li>
-                      <strong>Add Tasks:</strong> Use the form at the top to create new tasks with a name, description, priority, and due date.
-                    </li>
-                    <li>
-                      <strong>Move Tasks:</strong>
-                      <ul className="list-circle list-inside ml-4 space-y-1">
-                        <li>Click "Start" to move from "To Do" to "Working On"</li>
-                        <li>Click "Complete" to move from "Working On" to "Completed"</li>
-                        <li>Or drag and drop tasks between stages</li>
-                      </ul>
-                    </li>
-                    <li>
-                      <strong>Edit Tasks:</strong> Click "Edit" to change task details or status manually.
-                    </li>
-                    <li>
-                      <strong>Delete Tasks:</strong> Click "Delete" (with undo option via toast).
-                    </li>
-                  </ul>
-                </div>
               </div>
               <button
-                onClick={() => setShowInfo(false)}
-                className="mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors w-full text-sm sm:text-base lg:text-lg"
+                type="submit"
+                className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors font-semibold"
               >
-                Close
+                Add Task
+              </button>
+            </form>
+          </div>
+
+          {/* Kanban Board */}
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {stages.map((stage) => (
+                <div key={stage}>{renderKanbanStage(stage, kanban[stage])}</div>
+              ))}
+            </div>
+          </DragDropContext>
+
+          {/* Summary and Rankings Buttons */}
+          <div className="mt-6 flex gap-4">
+            <button
+              onClick={() => {
+                setShowSummarySection(!showSummarySection);
+                setShowRankingsSection(false); // Close rankings if open
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              Summary {showSummarySection ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+            <button
+              onClick={() => {
+                setShowRankingsSection(!showRankingsSection);
+                setShowSummarySection(false); // Close summary if open
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+            >
+              Rankings {showRankingsSection ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          </div>
+
+          {/* Summary Section */}
+          {showSummarySection && (
+            <div className="bg-white p-6 rounded-xl shadow-lg mt-4">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Summary</h2>
+              <div className="space-y-6">
+                {/* Current Tasks */}
+                <div>
+                  <h3 className="text-lg font-semibold text-purple-600 mb-2">Current Tasks</h3>
+                  <p className="text-gray-700 mb-2">
+                    Total: {tasks.length} | Completed: {tasks.filter((t) => t.status === "Completed").length} | In Progress: {tasks.filter((t) => t.status === "Working On").length} | To Do: {tasks.filter((t) => t.status === "To Do").length}
+                  </p>
+                </div>
+
+                {/* Previous (Deleted) Tasks */}
+                <div>
+                  <h3 className="text-lg font-semibold text-purple-600 mb-2">Previous Tasks</h3>
+                  {deletedTasks.length > 0 ? (
+                    <ul className="space-y-2 max-h-60 overflow-y-auto">
+                      {deletedTasks.map((task) => (
+                        <li key={task.id} className="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
+                          <div>
+                            <span className="font-semibold">{task.text}</span>
+                            <p className="text-sm text-gray-600">
+                              Priority: {task.priority} | Deleted: {new Date(task.deletedAt).toLocaleString()}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => restoreTask(task.id)}
+                            className="text-green-500 hover:text-green-700 text-sm font-semibold"
+                          >
+                            Restore
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 italic">No deleted tasks yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rankings Section */}
+          {showRankingsSection && (
+            <div className="bg-white p-6 rounded-xl shadow-lg mt-4">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Rankings</h2>
+              <div className="space-y-6">
+                {/* Feature Rankings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">Feature Rankings</h3>
+                  <ul className="space-y-3">
+                    {featureRankings.map((feature) => (
+                      <li
+                        key={feature.rank}
+                        className={`flex items-start gap-2 p-2 rounded-lg ${
+                          feature.rank <= 3 ? "bg-indigo-50" : "bg-gray-50"
+                        }`}
+                      >
+                        <span
+                          className={`font-semibold text-lg ${
+                            feature.rank === 1
+                              ? "text-yellow-500"
+                              : feature.rank === 2
+                              ? "text-gray-500"
+                              : feature.rank === 3
+                              ? "text-orange-500"
+                              : "text-indigo-500"
+                          }`}
+                        >
+                          #{feature.rank}
+                        </span>
+                        <div>
+                          <span className="font-semibold text-gray-800">{feature.name}:</span>{" "}
+                          <span className="text-gray-600">{feature.description}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Task Completion Regularity */}
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">Task Completion Regularity</h3>
+                  {completionRegularity.length > 0 ? (
+                    <ul className="space-y-3">
+                      {completionRegularity.map((user) => (
+                        <li
+                          key={user.rank}
+                          className={`flex items-start gap-2 p-2 rounded-lg ${
+                            user.rank <= 3 ? "bg-indigo-50" : "bg-gray-50"
+                          }`}
+                        >
+                          <span
+                            className={`font-semibold text-lg ${
+                              user.rank === 1
+                                ? "text-yellow-500"
+                                : user.rank === 2
+                                ? "text-gray-500"
+                                : user.rank === 3
+                                ? "text-orange-500"
+                                : "text-indigo-500"
+                            }`}
+                          >
+                            #{user.rank}
+                          </span>
+                          <div>
+                            <span className="font-semibold text-gray-800">{user.name}:</span>{" "}
+                            <span className="text-gray-600">
+                              Completed {user.completions} tasks - {user.regularity}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 italic">No completed tasks yet to rank regularity.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+          <div className="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Edit Task</h3>
+              <button
+                onClick={() => setEditingTask(null)}
+                className="text-gray-500 hover:text-gray-700 text-3xl font-bold"
+              >
+                ×
               </button>
             </div>
+            <form onSubmit={handleSaveEdit} className="flex flex-col gap-4">
+              <input
+                type="text"
+                value={editingTask.text}
+                onChange={(e) => setEditingTask({ ...editingTask, text: e.target.value })}
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <textarea
+                value={editingTask.description}
+                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                placeholder="Description (optional)"
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-24 resize-none"
+              />
+              <select
+                value={editingTask.priority}
+                onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {priorities.map((priority) => (
+                  <option key={priority} value={priority}>
+                    Priority: {priority}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="datetime-local"
+                value={editingTask.dueDate}
+                onChange={(e) => setEditingTask({ ...editingTask, dueDate: e.target.value })}
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <select
+                value={editingTask.status}
+                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
+                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {stages.map((stage) => (
+                  <option key={stage} value={stage}>
+                    Status: {stage}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors"
+              >
+                Save Changes
+              </button>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
-        <Toaster />
-      </div>
+      {/* Info Modal */}
+      {showInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+          <div className="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">About Kanban Board</h3>
+              <button
+                onClick={() => setShowInfo(false)}
+                className="text-gray-500 hover:text-gray-700 text-3xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="text-gray-700 space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">What is a Kanban Board?</h4>
+                <p>
+                  A Kanban Board is a visual tool to manage tasks and workflows, organizing them into stages like "To Do," "Working On," and "Completed."
+                </p>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">Benefits</h4>
+                <ul className="list-disc list-inside space-y-2">
+                  <li><strong>Visual Clarity:</strong> See task status instantly.</li>
+                  <li><strong>Workflow:</strong> Optimize task flow.</li>
+                  <li><strong>Focus:</strong> Prioritize effectively.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">How to Use</h4>
+                <ul className="list-decimal list-inside space-y-2">
+                  <li>Add tasks with name, description, priority, and due date.</li>
+                  <li>Move tasks by clicking "Start"/"Complete" or dragging.</li>
+                  <li>Edit or delete tasks as needed.</li>
+                  <li>Set reminders for timely alerts.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">Gamification</h4>
+                <ul className="list-disc list-inside space-y-2">
+                  <li>+10 points for adding a task.</li>
+                  <li>+25 points for completing a task.</li>
+                  <li>Level up every 100 points.</li>
+                  <li>Badges: "Task Starter" (5 added), "Task Finisher" (5 completed).</li>
+                </ul>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="mt-6 w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Toaster />
     </div>
   );
 }
