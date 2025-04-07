@@ -18,9 +18,7 @@ const Layout = () => {
   // const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
 
   useEffect(() => {
-    const newSocket = io(
-      "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com"
-    );
+    const newSocket = io("https://sowalnk.com");
     // const newSocket = io("http://localhost:2000");
     setSocket(newSocket);
 
