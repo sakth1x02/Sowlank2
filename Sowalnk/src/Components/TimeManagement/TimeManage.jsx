@@ -26,6 +26,7 @@ const TimeManage = () => {
       id: 1,
       name: "Pomodoro Technique",
       description: "Work in focused 25-minute intervals with short breaks.",
+      hidden: true,
     },
     {
       id: 2,
@@ -184,7 +185,11 @@ const TimeManage = () => {
                 Back to All Methods
               </button>
               <div className="grid place-items-center p-6">
-                {activeMethod === 1 && <Pomodoro />}
+                {activeMethod === 1 && (
+                  <div className="blur-sm">
+                    <Pomodoro />
+                  </div>
+                )}
                 {activeMethod === 2 && (
                   <div className="blur-sm">
                     <EisenhowerMethod />

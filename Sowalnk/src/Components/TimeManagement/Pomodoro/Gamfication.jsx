@@ -1,22 +1,43 @@
 import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 
-function GamificationComponent({ 
-  points, setPoints, 
-  level, setLevel, 
-  world, setWorld, 
-  streak, setStreak, 
-  dailyChallenge, setDailyChallenge,
-  pomodoros 
+function GamificationComponent({
+  points,
+  setPoints,
+  level,
+  setLevel,
+  world,
+  setWorld,
+  streak,
+  setStreak,
+  dailyChallenge,
+  setDailyChallenge,
+  pomodoros,
 }) {
   const [showConfetti, setShowConfetti] = useState(false);
   const pointsPerLevel = 100;
-  const progressToNextLevel = (points % pointsPerLevel) / pointsPerLevel * 100;
+  const progressToNextLevel =
+    ((points % pointsPerLevel) / pointsPerLevel) * 100;
 
   const achievements = [
-    { id: "focus_novice", name: "Focus Novice", requirement: 5, description: "Complete 5 Pomodoros" },
-    { id: "streak_master", name: "Streak Master", requirement: 7, description: "Maintain a 7-day streak" },
-    { id: "task_champion", name: "Task Champion", requirement: 10, description: "Complete 10 tasks" },
+    {
+      id: "focus_novice",
+      name: "Focus Novice",
+      requirement: 5,
+      description: "Complete 5 Pomodoros",
+    },
+    {
+      id: "streak_master",
+      name: "Streak Master",
+      requirement: 7,
+      description: "Maintain a 7-day streak",
+    },
+    {
+      id: "task_champion",
+      name: "Task Champion",
+      requirement: 10,
+      description: "Complete 10 tasks",
+    },
   ];
 
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
@@ -33,37 +54,46 @@ function GamificationComponent({
       setLevel(newLevel);
       setShowConfetti(true);
       if (Notification.permission === "granted") {
-        new Notification("Level Up!", { body: `Congratulations! You've reached Level ${newLevel}!` });
+        new Notification("Level Up!", {
+          body: `Congratulations! You've reached Level ${newLevel}!`,
+        });
       }
     }
 
     if (pomodoros >= 5 && !unlockedAchievements.includes("focus_novice")) {
-      setUnlockedAchievements(prev => [...prev, "focus_novice"]);
-      setPoints(prev => prev + 50);
+      setUnlockedAchievements((prev) => [...prev, "focus_novice"]);
+      setPoints((prev) => prev + 50);
       setShowConfetti(true);
     }
 
     if (streak >= 7 && !unlockedAchievements.includes("streak_master")) {
-      setUnlockedAchievements(prev => [...prev, "streak_master"]);
-      setPoints(prev => prev + 100);
+      setUnlockedAchievements((prev) => [...prev, "streak_master"]);
+      setPoints((prev) => prev + 100);
       setShowConfetti(true);
     }
   }, [points, pomodoros, streak, level, unlockedAchievements]);
 
   useEffect(() => {
-    if (dailyChallenge.progress >= dailyChallenge.target && !dailyChallenge.completed) {
-      setPoints(prev => prev + 75);
-      setDailyChallenge(prev => ({ ...prev, completed: true }));
+    if (
+      dailyChallenge.progress >= dailyChallenge.target &&
+      !dailyChallenge.completed
+    ) {
+      setPoints((prev) => prev + 75);
+      setDailyChallenge((prev) => ({ ...prev, completed: true }));
       setShowConfetti(true);
     }
   }, [dailyChallenge.progress, dailyChallenge.completed]);
 
   const getWorldTheme = () => {
     switch (world) {
-      case "Forest": return "bg-green-50 border-green-200";
-      case "Mountain": return "bg-blue-50 border-blue-200";
-      case "Sky": return "bg-purple-50 border-purple-200";
-      default: return "bg-gray-50 border-gray-200";
+      case "Forest":
+        return "bg-green-50 border-green-200";
+      case "Mountain":
+        return "bg-blue-50 border-blue-200";
+      case "Sky":
+        return "bg-purple-50 border-purple-200";
+      default:
+        return "bg-gray-50 border-gray-200";
     }
   };
 
@@ -71,7 +101,7 @@ function GamificationComponent({
     <div className={`rounded-2xl shadow-xl p-6 border ${getWorldTheme()}`}>
       {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
       <h2 className="text-2xl font-bold text-purple-800 mb-4">Your Journey</h2>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white/50 p-3 rounded-lg">
           <p className="text-sm text-gray-600">Level</p>
@@ -94,8 +124,8 @@ function GamificationComponent({
       <div className="mb-6">
         <p className="text-sm text-gray-600 mb-2">Next Level Progress</p>
         <div className="w-full bg-gray-200 rounded-full h-3">
-          <div 
-            className="bg-purple-600 h-3 rounded-full transition-all duration-500" 
+          <div
+            className="bg-purple-600 h-3 rounded-full transition-all duration-500"
             style={{ width: `${progressToNextLevel}%` }}
           />
         </div>
@@ -105,9 +135,13 @@ function GamificationComponent({
         <p className="text-sm font-semibold text-gray-700 mb-2">Daily Quest</p>
         <p className="text-sm text-gray-600">{dailyChallenge.description}</p>
         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-          <div 
-            className="bg-green-500 h-2 rounded-full" 
-            style={{ width: `${(dailyChallenge.progress / dailyChallenge.target) * 100}%` }}
+          <div
+            className="bg-green-500 h-2 rounded-full"
+            style={{
+              width: `${
+                (dailyChallenge.progress / dailyChallenge.target) * 100
+              }%`,
+            }}
           />
         </div>
         <p className="text-xs text-gray-500 mt-1">
@@ -118,12 +152,12 @@ function GamificationComponent({
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-2">Achievements</p>
         <div className="grid grid-cols-2 gap-2">
-          {achievements.map(ach => (
-            <div 
+          {achievements.map((ach) => (
+            <div
               key={ach.id}
               className={`p-2 rounded-lg text-center ${
-                unlockedAchievements.includes(ach.id) 
-                  ? "bg-purple-100 text-purple-800" 
+                unlockedAchievements.includes(ach.id)
+                  ? "bg-purple-100 text-purple-800"
                   : "bg-gray-100 text-gray-500"
               }`}
             >

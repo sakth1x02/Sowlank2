@@ -7,8 +7,6 @@ import { useSelector } from "react-redux";
 import { Bell } from "lucide-react";
 import Notification from "./Notification/Notification.jsx";
 import { io } from "socket.io-client";
-import StickyNotes from "./StickyNotes/StickyNotes.jsx";
-import { StickyNote } from "lucide-react"; // Import the sticky note icon
 
 const Layout = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
@@ -16,11 +14,14 @@ const Layout = () => {
   const [remainingTime, setRemainingTime] = useState(calculateRemainingTime());
   const [unreadCount, setUnreadCount] = useState(0);
   const [socket, setSocket] = useState(null);
-  const [showStickyNotes, setShowStickyNotes] = useState(false); // State for sticky notes popup
-  const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
+  // const [showStickyNotes, setShowStickyNotes] = useState(false); // State for sticky notes popup
+  // const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
 
   useEffect(() => {
-    const newSocket = io("http://localhost:2000");
+    const newSocket = io(
+      "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com"
+    );
+    // const newSocket = io("http://localhost:2000");
     setSocket(newSocket);
 
     return () => newSocket.disconnect();
@@ -83,13 +84,13 @@ const Layout = () => {
   };
 
   // Toggle sticky notes visibility
-  const toggleStickyNotes = () => {
-    setShowStickyNotes(!showStickyNotes);
-    // Stop bouncing when notes are opened
-    if (!showStickyNotes) {
-      setIsBouncing(false);
-    }
-  };
+  // const toggleStickyNotes = () => {
+  //   setShowStickyNotes(!showStickyNotes);
+  //   // Stop bouncing when notes are opened
+  //   if (!showStickyNotes) {
+  //     setIsBouncing(false);
+  //   }
+  // };
 
   return (
     <>
@@ -147,37 +148,6 @@ const Layout = () => {
           </main>
         </div>
       </div>
-
-      {/* Bouncing Sticky Notes Button */}
-      {auth && (
-        <div className="fixed bottom-20 right-16 z-50">
-          <button
-            onClick={toggleStickyNotes}
-            className={`
-        p-3 bg-yellow-400 rounded-full 
-        shadow-lg hover:bg-yellow-500 
-        transition-all duration-300
-        ${isBouncing ? "animate-bounce" : ""}
-        shadow-red-500/50
-        hover:shadow-red-500
-        ring-2 ring-red-500/30
-        hover:ring-red-500/50
-        animate-[glow_2s_ease-in-out_infinite_alternate]
-      `}
-            onMouseEnter={() => setIsBouncing(false)}
-            onMouseLeave={() => !showStickyNotes && setIsBouncing(true)}
-          >
-            <StickyNote className="h-10 w-10 text-yellow-800" />
-          </button>
-        </div>
-      )}
-
-      {/* Sticky Notes Popup */}
-      {showStickyNotes && (
-        <div className="fixed bottom-40 right-24 z-40 bg-black bg-opacity-50 rounded-lg">
-          <StickyNotes onClose={() => setShowStickyNotes(false)} />
-        </div>
-      )}
 
       <Footer />
     </>

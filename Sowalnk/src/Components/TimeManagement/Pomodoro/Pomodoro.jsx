@@ -33,34 +33,27 @@ function Pomodoro() {
   const [sessions, setSessions] = useState([]);
   const [activeView, setActiveView] = useState("gamification");
 
-  // Payment state
-  const [hasPaid, setHasPaid] = useState(false); // Tracks payment status
-
-  // Load payment status from localStorage (for demo; use backend in production)
-  useEffect(() => {
-    const paymentStatus = localStorage.getItem("hasPaid");
-    if (paymentStatus === "true") {
-      setHasPaid(true);
-    }
-  }, []);
-
   const handleSessionComplete = (completedPhase) => {
     if (completedPhase === "Work") {
-      setPomodoros(prev => prev + 1);
-      setPoints(prev => prev + 10);
-      setSessions(prev => [
+      setPomodoros((prev) => prev + 1);
+      setPoints((prev) => prev + 10);
+      setSessions((prev) => [
         ...prev,
-        { duration: workDuration / 60, timestamp: new Date(), task: currentTask }
+        {
+          duration: workDuration / 60,
+          timestamp: new Date(),
+          task: currentTask,
+        },
       ]);
-      setDailyChallenge(prev => ({
+      setDailyChallenge((prev) => ({
         ...prev,
-        progress: Math.min(prev.target, prev.progress + 1)
+        progress: Math.min(prev.target, prev.progress + 1),
       }));
 
       if ((pomodoros + 1) % 4 === 0) {
         setPhase("Long Break");
         setTimeLeft(longBreakDuration);
-        setCycle(prev => prev + 1);
+        setCycle((prev) => prev + 1);
       } else {
         setPhase("Short Break");
         setTimeLeft(shortBreakDuration);
@@ -72,62 +65,40 @@ function Pomodoro() {
     }
   };
 
-  // // Razorpay Payment Handler
-  // const handlePayment = () => {
-  //   const options = {
-  //     key: "YOUR_RAZORPAY_KEY_ID", // Replace with your Razorpay Key ID
-  //     amount: 1000, // 10 INR (amount in paise: 10 * 100 = 1000)
-  //     currency: "INR",
-  //     name: "Pomodoro App",
-  //     description: "Unlock Pomodoro Technique",
-  //     handler: function (response) {
-  //       // Handle successful payment
-  //       console.log("Payment successful:", response);
-  //       setHasPaid(true);
-  //       localStorage.setItem("hasPaid", "true"); // Persist payment status (demo only)
-  //       alert("Payment successful! Enjoy the Pomodoro Technique.");
-  //     },
-  //     prefill: {
-  //       name: "User Name",
-  //       email: "user@example.com",
-  //       contact: "9999999999",
-  //     },
-  //     theme: {
-  //       color: "#9333ea", // Purple theme to match your app
-  //     },
-  //   };
-
-  //   // Simulate order creation (replace with backend API call in production)
-  //   const paymentObject = new window.Razorpay(options);
-  //   paymentObject.on("payment.failed", function (response) {
-  //     console.error("Payment failed:", response.error);
-  //     alert("Payment failed. Please try again.");
-  //   });
-  //   paymentObject.open();
-  // };
-
   const InfoModal = () => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-        <h2 className="text-3xl font-semibold text-purple-800 mb-6">About the Pomodoro Technique</h2>
+        <h2 className="text-3xl font-semibold text-purple-800 mb-6">
+          About the Pomodoro Technique
+        </h2>
         {/* Info content remains unchanged */}
         <div className="space-y-6 text-gray-700">
           <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">What is the Pomodoro Technique?</h3>
+            <h3 className="text-xl font-semibold text-purple-700 mb-2">
+              What is the Pomodoro Technique?
+            </h3>
             <p>
-              The Pomodoro Technique is a time management method developed by Francesco Cirillo in the late 1980s...
+              The Pomodoro Technique is a time management method developed by
+              Francesco Cirillo in the late 1980s...
             </p>
           </section>
           <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">How to Use the Pomodoro Technique</h3>
+            <h3 className="text-xl font-semibold text-purple-700 mb-2">
+              How to Use the Pomodoro Technique
+            </h3>
             <ul className="list-disc pl-5 space-y-2">
               <li>Choose a task you want to work on...</li>
             </ul>
           </section>
           <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">Benefits of the Pomodoro Technique</h3>
+            <h3 className="text-xl font-semibold text-purple-700 mb-2">
+              Benefits of the Pomodoro Technique
+            </h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li><strong>Enhanced Focus:</strong> The 25-minute intervals help you concentrate...</li>
+              <li>
+                <strong>Enhanced Focus:</strong> The 25-minute intervals help
+                you concentrate...
+              </li>
             </ul>
           </section>
           <div className="flex justify-end mt-6">
@@ -139,27 +110,6 @@ function Pomodoro() {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-
-  // Payment Page Component
-  const PaymentPage = () => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
-        <h2 className="text-3xl font-bold text-purple-800 mb-4">Unlock Pomodoro Technique</h2>
-        <p className="text-gray-700 mb-6">
-          To use this app and boost your productivity with the Pomodoro Technique, please make a one-time payment of <strong>₹10</strong>.
-        </p>
-        <button
-          onClick={handlePayment}
-          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-        >
-          Pay ₹10 Now
-        </button>
-        <p className="text-sm text-gray-500 mt-4">
-          Powered by Razorpay
-        </p>
       </div>
     </div>
   );
@@ -213,7 +163,7 @@ function Pomodoro() {
               phase={phase}
               world={world}
               reminderSound="https://www.soundjay.com/buttons/beep-01a.mp3"
-              onPointsUpdate={(amount) => setPoints(prev => prev + amount)}
+              onPointsUpdate={(amount) => setPoints((prev) => prev + amount)}
               setActiveView={setActiveView}
             />
 
@@ -256,7 +206,9 @@ function Pomodoro() {
                 pomodoros={pomodoros}
               />
             )}
-            {activeView === "summary" && <Summary sessions={sessions} pomodoros={pomodoros} />}
+            {activeView === "summary" && (
+              <Summary sessions={sessions} pomodoros={pomodoros} />
+            )}
             {activeView === "ranking" && <Ranking />}
           </div>
         </div>
@@ -266,7 +218,7 @@ function Pomodoro() {
     </div>
   );
 
-  return <PomodoroUI /> ;
+  return <PomodoroUI />;
 }
 
 export default Pomodoro;

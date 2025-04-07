@@ -73,79 +73,81 @@ const StickyNotes = () => {
   };
 
   return (
-    <div className="h-[500px] md:h-[340px] w-[400px] z-auto bg-black bg-opacity-50 p-4 rounded-lg shadow-lg overflow-scroll">
-      <h2 className="text-white">Sticky Notes</h2>
+    <div className="min-h-screen w-full bg-gray-200 rounded-xl place-content-center place-items-center">
+      <div className="w-1/2 h-full bg-white p-4 rounded-lg shadow-lg overflow-scroll">
+        <h2 className="text-white">Sticky Notes</h2>
 
-      <button className="add-note-btn" onClick={() => setIsAddingNote(true)}>
-        + Add New Note
-      </button>
+        <button className="add-note-btn" onClick={() => setIsAddingNote(true)}>
+          + Add New Note
+        </button>
 
-      {isAddingNote && (
-        <div className="w-full p-4 bg-white rounded-lg mt-4">
-          <textarea
-            value={newNote.text}
-            onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
-            placeholder="Write your note here..."
-            className="w-full h-20 p-2 border border-gray-300 rounded-lg mb-2"
-            autoFocus
-          />
-          <div className="color-picker">
-            {colors.map((color) => (
-              <div
-                key={color}
-                className="color-option"
-                style={{ backgroundColor: color }}
-                onClick={() => setNewNote({ ...newNote, color })}
-              >
-                {newNote.color === color && <span>✓</span>}
-              </div>
-            ))}
-          </div>
-          <div className="note-actions">
-            <button onClick={addNote}>Save</button>
-            <button onClick={() => setIsAddingNote(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      <div className="notes-container">
-        {notes.map((note) => (
-          <div
-            key={note.id}
-            className="sticky-note"
-            style={{
-              backgroundColor: note.color,
-              left: `${note.position.x}px`,
-              top: `${note.position.y}px`,
-            }}
-            onMouseDown={(e) => startDrag(e, note.id)}
-          >
+        {isAddingNote && (
+          <div className="w-full p-4 bg-white rounded-lg mt-4">
             <textarea
-              value={note.text}
-              onChange={(e) => updateNote(note.id, e.target.value)}
+              value={newNote.text}
+              onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+              placeholder="Write your note here..."
+              className="w-full h-20 p-2 border border-gray-300 rounded-lg mb-2"
+              autoFocus
             />
-            <div className="note-footer">
-              <div className="color-picker">
-                {colors.map((color) => (
-                  <div
-                    key={color}
-                    className="color-option"
-                    style={{ backgroundColor: color }}
-                    onClick={() => changeColor(note.id, color)}
-                  >
-                    {note.color === color && <span>✓</span>}
-                  </div>
-                ))}
-              </div>
-              <button
-                className="delete-btn"
-                onClick={() => deleteNote(note.id)}
-              >
-                ×
-              </button>
+            <div className="color-picker">
+              {colors.map((color) => (
+                <div
+                  key={color}
+                  className="color-option"
+                  style={{ backgroundColor: color }}
+                  onClick={() => setNewNote({ ...newNote, color })}
+                >
+                  {newNote.color === color && <span>✓</span>}
+                </div>
+              ))}
+            </div>
+            <div className="note-actions">
+              <button onClick={addNote}>Save</button>
+              <button onClick={() => setIsAddingNote(false)}>Cancel</button>
             </div>
           </div>
-        ))}
+        )}
+
+        <div className="notes-container">
+          {notes.map((note) => (
+            <div
+              key={note.id}
+              className="sticky-note"
+              style={{
+                backgroundColor: note.color,
+                left: `${note.position.x}px`,
+                top: `${note.position.y}px`,
+              }}
+              onMouseDown={(e) => startDrag(e, note.id)}
+            >
+              <textarea
+                value={note.text}
+                onChange={(e) => updateNote(note.id, e.target.value)}
+              />
+              <div className="note-footer">
+                <div className="color-picker">
+                  {colors.map((color) => (
+                    <div
+                      key={color}
+                      className="color-option"
+                      style={{ backgroundColor: color }}
+                      onClick={() => changeColor(note.id, color)}
+                    >
+                      {note.color === color && <span>✓</span>}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteNote(note.id)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

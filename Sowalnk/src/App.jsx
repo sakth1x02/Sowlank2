@@ -32,7 +32,7 @@ import Feedback from "./Components/Feedback.jsx";
 import { toast } from "react-toastify";
 import { fetchUsers, setLoggedInUser } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
-
+import StickyNotes from "./Components/StickyNotes/StickyNotes.jsx";
 import Motivation from "./Components/MotivationPage/Motivation.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -195,7 +195,10 @@ const App = () => {
                   path="Motivation-Quotes"
                   element={auth ? <Motivation /> : <Login />}
                 />
-
+                <Route
+                  path="notes"
+                  element={auth ? <StickyNotes /> : <Login />}
+                />
                 <Route
                   path="taskchart"
                   element={auth ? <TaskChart /> : <Login />}

@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  StickyNote,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -73,6 +74,12 @@ const Sidebar = () => {
       icon: <CalendarCheck className="h-5 w-5" />,
     },
     {
+      path: "/notes",
+      label: "Sticky Notes",
+      icon: <StickyNote className="h-5 w-5" />,
+      className: "disabled: cursor-not-allowed",
+    },
+    {
       path: "/completed-task",
       label: "Completed Task",
       icon: <CalendarCheck className="h-5 w-5" />,
@@ -113,7 +120,7 @@ const Sidebar = () => {
     <div className="relative overflow-scroll h-full ">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className=" mt-[5px] z-50 p-2 bg-gray-800 rounded-lg lg:hidden"
+        className=" mt-[5px] z-50 p-2 bg-gray-800  rounded-lg lg:hidden"
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? (
@@ -124,7 +131,7 @@ const Sidebar = () => {
       </button>
 
       <div
-        className={`fixed top-0 lg:top-16 left-0 h-full bg-gray-800 transform transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 lg:top-16  left-0 h-full bg-gray-800 transform transition-all duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } ${isExpanded ? "w-64" : "w-20"} lg:translate-x-0 z-40 lg:pb-20`}
       >
@@ -150,9 +157,19 @@ const Sidebar = () => {
                         isActive
                           ? "bg-gray-700 text-white font-medium"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      } ${
+                        item.label === "Sticky Notes"
+                          ? "cursor-not-allowed"
+                          : ""
                       }`
                     }
-                    onClick={() => setIsOpen(false)}
+                    onClick={(e) => {
+                      if (item.label === "Sticky Notes") {
+                        e.preventDefault();
+                      } else {
+                        setIsOpen(false);
+                      }
+                    }}
                   >
                     {item.icon}
                     <span className={`ml-3 ${!isExpanded && "hidden"}`}>
