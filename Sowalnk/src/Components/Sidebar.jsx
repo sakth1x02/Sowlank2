@@ -164,6 +164,7 @@ const Sidebar = () => {
                       }`
                     }
                     onClick={(e) => {
+                      // return setIsOpen(false);
                       if (item.label === "Sticky Notes") {
                         e.preventDefault();
                       } else {

@@ -184,7 +184,7 @@ const TimeManage = () => {
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 Back to All Methods
               </button>
-              <div className="grid place-items-center p-6">
+              <div className=" place-items-center p-6">
                 {activeMethod === 1 && (
                   <div className="blur-sm">
                     <Pomodoro />

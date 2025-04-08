@@ -1,156 +1,247 @@
-import React, { useState } from "react";
-import "./StickyNotes.css";
+import React, { useState, useEffect } from "react";
+import Draggable from "react-draggable";
+import Xarrow from "react-xarrows";
+// import { button } from "@/components/ui/button";
+import { Pencil, Trash2, Plus } from "lucide-react";
 
-const StickyNotes = () => {
-  const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState({ text: "", color: "#ffff88" });
-  const [isAddingNote, setIsAddingNote] = useState(false);
-
-  const colors = [
-    "#ffff88", // Yellow
-    "#ff8888", // Red
-    "#88ff88", // Green
-    "#8888ff", // Blue
-    "#ff88ff", // Pink
-    "#88ffff", // Cyan
-  ];
-
-  const addNote = () => {
-    if (newNote.text.trim() === "") return;
-
-    setNotes([
-      ...notes,
-      {
-        id: Date.now(),
-        text: newNote.text,
-        color: newNote.color,
-        position: { x: 100, y: 100 },
-      },
-    ]);
-
-    setNewNote({ text: "", color: "#ffff88" });
-    setIsAddingNote(false);
+const StickyNote = ({
+  note,
+  onUpdate,
+  onDelete,
+  onEdit,
+  onCreateLink,
+  linkStartId,
+  onColorChange,
+}) => {
+  const handleDrag = (e, data) => {
+    onUpdate({ ...note, x: data.x, y: data.y });
   };
 
-  const updateNote = (id, newText) => {
-    setNotes(
-      notes.map((note) => (note.id === id ? { ...note, text: newText } : note))
-    );
-  };
-
-  const deleteNote = (id) => {
-    setNotes(notes.filter((note) => note.id !== id));
-  };
-
-  const changeColor = (id, color) => {
-    setNotes(notes.map((note) => (note.id === id ? { ...note, color } : note)));
-  };
-
-  const startDrag = (e, id) => {
-    e.preventDefault();
-    const note = notes.find((n) => n.id === id);
-    const startX = e.clientX - note.position.x;
-    const startY = e.clientY - note.position.y;
-
-    const handleDrag = (e) => {
-      const x = e.clientX - startX;
-      const y = e.clientY - startY;
-
-      setNotes(
-        notes.map((note) =>
-          note.id === id ? { ...note, position: { x, y } } : note
-        )
-      );
-    };
-
-    const stopDrag = () => {
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("mouseup", stopDrag);
-    };
-
-    document.addEventListener("mousemove", handleDrag);
-    document.addEventListener("mouseup", stopDrag);
+  const toggleCheckbox = (index) => {
+    const lines = note.text.split("\n");
+    if (
+      index >= 0 &&
+      index < lines.length &&
+      typeof lines[index] === "string"
+    ) {
+      lines[index] = lines[index].startsWith("[x] ")
+        ? lines[index].replace("[x] ", "[ ] ")
+        : lines[index].startsWith("[ ] ")
+        ? lines[index].replace("[ ] ", "[x] ")
+        : lines[index];
+      onUpdate({ ...note, text: lines.join("\n") });
+    }
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-200 rounded-xl place-content-center place-items-center">
-      <div className="w-1/2 h-full bg-white p-4 rounded-lg shadow-lg overflow-scroll">
-        <h2 className="text-white">Sticky Notes</h2>
-
-        <button className="add-note-btn" onClick={() => setIsAddingNote(true)}>
-          + Add New Note
-        </button>
-
-        {isAddingNote && (
-          <div className="w-full p-4 bg-white rounded-lg mt-4">
-            <textarea
-              value={newNote.text}
-              onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
-              placeholder="Write your note here..."
-              className="w-full h-20 p-2 border border-gray-300 rounded-lg mb-2"
-              autoFocus
+    <Draggable
+      handle=".handle"
+      defaultPosition={{ x: note.x, y: note.y }}
+      onStop={handleDrag}
+    >
+      <div
+        id={`note-${note.id}`}
+        className={`absolute w-60 min-h-48 rounded-xl p-4 shadow-md cursor-move handle border-2 ${
+          linkStartId === note.id ? "border-blue-500" : "border-gray-300"
+        }`}
+        style={{ backgroundColor: note.color }}
+      >
+        <div className="flex justify-between items-center mb-2">
+          <input
+            className="text-md font-bold bg-transparent outline-none w-full"
+            value={note.heading}
+            onChange={(e) => onUpdate({ ...note, heading: e.target.value })}
+          />
+          <div className="flex gap-1 ml-2">
+            <Pencil
+              className="w-4 h-4 cursor-pointer text-gray-600"
+              onClick={() => onEdit(note)}
             />
-            <div className="color-picker">
-              {colors.map((color) => (
-                <div
-                  key={color}
-                  className="color-option"
-                  style={{ backgroundColor: color }}
-                  onClick={() => setNewNote({ ...newNote, color })}
-                >
-                  {newNote.color === color && <span>✓</span>}
-                </div>
-              ))}
-            </div>
-            <div className="note-actions">
-              <button onClick={addNote}>Save</button>
-              <button onClick={() => setIsAddingNote(false)}>Cancel</button>
-            </div>
+            <Trash2
+              className="w-4 h-4 cursor-pointer text-red-500"
+              onClick={() => onDelete(note.id)}
+            />
           </div>
+        </div>
+
+        <textarea
+          className="w-full h-24 bg-transparent resize-none outline-none text-sm"
+          value={note.text}
+          onChange={(e) => onUpdate({ ...note, text: e.target.value })}
+        />
+
+        {note.text.split("\n").map((line, index) =>
+          line.startsWith("[ ] ") || line.startsWith("[x] ") ? (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={line.startsWith("[x] ")}
+                onChange={() => toggleCheckbox(index)}
+              />
+              <span>{line.substring(4)}</span>
+            </div>
+          ) : null
         )}
 
-        <div className="notes-container">
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              className="sticky-note"
-              style={{
-                backgroundColor: note.color,
-                left: `${note.position.x}px`,
-                top: `${note.position.y}px`,
-              }}
-              onMouseDown={(e) => startDrag(e, note.id)}
-            >
-              <textarea
-                value={note.text}
-                onChange={(e) => updateNote(note.id, e.target.value)}
-              />
-              <div className="note-footer">
-                <div className="color-picker">
-                  {colors.map((color) => (
-                    <div
-                      key={color}
-                      className="color-option"
-                      style={{ backgroundColor: color }}
-                      onClick={() => changeColor(note.id, color)}
-                    >
-                      {note.color === color && <span>✓</span>}
-                    </div>
-                  ))}
-                </div>
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteNote(note.id)}
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={() => onCreateLink(note.id)}
+            className="text-xs px-2 py-1"
+            variant={linkStartId === note.id ? "destructive" : "outline"}
+          >
+            {linkStartId === note.id ? "Cancel" : "Link"}
+          </button>
         </div>
       </div>
-    </div>
+    </Draggable>
   );
 };
 
-export default StickyNotes;
+export default function StickyNotesBoard() {
+  const [notes, setNotes] = useState([]);
+  const [editNote, setEditNote] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [links, setLinks] = useState([]);
+  const [linkStartId, setLinkStartId] = useState(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sticky-notes");
+    if (saved) setNotes(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sticky-notes", JSON.stringify(notes));
+  }, [notes]);
+
+  const addNote = () => {
+    const newNote = {
+      id: Date.now(),
+      heading: "Sticky",
+      text: "Type anything, @mention anyone\nGuru",
+      color: "#cce5ff",
+      x: 100 + Math.random() * 200,
+      y: 100 + Math.random() * 200,
+    };
+    setNotes([...notes, newNote]);
+  };
+
+  const updateNote = (updatedNote) => {
+    setNotes(notes.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
+  };
+
+  const deleteNote = (id) => {
+    setNotes(notes.filter((n) => n.id !== id));
+    setLinks(links.filter(([from, to]) => from !== id && to !== id));
+  };
+
+  const saveEdit = () => {
+    if (editNote) {
+      updateNote({ ...editNote, text: editText });
+      setEditNote(null);
+      setEditText("");
+    }
+  };
+
+  const handleCreateLink = (id) => {
+    if (!linkStartId) {
+      setLinkStartId(id);
+    } else if (linkStartId === id) {
+      setLinkStartId(null);
+    } else {
+      const linkExists = links.some(
+        ([from, to]) =>
+          (from === linkStartId && to === id) ||
+          (from === id && to === linkStartId)
+      );
+      if (!linkExists) {
+        setLinks([...links, [linkStartId, id]]);
+      }
+      setLinkStartId(null);
+    }
+  };
+
+  const handleColorChange = (id, color) => {
+    const note = notes.find((n) => n.id === id);
+    if (note) {
+      updateNote({ ...note, color });
+    }
+  };
+
+  return (
+    <div
+      className="w-full h-screen relative overflow-hidden bg-gray-100"
+      onClick={() => linkStartId && setLinkStartId(null)}
+    >
+      {/* Add Note button */}
+      <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3">
+        <input
+          type="color"
+          title="Pick default color for new note"
+          onChange={(e) => addNote(e.target.value)}
+        />
+        <button
+          onClick={addNote}
+          className="rounded-full w-12 h-12 p-0 bg-blue-500 hover:bg-blue-600 shadow-xl"
+        >
+          <Plus className="text-white" />
+        </button>
+      </div>
+
+      {/* Sticky Notes */}
+      {notes.map((note) => (
+        <StickyNote
+          key={note.id}
+          note={note}
+          onUpdate={updateNote}
+          onDelete={deleteNote}
+          onEdit={(n) => {
+            setEditNote(n);
+            setEditText(n.text);
+          }}
+          onCreateLink={handleCreateLink}
+          linkStartId={linkStartId}
+          onColorChange={handleColorChange}
+        />
+      ))}
+
+      {/* Note Editor Popup */}
+      {editNote && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+            <h2 className="text-lg font-semibold mb-2">Edit Note</h2>
+            <textarea
+              className="w-full h-40 border p-2 rounded-md mb-4"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setEditNote(null)} variant="outline">
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Arrows for Linked Notes */}
+      {links.map(([fromId, toId], index) => (
+        <Xarrow
+          key={index}
+          start={`note-${fromId}`}
+          end={`note-${toId}`}
+          color="gray"
+          strokeWidth={2}
+          curveness={0.2}
+          dashness={false}
+          headSize={4}
+        />
+      ))}
+    </div>
+  );
+}

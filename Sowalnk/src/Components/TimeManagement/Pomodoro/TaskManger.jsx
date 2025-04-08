@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 // Define default task structure
 const defaultTask = {
@@ -115,117 +114,6 @@ function TaskManagerComponent({
     return () => clearInterval(interval);
   }, [tasks, reminderSound]);
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-    const reorderedTasks = Array.from(tasks);
-    const [movedTask] = reorderedTasks.splice(result.source.index, 1);
-    reorderedTasks.splice(result.destination.index, 0, movedTask);
-    setTasks(reorderedTasks);
-  };
-
-  // Memoized Task Item component for better performance
-  const TaskItem = React.memo(
-    ({ task, index, world, isActive, timeLeft, handlers }) => {
-      const color = colors[world][index % colors[world].length];
-
-      return (
-        <div
-          className={`${color} p-4 rounded-lg shadow-md relative ${
-            isActive ? "ring-2 ring-purple-500" : ""
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={() => handlers.toggleTaskCompletion(index)}
-              className="h-5 w-5 text-purple-600 rounded"
-              aria-label={`Mark task "${task.text}" as ${
-                task.completed ? "incomplete" : "complete"
-              }`}
-            />
-            <span
-              className={`flex-1 ${
-                task.completed ? "line-through text-gray-500" : "text-gray-800"
-              }`}
-            >
-              {task.text}
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-            <div
-              className="bg-purple-600 h-2 rounded-full"
-              style={{ width: `${task.progress}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <input
-              type="datetime-local"
-              value={task.deadline || ""}
-              onChange={(e) =>
-                handlers.setTaskDeadline(
-                  index,
-                  e.target.value,
-                  task.reminderInterval
-                )
-              }
-              className="p-1 rounded border border-gray-300 text-sm"
-              aria-label="Set task deadline"
-            />
-            <select
-              value={task.reminderInterval}
-              onChange={(e) =>
-                handlers.setTaskDeadline(index, task.deadline, e.target.value)
-              }
-              className="p-1 rounded border border-gray-300 text-sm"
-              aria-label="Set reminder interval"
-            >
-              <option value="5">5 min</option>
-              <option value="15">15 min</option>
-              <option value="30">30 min</option>
-            </select>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={task.progress}
-            onChange={(e) =>
-              handlers.updateTaskProgress(index, parseInt(e.target.value))
-            }
-            className="w-full mb-2"
-            aria-label="Update task progress"
-          />
-          {timeLeft !== null && (
-            <span
-              className={`text-xs ${
-                timeLeft <= 5 ? "text-red-600" : "text-gray-600"
-              }`}
-            >
-              {timeLeft > 0 ? `${timeLeft} min left` : "Overdue!"}
-            </span>
-          )}
-          <div className="flex justify-between mt-2">
-            <button
-              onClick={() => handlers.setCurrentTask(task.text)}
-              className="text-purple-600 hover:text-purple-800 text-sm"
-              aria-label={`Select task "${task.text}" for focus`}
-            >
-              Select
-            </button>
-            <button
-              onClick={() => handlers.deleteTask(index)}
-              className="text-red-500 hover:text-red-600 text-lg"
-              aria-label={`Delete task "${task.text}"`}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      );
-    }
-  );
-
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6 h-fit">
       <h2 className="text-2xl font-bold text-purple-800 mb-4">Task Board</h2>
@@ -249,56 +137,117 @@ function TaskManagerComponent({
         </button>
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="tasks">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-4 max-h-[500px] overflow-y-auto"
-            >
-              {tasks.map((task, index) => {
-                const isActive = task.text === currentTask && phase === "Work";
-                const timeLeft = task.deadline
-                  ? Math.max(
-                      0,
-                      Math.floor((new Date(task.deadline) - new Date()) / 60000)
-                    )
-                  : null;
+      <div className="space-y-4 max-h-[500px] overflow-y-auto">
+        {tasks.map((task, index) => {
+          const color = colors[world][index % colors[world].length];
+          const isActive = task.text === currentTask && phase === "Work";
+          const timeLeft = task.deadline
+            ? Math.max(
+                0,
+                Math.floor((new Date(task.deadline) - new Date()) / 60000)
+              )
+            : null;
 
-                return (
-                  <Draggable
-                    key={task.text}
-                    draggableId={task.text}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <TaskItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        task={task}
-                        index={index}
-                        world={world}
-                        isActive={isActive}
-                        timeLeft={timeLeft}
-                        handlers={{
-                          toggleTaskCompletion,
-                          setTaskDeadline,
-                          updateTaskProgress,
-                          setCurrentTask,
-                          deleteTask,
-                        }}
-                      />
-                    )}
-                  </Draggable>
-                );
-              })}
-              {provided.placeholder}
+          return (
+            <div
+              key={index}
+              className={`${color} p-4 space-y-9 rounded-lg shadow-md relative ${
+                isActive ? "ring-2 ring-purple-500" : ""
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  checked={task.completed}
+                  onChange={() => toggleTaskCompletion(index)}
+                  className="h-5 w-5 text-purple-600 rounded"
+                  aria-label={`Mark task "${task.text}" as ${
+                    task.completed ? "incomplete" : "complete"
+                  }`}
+                />
+                <span
+                  className={`flex-1 ${
+                    task.completed
+                      ? "line-through text-gray-500"
+                      : "text-gray-800"
+                  }`}
+                >
+                  {task.text}
+                </span>
+              </div>
+              {/* <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div
+                  className="bg-purple-600 h-2 rounded-full"
+                  style={{ width: `${task.progress}%` }}
+                />
+              </div> */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <input
+                  type="datetime-local"
+                  value={task.deadline || ""}
+                  onChange={(e) =>
+                    setTaskDeadline(
+                      index,
+                      e.target.value,
+                      task.reminderInterval
+                    )
+                  }
+                  className="p-1 rounded border border-gray-300 text-sm"
+                  aria-label="Set task deadline"
+                />
+                <select
+                  value={task.reminderInterval}
+                  onChange={(e) =>
+                    setTaskDeadline(index, task.deadline, e.target.value)
+                  }
+                  className="p-1 rounded border border-gray-300 text-sm"
+                  aria-label="Set reminder interval"
+                >
+                  <option value="5">5 min</option>
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                </select>
+              </div>
+              {/* <input
+                type="range"
+                min="0"
+                max="100"
+                value={task.progress}
+                onChange={(e) =>
+                  updateTaskProgress(index, parseInt(e.target.value))
+                }
+                className="w-full mb-2"
+                aria-label="Update task progress"
+              /> */}
+              {timeLeft !== null && (
+                <span
+                  className={`text-xs ${
+                    timeLeft <= 5 ? "text-red-600" : "text-gray-600"
+                  }`}
+                >
+                  {timeLeft > 0 ? `${timeLeft} min left` : "Overdue!"}
+                </span>
+              )}
+              <div className="flex justify-between mt-2">
+                <button
+                  onClick={() => setCurrentTask(task.text)}
+                  className="text-purple-600 hover:text-purple-800 text-sm"
+                  aria-label={`Select task "${task.text}" for focus`}
+                >
+                  Select
+                </button>
+                <button
+                  onClick={() => deleteTask(index)}
+                  className="text-red-500 hover:text-red-600 text-lg"
+                  aria-label={`Delete task "${task.text}"`}
+                >
+                  ×
+                </button>
+              </div>
             </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+          );
+        })}
+      </div>
     </div>
   );
 }

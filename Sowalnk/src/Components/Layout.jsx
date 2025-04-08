@@ -18,7 +18,7 @@ const Layout = () => {
   // const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
 
   useEffect(() => {
-    const newSocket = io("https://sowalnk.com");
+    const newSocket = io();
     // const newSocket = io("http://localhost:2000");
     setSocket(newSocket);
 

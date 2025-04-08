@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import TimerComponent from "./Timer"; // Fixed import name
 import TaskManagerComponent from "./TaskManger"; // Fixed import name
 import GamificationComponent from "./Gamfication"; // Fixed import name
@@ -116,8 +116,8 @@ function Pomodoro() {
 
   // Main Pomodoro UI (shown only after payment)
   const PomodoroUI = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen  bg-gray-50 p-6">
+      <div className="w-full">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-purple-800">Pomodoro</h1>
           <button
@@ -129,8 +129,8 @@ function Pomodoro() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full gap-6">
+          <div className="w-full">
             <TimerComponent
               workDuration={workDuration}
               setWorkDuration={setWorkDuration}
@@ -168,7 +168,7 @@ function Pomodoro() {
             />
 
             <div className="flex gap-3">
-              <button
+              {/* <button
                 onClick={() => setActiveView("summary")}
                 className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
               >
@@ -181,7 +181,7 @@ function Pomodoro() {
               >
                 <Trophy size={20} />
                 Ranking
-              </button>
+              </button> */}
               <button
                 onClick={() => setActiveView("gamification")}
                 className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
@@ -206,10 +206,10 @@ function Pomodoro() {
                 pomodoros={pomodoros}
               />
             )}
-            {activeView === "summary" && (
+            {/* {activeView === "summary" && (
               <Summary sessions={sessions} pomodoros={pomodoros} />
             )}
-            {activeView === "ranking" && <Ranking />}
+            {activeView === "ranking" && <Ranking />} */}
           </div>
         </div>
       </div>

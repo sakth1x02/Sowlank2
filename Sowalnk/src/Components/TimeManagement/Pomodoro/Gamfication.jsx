@@ -9,7 +9,6 @@ function GamificationComponent({
   world,
   setWorld,
   streak,
-  setStreak,
   dailyChallenge,
   setDailyChallenge,
   pomodoros,

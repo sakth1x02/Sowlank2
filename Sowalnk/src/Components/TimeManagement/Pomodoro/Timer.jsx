@@ -90,7 +90,7 @@ function TimerComponent({
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
+    <div className="bg-gradient-to-br from-purple-600 w-full to-indigo-600 overflow-scroll rounded-2xl shadow-xl p-8 text-white">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold">{phase}</h2>
         {phase === "Work" && currentTask && (
@@ -98,7 +98,7 @@ function TimerComponent({
         )}
       </div>
 
-      <div className="relative w-72 h-72 mx-auto mb-8">
+      <div className="relative w-full h-72  mb-8">
         <svg className="w-full h-full" viewBox="0 0 100 100">
           <circle
             className="text-white/20"
