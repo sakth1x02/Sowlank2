@@ -13,6 +13,18 @@ export const fetchUsers = createAsyncThunk("user/fetchUsers", async () => {
       Authorization: `Bearer ${token}`,
     },
   });
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    toast.error("Session expired. Please login again.");
+    navigate("/login");
+    return;
+  }
+
+  // Handle other non-OK responses
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
   const res = await response.json();
   return res.data;
 });

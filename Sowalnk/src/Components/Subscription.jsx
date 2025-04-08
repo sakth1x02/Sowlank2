@@ -39,6 +39,16 @@ const Subscription = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          return window.location.replace("/login");
+        }
+
+        // Handle other non-OK responses
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         dispatch(setIntermediateMember(false));
         dispatch(setAdvanceMember(false));

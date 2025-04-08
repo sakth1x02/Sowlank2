@@ -102,13 +102,23 @@ const App = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        alert("Session expired. Please login again.");
+        toast.success("Successfully logged out");
+        return window.location.replace("/login");
+      }
+
+      // Handle other non-OK responses
+
       if (!res.ok) {
         const data = await res.json();
         if (data.isTokenExpired) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           dispatch(setLoggedInUser(null));
-          alert("Token expired, please login again");
+          toast.info("Token expired, please login again");
           return window.location.replace("/login");
         }
       }
