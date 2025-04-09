@@ -122,8 +122,6 @@ const userAuthentication = {
       user.verificationTokenExpiresAt = undefined;
       await user.save();
 
-      await sendWelcomeEmail(user.email, user.name);
-
       res.status(200).json({
         success: true,
         message: "Email verified successfully",
@@ -174,9 +172,11 @@ const userAuthentication = {
     const token = generateAccessToken(user._id);
     const userData = await User.findById(user._id).select("-password");
     user.lastLogin = new Date();
+    if (!user.emailSended) {
+      await sendWelcomeEmail(user.email, user.name);
+      user.emailSended = true;
+    }
     await user.save();
-
-    await sendWelcomeEmail(user.email, user.name);
 
     // Return token and user data
     res.status(200).json({
@@ -215,6 +215,10 @@ const userAuthentication = {
       // Remove password from response
       const loggedInUser = await User.findById(user._id).select("-password");
       user.lastLogin = new Date();
+      if (!user.emailSended) {
+        await sendWelcomeEmail(user.email, user.name);
+        user.emailSended = true;
+      }
       await user.save();
 
       // Return token in the response body

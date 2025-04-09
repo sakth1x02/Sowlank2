@@ -53,6 +53,7 @@ import weeklyTaskRouter from "./routers/weekly.routes.js";
 import monthlyTaskRouter from "./routers/monthly.routes.js";
 import yearlyTaskRouter from "./routers/yearly.routes.js";
 import subscriptionRouter from "./routers/subscription.routes.js";
+import pomodoroRouter from "./routers/15TimesMethodRoutes/pomodoro.routes.js";
 
 //Route Declaration
 app.use("/api/v1/task", dailyTaskRouter);
@@ -61,6 +62,7 @@ app.use("/api/v1/weeklytask", weeklyTaskRouter);
 app.use("/api/v1/monthlytask", monthlyTaskRouter);
 app.use("/api/v1/yearlytask", yearlyTaskRouter);
 app.use("/api/v1/subscription", subscriptionRouter);
+app.use("/api/v1/pomodoros", pomodoroRouter);
 
 //Socket.io
 const activeUsers = new Map(); // userId -> socketId mapping

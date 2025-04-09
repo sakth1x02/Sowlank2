@@ -74,7 +74,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
         <p>We're thrilled to have you join us at <strong>Sowalnk</strong>! 🎉</p>
         <p>Get ready to explore amazing features and opportunities tailored just for you.</p>
         <p>Click below to get started:</p>
-        <a href="https://google.com" class="cta-button">Explore Now</a>
+        <a href="https://sowalnk.com" class="cta-button">Explore Now</a>
         <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@sowalnk.com">support@sowalnk.com</a>.</p>
     </div>
     <div class="footer">

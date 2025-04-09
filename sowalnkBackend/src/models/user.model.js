@@ -115,6 +115,10 @@ const userSchema = new Schema(
     resetPasswordExpiresAt: Date,
     verificationToken: String,
     verificationTokenExpiresAt: Date,
+    emailSended: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

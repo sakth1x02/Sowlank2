@@ -124,7 +124,7 @@ function TimerComponent({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-6xl font-mono">{formatTime(timeLeft)}</span>
+          <span className="text-4xl  font-mono">{formatTime(timeLeft)}</span>
         </div>
       </div>
 

@@ -175,50 +175,13 @@ function TaskManagerComponent({
                   {task.text}
                 </span>
               </div>
-              {/* <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                 <div
                   className="bg-purple-600 h-2 rounded-full"
                   style={{ width: `${task.progress}%` }}
                 />
-              </div> */}
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <input
-                  type="datetime-local"
-                  value={task.deadline || ""}
-                  onChange={(e) =>
-                    setTaskDeadline(
-                      index,
-                      e.target.value,
-                      task.reminderInterval
-                    )
-                  }
-                  className="p-1 rounded border border-gray-300 text-sm"
-                  aria-label="Set task deadline"
-                />
-                <select
-                  value={task.reminderInterval}
-                  onChange={(e) =>
-                    setTaskDeadline(index, task.deadline, e.target.value)
-                  }
-                  className="p-1 rounded border border-gray-300 text-sm"
-                  aria-label="Set reminder interval"
-                >
-                  <option value="5">5 min</option>
-                  <option value="15">15 min</option>
-                  <option value="30">30 min</option>
-                </select>
               </div>
-              {/* <input
-                type="range"
-                min="0"
-                max="100"
-                value={task.progress}
-                onChange={(e) =>
-                  updateTaskProgress(index, parseInt(e.target.value))
-                }
-                className="w-full mb-2"
-                aria-label="Update task progress"
-              /> */}
+
               {timeLeft !== null && (
                 <span
                   className={`text-xs ${
