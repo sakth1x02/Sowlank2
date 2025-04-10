@@ -186,7 +186,7 @@ const TimeManage = () => {
               </button>
               <div className=" place-items-center p-6">
                 {activeMethod === 1 && (
-                  <div className="blur-sm">
+                  <div className="">
                     <Pomodoro />
                   </div>
                 )}

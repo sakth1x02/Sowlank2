@@ -245,7 +245,7 @@ function Motivation() {
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
-      <aside className="w-80 p-6 sticky top-0 h-screen overflow-y-hidden text-black border-r border-gray-300 flex flex-col bg-white shadow-md">
+      <aside className="w-60 p-6 sticky top-0 h-screen overflow-y-hidden text-black border-r border-gray-300 flex flex-col bg-white shadow-md">
         <div className="mb-8">
           <img
             src={logo}
@@ -376,7 +376,7 @@ function Motivation() {
 
       {/* Right Sidebar for Home View */}
       {currentView === "home" && (
-        <aside className="w-96 p-6 sticky top-0 h-screen overflow-y-auto border-l border-gray-300 hidden lg:flex flex-col gap-6 bg-white shadow-lg">
+        <aside className="w-60 p-6 sticky top-0 h-screen overflow-y-auto border-l border-gray-300 hidden lg:flex flex-col gap-6 bg-white shadow-lg">
           <div className="bg-white p-5 rounded-2xl shadow-md border border-gray-200">
             <input
               type="text"

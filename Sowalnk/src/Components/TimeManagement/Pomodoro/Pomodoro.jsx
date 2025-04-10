@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import TimerComponent from "./Timer"; // Fixed import name
-import TaskManagerComponent from "./TaskManger"; // Fixed import name
-import GamificationComponent from "./Gamfication"; // Fixed import name
+import React, { useState, useEffect, useRef } from "react";
+import TimerComponent from "./Timer";
+import TaskManagerComponent from "./TaskManger";
+import GamificationComponent from "./Gamfication";
+import pomodoroService from "../../../services/pomodoroService";
+import { toast } from "react-toastify";
 
 import { Info, Star } from "lucide-react";
 
@@ -32,25 +34,118 @@ function Pomodoro() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [activeView, setActiveView] = useState("gamification");
+  const [loading, setLoading] = useState(false);
+
+  // Refs to avoid dependency issues
+  const tasksRef = useRef(tasks);
+  const currentTaskRef = useRef(currentTask);
+  const pomodorosRef = useRef(pomodoros);
+
+  // Update refs when state changes
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
+
+  useEffect(() => {
+    currentTaskRef.current = currentTask;
+  }, [currentTask]);
+
+  useEffect(() => {
+    pomodorosRef.current = pomodoros;
+  }, [pomodoros]);
+
+  // Fetch tasks on component mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  // Function to fetch tasks from API
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await pomodoroService.getAllpomodoros();
+      if (response.success) {
+        setTasks(response.data);
+      } else {
+        toast.error("Failed to fetch tasks");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to fetch tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSessionComplete = (completedPhase) => {
     if (completedPhase === "Work") {
-      setPomodoros((prev) => prev + 1);
+      // Update pomodoros and points
+      const newPomodoros = pomodorosRef.current + 1;
+      setPomodoros(newPomodoros);
       setPoints((prev) => prev + 10);
+
+      // Update sessions
       setSessions((prev) => [
         ...prev,
         {
           duration: workDuration / 60,
           timestamp: new Date(),
-          task: currentTask,
+          task: currentTaskRef.current,
         },
       ]);
+
+      // Update daily challenge
       setDailyChallenge((prev) => ({
         ...prev,
         progress: Math.min(prev.target, prev.progress + 1),
       }));
 
-      if ((pomodoros + 1) % 4 === 0) {
+      // Update task progress if there's a current task
+      const currentTaskText = currentTaskRef.current;
+      if (currentTaskText) {
+        const taskIndex = tasksRef.current.findIndex(
+          (task) => task.text === currentTaskText
+        );
+        if (taskIndex !== -1) {
+          const task = tasksRef.current[taskIndex];
+
+          // Check if the task has reached its deadline
+          if (task.deadline) {
+            const deadlineDate = new Date(task.deadline);
+            const currentDate = new Date();
+
+            // If deadline has passed, mark as completed
+            if (currentDate >= deadlineDate && !task.completed) {
+              // Use a separate function to avoid closure issues
+              const markTaskAsCompleted = async () => {
+                try {
+                  const response = await pomodoroService.markAsCompleted(
+                    task._id
+                  );
+                  if (response.success) {
+                    setTasks((prevTasks) => {
+                      const updatedTasks = [...prevTasks];
+                      updatedTasks[taskIndex] = {
+                        ...task,
+                        completed: true,
+                        progress: 100,
+                      };
+                      return updatedTasks;
+                    });
+                    toast.success("Task completed! Deadline reached.");
+                  }
+                } catch (error) {
+                  toast.error("Failed to mark task as completed");
+                }
+              };
+
+              markTaskAsCompleted();
+            }
+          }
+        }
+      }
+
+      // Determine next phase
+      if ((newPomodoros + 1) % 4 === 0) {
         setPhase("Long Break");
         setTimeLeft(longBreakDuration);
         setCycle((prev) => prev + 1);
@@ -61,7 +156,8 @@ function Pomodoro() {
     } else {
       setPhase("Work");
       setTimeLeft(workDuration);
-      setCurrentTask(null);
+      // Don't clear currentTask when transitioning from break to work
+      // This allows the user to continue with the same task
     }
   };
 
@@ -178,6 +274,7 @@ function Pomodoro() {
 
           <div className="lg:col-span-2 space-y-6">
             <TaskManagerComponent
+              loading={loading}
               tasks={tasks}
               setTasks={setTasks}
               currentTask={currentTask}
@@ -190,20 +287,6 @@ function Pomodoro() {
             />
 
             <div className="flex gap-3">
-              {/* <button
-                onClick={() => setActiveView("summary")}
-                className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <BarChart size={20} />
-                Summary
-              </button>
-              <button
-                onClick={() => setActiveView("ranking")}
-                className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Trophy size={20} />
-                Ranking
-              </button> */}
               <button
                 onClick={() => setActiveView("gamification")}
                 className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
@@ -228,10 +311,6 @@ function Pomodoro() {
                 pomodoros={pomodoros}
               />
             )}
-            {/* {activeView === "summary" && (
-              <Summary sessions={sessions} pomodoros={pomodoros} />
-            )}
-            {activeView === "ranking" && <Ranking />} */}
           </div>
         </div>
       </div>

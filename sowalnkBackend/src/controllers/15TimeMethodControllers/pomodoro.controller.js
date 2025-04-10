@@ -254,6 +254,60 @@ const pomodoroController = {
       });
     }
   },
+
+  // Update deadline of a pomodoro task
+  updateDeadline: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { deadline } = req.body;
+      const userId = req.user?._id;
+
+      if (!userId) {
+        return res
+          .status(401)
+          .json({ success: false, message: "User not authenticated" });
+      }
+
+      // Validate deadline is at least 5 minutes in the future
+      if (deadline) {
+        const deadlineDate = new Date(deadline);
+        const currentDate = new Date();
+        const minDeadlineDate = new Date(currentDate.getTime() + 5 * 60000); // 5 minutes from now
+
+        if (deadlineDate < minDeadlineDate) {
+          return res.status(400).json({
+            success: false,
+            message: "Deadline must be at least 5 minutes in the future",
+          });
+        }
+      }
+
+      const pomodoro = await Pomodoro.findOneAndUpdate(
+        { _id: id, userId },
+        { deadline },
+        // new: true - returns the updated document instead of the original one
+        // runValidators: true - runs validation checks on the update operation
+        { new: true, runValidators: true }
+      );
+
+      if (!pomodoro) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Pomodoro task not found" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: pomodoro,
+        message: "Deadline updated successfully",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to update deadline",
+      });
+    }
+  },
 };
 
 export default pomodoroController;

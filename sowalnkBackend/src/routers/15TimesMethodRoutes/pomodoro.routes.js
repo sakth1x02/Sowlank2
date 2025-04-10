@@ -29,4 +29,7 @@ router.patch("/:id/progress", pomodoroController.updateProgress);
 // Mark a pomodoro task as completed
 router.patch("/:id/complete", pomodoroController.markAsCompleted);
 
+// Update deadline of a pomodoro task
+router.patch("/:id/deadline", pomodoroController.updateDeadline);
+
 export default router;

@@ -55,7 +55,8 @@ function YearlyTask() {
   };
 
   const getLastDayOfThiredMonth = (date) => {
-    const lastDay = new Date(date.getFullYear(), date.getMonth() + 4, 1);
+    const lastDay = new Date(date);
+    lastDay.setFullYear(lastDay.getFullYear() + 1);
     return lastDay;
   };
 

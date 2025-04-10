@@ -48,7 +48,7 @@ function WeeklyTask() {
   const currentWeekNumber = getWeekNumber(today);
 
   const lastDayOfWeek = new Date(firstDayOfWeek);
-  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 30);
+  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
   lastDayOfWeek.setHours(23, 59, 59, 999);
 
   const formattedStartOfWeek = firstDayOfWeek.toLocaleDateString("en-US", {

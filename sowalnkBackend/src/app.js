@@ -62,7 +62,7 @@ app.use("/api/v1/weeklytask", weeklyTaskRouter);
 app.use("/api/v1/monthlytask", monthlyTaskRouter);
 app.use("/api/v1/yearlytask", yearlyTaskRouter);
 app.use("/api/v1/subscription", subscriptionRouter);
-app.use("/api/v1/pomodoros", pomodoroRouter);
+app.use("/api/v1/pomodoro", pomodoroRouter);
 
 //Socket.io
 const activeUsers = new Map(); // userId -> socketId mapping
