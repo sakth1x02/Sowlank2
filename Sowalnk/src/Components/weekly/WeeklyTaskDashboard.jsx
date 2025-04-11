@@ -46,9 +46,9 @@ const WeeklyTaskDashboard = ({ openWeeklyTask, setOpenWeeklyTask }) => {
       onClick={() => setOpenWeeklyTask(!openWeeklyTask)}
     >
       <div className="bg-rose-300 w-[90%] max-w-xl p-6 rounded-lg shadow-lg ">
-        <div className="flex-1 bg-white p-4 rounded-md shadow-sm">
+        <div className="flex-1 bg-white p-4 rounded-md shadow-sm max-h-52 overflow-scroll">
           <h2 className="text-xl font-bold mb-4 text-gray-700">Weekly Goals</h2>
-          <div className="space-y-2">
+          <div className="space-y-2 ">
             {weeklyTask.map((task, taskIndex) => (
               <div key={task._id} className="flex items-center">
                 <input

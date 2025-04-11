@@ -247,8 +247,8 @@ function WeeklyTask() {
           </h1>
           <div className="flex justify-between items-center pb-2">
             <h2 className="text-xl font-semibold text-[#2e2e2e]">
-              Week {Math.ceil(currentWeekNumber / 6)} : {formattedStartOfWeek} -{" "}
-              {formattedEndOfWeek}
+              Week {Math.floor(currentWeekNumber / 6)} : {formattedStartOfWeek}{" "}
+              - {formattedEndOfWeek}
             </h2>
           </div>
 
@@ -296,12 +296,12 @@ function WeeklyTask() {
           </div>
         </div>
 
-        <div className="md:w-1/3 rounded-lg shadow-lg p-5 bg-[#F0C1E1]">
+        <div className="md:w-1/3 rounded-lg max-h-[330px] overflow-scroll shadow-lg p-5 bg-[#F0C1E1]">
           <h2 className="text-xl font-semibold mb-4 text-[#3d3d3d]">
             Tasks This Week
           </h2>
           <ul className="space-y-4">
-            {weeklyTasks.map((task) => (
+            {weeklyTask.map((task) => (
               <li key={task._id} className="p-3 rounded-lg bg-white">
                 <span className="mr-4">{task.taskName}</span>
                 <button
@@ -335,7 +335,7 @@ function WeeklyTask() {
               </tr>
             </thead>
             <tbody className="bg-[#F0C1E1] ">
-              {weeklyTasks.map((task) => (
+              {weeklyTask.map((task) => (
                 <tr key={task?._id} className="border-t">
                   <td className="px-4 py-2 text-center">
                     <div className="w-20 h-12 overflow-auto flex justify-start items-center">
