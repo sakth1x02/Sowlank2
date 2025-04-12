@@ -307,13 +307,13 @@ function WeeklyTask() {
                 <button
                   onClick={() => toggleCompletion(task)}
                   className={`${
-                    task.isCompleted
+                    task.progress === 100
                       ? "bg-green-500 cursor-not-allowed"
                       : "bg-gray-400"
                   } text-white py-1 px-4 rounded`}
                   disabled={task.isCompleted}
                 >
-                  {task.isCompleted ? "Completed" : "Incomplete"}
+                  {task.progress === 100 ? "Completed" : "Incomplete"}
                 </button>
               </li>
             ))}
@@ -366,7 +366,12 @@ function WeeklyTask() {
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => handleDelete(task._id)}
-                      className="bg-[#FC7033] text-white py-1 px-3 rounded-md"
+                      className={`${
+                        task.progress === 100
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-[#FC7033]"
+                      } text-white py-1 px-3 rounded-md`}
+                      disabled={task.progress === 100}
                     >
                       Delete
                     </button>

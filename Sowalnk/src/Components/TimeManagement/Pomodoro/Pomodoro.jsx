@@ -4,11 +4,9 @@ import TaskManagerComponent from "./TaskManger";
 import GamificationComponent from "./Gamfication";
 import pomodoroService from "../../../services/pomodoroService";
 import { toast } from "react-toastify";
-
 import { Info, Star } from "lucide-react";
 
 function Pomodoro() {
-  // Pomodoro state
   const [workDuration, setWorkDuration] = useState(25 * 60);
   const [shortBreakDuration, setShortBreakDuration] = useState(5 * 60);
   const [longBreakDuration, setLongBreakDuration] = useState(15 * 60);
@@ -25,6 +23,7 @@ function Pomodoro() {
   const [level, setLevel] = useState(1);
   const [world, setWorld] = useState("Forest");
   const [streak, setStreak] = useState(0);
+  const [userPoint, setUserPoint] = useState(null);
   const [dailyChallenge, setDailyChallenge] = useState({
     description: "Complete 4 focus sessions today!",
     target: 4,
@@ -57,6 +56,7 @@ function Pomodoro() {
   // Fetch tasks on component mount
   useEffect(() => {
     fetchTasks();
+    fetchPomodoroPoint();
   }, []);
 
   // Function to fetch tasks from API
@@ -76,30 +76,28 @@ function Pomodoro() {
     }
   };
 
+  // Function to Pomodoro Point from API
+  const fetchPomodoroPoint = async () => {
+    try {
+      const response = await pomodoroService.getAllpomodorosPoints();
+      if (response.success) {
+        setUserPoint(response.data);
+        setPoints(response.data.points);
+        setLevel(response.data.level);
+        setStreak(response.data.streak);
+      } else {
+        toast.error("Failed to fetch user points");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to fetch user points");
+    }
+  };
+
   const handleSessionComplete = (completedPhase) => {
     if (completedPhase === "Work") {
-      // Update pomodoros and points
       const newPomodoros = pomodorosRef.current + 1;
       setPomodoros(newPomodoros);
-      setPoints((prev) => prev + 10);
 
-      // Update sessions
-      setSessions((prev) => [
-        ...prev,
-        {
-          duration: workDuration / 60,
-          timestamp: new Date(),
-          task: currentTaskRef.current,
-        },
-      ]);
-
-      // Update daily challenge
-      setDailyChallenge((prev) => ({
-        ...prev,
-        progress: Math.min(prev.target, prev.progress + 1),
-      }));
-
-      // Update task progress if there's a current task
       const currentTaskText = currentTaskRef.current;
       if (currentTaskText) {
         const taskIndex = tasksRef.current.findIndex(
@@ -108,14 +106,11 @@ function Pomodoro() {
         if (taskIndex !== -1) {
           const task = tasksRef.current[taskIndex];
 
-          // Check if the task has reached its deadline
           if (task.deadline) {
             const deadlineDate = new Date(task.deadline);
             const currentDate = new Date();
 
-            // If deadline has passed, mark as completed
             if (currentDate >= deadlineDate && !task.completed) {
-              // Use a separate function to avoid closure issues
               const markTaskAsCompleted = async () => {
                 try {
                   const response = await pomodoroService.markAsCompleted(
@@ -131,6 +126,27 @@ function Pomodoro() {
                       };
                       return updatedTasks;
                     });
+
+                    // Update gamification state
+                    if (response.data.points) {
+                      setUserPoint(response.data.points);
+                      setPoints(response.data.points.points);
+                      setLevel(response.data.points.level);
+                      setStreak(response.data.points.streak);
+
+                      // Show notifications for achievements
+                      if (response.data.streakBonus > 0) {
+                        toast.success(
+                          `Streak Bonus! +${response.data.streakBonus} points`
+                        );
+                      }
+                      if (response.data.levelUp) {
+                        toast.success(
+                          `Level Up! You're now level ${response.data.points.level}`
+                        );
+                      }
+                    }
+
                     toast.success("Task completed! Deadline reached.");
                   }
                 } catch (error) {
@@ -144,7 +160,20 @@ function Pomodoro() {
         }
       }
 
-      // Determine next phase
+      setSessions((prev) => [
+        ...prev,
+        {
+          duration: workDuration / 60,
+          timestamp: new Date(),
+          task: currentTaskRef.current,
+        },
+      ]);
+
+      setDailyChallenge((prev) => ({
+        ...prev,
+        progress: Math.min(prev.target, prev.progress + 1),
+      }));
+
       if ((newPomodoros + 1) % 4 === 0) {
         setPhase("Long Break");
         setTimeLeft(longBreakDuration);
@@ -156,8 +185,6 @@ function Pomodoro() {
     } else {
       setPhase("Work");
       setTimeLeft(workDuration);
-      // Don't clear currentTask when transitioning from break to work
-      // This allows the user to continue with the same task
     }
   };
 
@@ -298,14 +325,11 @@ function Pomodoro() {
 
             {activeView === "gamification" && (
               <GamificationComponent
-                points={points}
-                setPoints={setPoints}
-                level={level}
-                setLevel={setLevel}
+                points={points || userPoint?.points || 0}
+                level={level || userPoint?.level || 1}
                 world={world}
                 setWorld={setWorld}
-                streak={streak}
-                setStreak={setStreak}
+                streak={streak || userPoint?.streak || 0}
                 dailyChallenge={dailyChallenge}
                 setDailyChallenge={setDailyChallenge}
                 pomodoros={pomodoros}

@@ -3,9 +3,7 @@ import Confetti from "react-confetti";
 
 function GamificationComponent({
   points,
-  setPoints,
   level,
-  setLevel,
   world,
   setWorld,
   streak,
@@ -15,8 +13,6 @@ function GamificationComponent({
 }) {
   const [showConfetti, setShowConfetti] = useState(false);
   const pointsPerLevel = 100;
-  const progressToNextLevel =
-    ((points % pointsPerLevel) / pointsPerLevel) * 100;
 
   const achievements = [
     {
@@ -42,42 +38,23 @@ function GamificationComponent({
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
 
   useEffect(() => {
-    if (level <= 5) setWorld("Forest");
-    else if (level <= 10) setWorld("Mountain");
-    else setWorld("Sky");
-  }, [level, setWorld]);
-
-  useEffect(() => {
-    const newLevel = Math.floor(points / pointsPerLevel) + 1;
-    if (newLevel > level) {
-      setLevel(newLevel);
-      setShowConfetti(true);
-      if (Notification.permission === "granted") {
-        new Notification("Level Up!", {
-          body: `Congratulations! You've reached Level ${newLevel}!`,
-        });
-      }
-    }
-
-    if (pomodoros >= 5 && !unlockedAchievements.includes("focus_novice")) {
+    // Check for achievements
+    if (points >= 150 && !unlockedAchievements.includes("focus_novice")) {
       setUnlockedAchievements((prev) => [...prev, "focus_novice"]);
-      setPoints((prev) => prev + 50);
       setShowConfetti(true);
     }
 
     if (streak >= 7 && !unlockedAchievements.includes("streak_master")) {
       setUnlockedAchievements((prev) => [...prev, "streak_master"]);
-      setPoints((prev) => prev + 100);
       setShowConfetti(true);
     }
-  }, [points, pomodoros, streak, level, unlockedAchievements]);
+  }, [pomodoros, streak, unlockedAchievements]);
 
   useEffect(() => {
     if (
       dailyChallenge.progress >= dailyChallenge.target &&
       !dailyChallenge.completed
     ) {
-      setPoints((prev) => prev + 75);
       setDailyChallenge((prev) => ({ ...prev, completed: true }));
       setShowConfetti(true);
     }
@@ -86,19 +63,25 @@ function GamificationComponent({
   const getWorldTheme = () => {
     switch (world) {
       case "Forest":
-        return "bg-green-50 border-green-200";
+        return "bg-green-100 border-green-300";
       case "Mountain":
-        return "bg-blue-50 border-blue-200";
+        return "bg-blue-100 border-blue-300";
       case "Sky":
-        return "bg-purple-50 border-purple-200";
+        return "bg-purple-100 border-purple-300";
       default:
-        return "bg-gray-50 border-gray-200";
+        return "bg-gray-100 border-gray-300";
     }
+  };
+
+  const handleWorldChange = (e) => {
+    setWorld(e.target.value);
   };
 
   return (
     <div className={`rounded-2xl shadow-xl p-6 border ${getWorldTheme()}`}>
-      {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
+      {showConfetti && (
+        <Confetti recycle={false} numberOfPieces={200} height={1500} />
+      )}
       <h2 className="text-2xl font-bold text-purple-800 mb-4">Your Journey</h2>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -112,7 +95,15 @@ function GamificationComponent({
         </div>
         <div className="bg-white/50 p-3 rounded-lg">
           <p className="text-sm text-gray-600">World</p>
-          <p className="text-lg font-semibold text-purple-700">{world}</p>
+          <select
+            value={world}
+            onChange={handleWorldChange}
+            className="w-full mt-1 p-1 rounded"
+          >
+            <option value="Forest">Forest</option>
+            <option value="Mountain">Mountain</option>
+            <option value="Sky">Sky</option>
+          </select>
         </div>
         <div className="bg-white/50 p-3 rounded-lg">
           <p className="text-sm text-gray-600">Streak</p>
@@ -120,7 +111,7 @@ function GamificationComponent({
         </div>
       </div>
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <p className="text-sm text-gray-600 mb-2">Next Level Progress</p>
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
@@ -128,9 +119,9 @@ function GamificationComponent({
             style={{ width: `${progressToNextLevel}%` }}
           />
         </div>
-      </div>
+      </div> */}
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <p className="text-sm font-semibold text-gray-700 mb-2">Daily Quest</p>
         <p className="text-sm text-gray-600">{dailyChallenge.description}</p>
         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
@@ -146,7 +137,7 @@ function GamificationComponent({
         <p className="text-xs text-gray-500 mt-1">
           {dailyChallenge.progress}/{dailyChallenge.target}
         </p>
-      </div>
+      </div> */}
 
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-2">Achievements</p>

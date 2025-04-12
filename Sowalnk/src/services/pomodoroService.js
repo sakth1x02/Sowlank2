@@ -67,6 +67,36 @@ const pomodoroService = {
     }
   },
 
+  //Get All pomodoros points
+  getAllpomodorosPoints: async () => {
+    const token = getAuthToken();
+    try {
+      const response = await fetch(`/api/v1/pomodoro/points`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const res = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: res.message || "Failed to fetch pomodoro tasks",
+        };
+      }
+
+      return { success: true, data: res.data || res };
+    } catch (error) {
+      console.error("Error fetching pomodoro tasks:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch pomodoro tasks",
+      };
+    }
+  },
+
   // Delete a pomodoro task
   deletepomodoros: async (id) => {
     const token = getAuthToken();

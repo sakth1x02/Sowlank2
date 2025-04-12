@@ -36,6 +36,22 @@ const pomodoroSchema = new Schema(
     reminderInterval: {
       type: String,
     },
+    points: {
+      type: Number,
+      default: 0,
+    },
+    level: {
+      type: Number,
+      default: 1,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+    },
+    lastStreakUpdate: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
