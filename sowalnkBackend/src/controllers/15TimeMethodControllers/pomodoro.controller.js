@@ -64,6 +64,15 @@ const pomodoroController = {
       }
 
       const pomodoros = await Pomodoro.find({ userId });
+      if (!pomodoros) {
+        pomodoros = await PomodoroPoint.create({
+          userId,
+          points: 0,
+          level: 1,
+          streak: 0,
+          lastStreakUpdate: new Date(),
+        });
+      }
 
       return res.status(200).json({
         success: true,
@@ -296,18 +305,18 @@ const pomodoroController = {
       }
 
       // Update points and check for level up
-      const currentPoints = pomodoroPoints.points || 0;
+      const currentPoints = pomodoroPoints.points;
       const newPoints = currentPoints + 20; // Add 20 points for completing a task
       const newLevel = Math.floor(newPoints / 100) + 1; // Level up every 100 points
 
       // Check and update streak
       const now = new Date();
-      const lastUpdate = pomodoroPoints.lastStreakUpdate || now;
+      const lastUpdate = pomodoroPoints.lastStreakUpdate;
       const daysSinceLastUpdate = Math.floor(
         (now - lastUpdate) / (1000 * 60 * 60 * 24)
       );
 
-      let newStreak = pomodoroPoints.streak || 0;
+      let newStreak = pomodoroPoints.streak;
       let streakBonus = 0;
 
       if (daysSinceLastUpdate === 1) {
@@ -344,6 +353,7 @@ const pomodoroController = {
         { new: true }
       );
       await updatedPomodoroPoint.save();
+      await updatedPomodoro.save();
 
       return res.status(200).json({
         success: true,
