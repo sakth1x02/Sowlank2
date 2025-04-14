@@ -26,7 +26,7 @@ const TimeManage = () => {
       id: 1,
       name: "Pomodoro Technique",
       description: "Work in focused 25-minute intervals with short breaks.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 2,

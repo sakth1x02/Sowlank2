@@ -1,24 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
+import React, { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
 function TimerComponent({
   workDuration,
   setWorkDuration,
@@ -28,19 +9,24 @@ function TimerComponent({
   setLongBreakDuration,
   phase,
   setPhase,
-  timeLeft,
-  setTimeLeft,
-  isActive,
-  setIsActive,
   pomodoros,
-  setPomodoros,
   currentTask,
-  autoStart,
-  soundEnabled,
   onSessionComplete,
   cycle,
 }) {
-  const [showSettings, setShowSettings] = useState(false); // State to toggle settings visibility
+  const [timeLeft, setTimeLeft] = useState(workDuration);
+  const [isActive, setIsActive] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  // Local state for input values
+  const [localWorkDuration, setLocalWorkDuration] = useState(
+    Math.floor(workDuration / 60)
+  );
+  const [localShortBreakDuration, setLocalShortBreakDuration] = useState(
+    Math.floor(shortBreakDuration / 60)
+  );
+  const [localLongBreakDuration, setLocalLongBreakDuration] = useState(
+    Math.floor(longBreakDuration / 60)
+  );
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -61,44 +47,161 @@ function TimerComponent({
   };
 
   useEffect(() => {
+    const savedTimer = JSON.parse(localStorage.getItem("pomodoroTimer"));
+
+    if (savedTimer) {
+      // If saved phase differs from current phase, update phase first
+      if (savedTimer.phase !== phase) {
+        setPhase(savedTimer.phase);
+        return; // Exit early, this effect will re-run with new phase
+      }
+
+      const elapsedSeconds = Math.floor(
+        (Date.now() - savedTimer.timestamp) / 1000
+      );
+      let newTimeLeft = savedTimer.timeLeft - elapsedSeconds;
+
+      // Get duration based on current phase
+      const duration =
+        phase === "Work"
+          ? workDuration
+          : phase === "Short Break"
+          ? shortBreakDuration
+          : longBreakDuration;
+
+      if (newTimeLeft <= 0) {
+        localStorage.removeItem("pomodoroTimer");
+        setTimeLeft(duration);
+        setIsActive(false);
+        onSessionComplete(phase);
+      } else {
+        setTimeLeft(newTimeLeft);
+        setIsActive(savedTimer.isActive);
+      }
+    } else {
+      // Initialize with current phase duration
+      setTimeLeft(
+        phase === "Work"
+          ? workDuration
+          : phase === "Short Break"
+          ? shortBreakDuration
+          : longBreakDuration
+      );
+    }
+  }, [
+    phase,
+    workDuration,
+    shortBreakDuration,
+    longBreakDuration,
+    setPhase,
+    onSessionComplete,
+  ]);
+
+  useEffect(() => {
+    if (isActive) {
+      const timerData = {
+        phase,
+        timeLeft,
+        isActive,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("pomodoroTimer", JSON.stringify(timerData));
+    }
+  }, [isActive, timeLeft, phase]);
+
+  useEffect(() => {
     let timer = null;
     if (isActive && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    } else if (timeLeft === 0) {
-      if (soundEnabled) {
-        new Audio("https://www.soundjay.com/buttons/beep-01a.mp3").play();
-      }
-      setIsActive(autoStart);
+    } else if (timeLeft <= 0) {
+      new Audio("https://www.soundjay.com/buttons/beep-01a.mp3").play();
+      setIsActive(false);
+      localStorage.removeItem("pomodoroTimer");
       onSessionComplete(phase);
     }
     return () => clearInterval(timer);
-  }, [isActive, timeLeft, phase, autoStart, soundEnabled, onSessionComplete]);
+  }, [isActive, timeLeft, phase, onSessionComplete]);
 
-  // Handle duration changes and ensure the current timeLeft updates if the phase matches
-  const handleDurationChange = (phaseType, value) => {
-    const newDuration = Math.max(1, value) * 60; // Convert minutes to seconds, ensure at least 1 minute
-    if (phaseType === "Work") {
-      setWorkDuration(newDuration);
-      if (phase === "Work") setTimeLeft(newDuration);
-    } else if (phaseType === "Short Break") {
-      setShortBreakDuration(newDuration);
-      if (phase === "Short Break") setTimeLeft(newDuration);
-    } else if (phaseType === "Long Break") {
-      setLongBreakDuration(newDuration);
-      if (phase === "Long Break") setTimeLeft(newDuration);
-    }
+  // Debounced duration update
+  // In handleDurationChange
+  const handleDurationChange = useCallback(
+    (phaseType, value) => {
+      const newDuration = Math.max(1, value) * 60;
+
+      // Update local state
+      switch (phaseType) {
+        case "Work":
+          setLocalWorkDuration(value);
+          setWorkDuration(newDuration);
+          break;
+        case "Short Break":
+          setLocalShortBreakDuration(value);
+          setShortBreakDuration(newDuration);
+          break;
+        case "Long Break":
+          setLocalLongBreakDuration(value);
+          setLongBreakDuration(newDuration);
+          break;
+      }
+
+      // If timer is inactive and current phase matches, update timeLeft
+      if (!isActive && phase === phaseType) {
+        setTimeLeft(newDuration);
+      }
+
+      // Update localStorage if timer is active
+      if (isActive && phase === phaseType) {
+        const timerData = {
+          phase,
+          timeLeft: newDuration,
+          isActive,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem("pomodoroTimer", JSON.stringify(timerData));
+      }
+    },
+    [
+      phase,
+      isActive,
+      setWorkDuration,
+      setShortBreakDuration,
+      setLongBreakDuration,
+    ]
+  );
+
+  useEffect(() => {
+    setLocalWorkDuration(Math.floor(workDuration / 60));
+    setLocalShortBreakDuration(Math.floor(shortBreakDuration / 60));
+    setLocalLongBreakDuration(Math.floor(longBreakDuration / 60));
+  }, [workDuration, shortBreakDuration, longBreakDuration]);
+
+  const handleReset = () => {
+    setTimeLeft(
+      phase === "Work"
+        ? workDuration
+        : phase === "Short Break"
+        ? shortBreakDuration
+        : longBreakDuration
+    );
+    setIsActive(false);
+    localStorage.removeItem("pomodoroTimer");
   };
+
+  useEffect(() => {
+    const taskName = localStorage.getItem("currentPomodoroTask");
+    !taskName && handleReset();
+  }, [currentTask]);
 
   return (
     <div className="bg-gradient-to-br from-purple-600 w-full to-indigo-600 overflow-scroll rounded-2xl shadow-xl p-8 text-white">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold">{phase}</h2>
-        {phase === "Work" && currentTask && (
+        {currentTask && (
           <p className="text-lg opacity-80">Task: {currentTask}</p>
         )}
       </div>
 
-      <div className="relative w-full h-72  mb-8">
+      <div className="relative w-full h-72 mb-8">
         <svg className="w-full h-full" viewBox="0 0 100 100">
           <circle
             className="text-white/20"
@@ -124,7 +227,7 @@ function TimerComponent({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl  font-mono">{formatTime(timeLeft)}</span>
+          <span className="text-4xl font-mono">{formatTime(timeLeft)}</span>
         </div>
       </div>
 
@@ -133,15 +236,23 @@ function TimerComponent({
           <button
             key={p}
             onClick={() => {
-              setPhase(p);
-              setTimeLeft(
-                p === "Work"
-                  ? workDuration
-                  : p === "Short Break"
-                  ? shortBreakDuration
-                  : longBreakDuration
-              );
-              setIsActive(false);
+              if (p !== phase) {
+                // Only allow switching to breaks if a task is selected
+                if (!currentTask) {
+                  toast.error("Select a task before starting a break");
+                  return;
+                }
+                setPhase(p);
+                setTimeLeft(
+                  p === "Work"
+                    ? workDuration
+                    : p === "Short Break"
+                    ? shortBreakDuration
+                    : longBreakDuration
+                );
+                setIsActive(false);
+                localStorage.removeItem("pomodoroTimer");
+              }
             }}
             className={`px-4 py-2 rounded-full font-medium ${
               phase === p
@@ -156,21 +267,21 @@ function TimerComponent({
 
       <div className="flex justify-center gap-4 mb-6">
         <button
-          onClick={() => setIsActive(!isActive)}
-          className="bg-white text-purple-600 px-6 py-3 rounded-full font-semibold hover:bg-purple-100 transition-colors"
+          onClick={() => {
+            setIsActive(!isActive);
+            if (isActive) {
+              localStorage.removeItem("pomodoroTimer");
+            }
+          }}
+          className={`bg-white text-purple-600 px-6 py-3 rounded-full font-semibold hover:bg-purple-100 transition-colors ${
+            currentTask === null ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={currentTask === null ? true : false}
         >
           {isActive ? "Pause" : "Start"}
         </button>
         <button
-          onClick={() =>
-            setTimeLeft(
-              phase === "Work"
-                ? workDuration
-                : phase === "Short Break"
-                ? shortBreakDuration
-                : longBreakDuration
-            )
-          }
+          onClick={handleReset}
           className="bg-white/20 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-colors"
         >
           Reset
@@ -181,7 +292,6 @@ function TimerComponent({
         Cycle #{cycle} | Pomodoros: {pomodoros}
       </p>
 
-      {/* Timer Settings Section */}
       <div className="text-center">
         <button
           onClick={() => setShowSettings(!showSettings)}
@@ -199,10 +309,12 @@ function TimerComponent({
               <input
                 type="number"
                 min="1"
-                value={Math.floor(workDuration / 60)}
-                onChange={(e) =>
-                  handleDurationChange("Work", parseInt(e.target.value))
-                }
+                value={localWorkDuration}
+                onChange={(e) => {
+                  e.preventDefault();
+                  const value = parseInt(e.target.value) || 1;
+                  handleDurationChange("Work", value);
+                }}
                 className="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
             </div>
@@ -213,10 +325,12 @@ function TimerComponent({
               <input
                 type="number"
                 min="1"
-                value={Math.floor(shortBreakDuration / 60)}
-                onChange={(e) =>
-                  handleDurationChange("Short Break", parseInt(e.target.value))
-                }
+                value={localShortBreakDuration}
+                onChange={(e) => {
+                  e.preventDefault();
+                  const value = parseInt(e.target.value) || 1;
+                  handleDurationChange("Short Break", value);
+                }}
                 className="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
             </div>
@@ -227,10 +341,12 @@ function TimerComponent({
               <input
                 type="number"
                 min="1"
-                value={Math.floor(longBreakDuration / 60)}
-                onChange={(e) =>
-                  handleDurationChange("Long Break", parseInt(e.target.value))
-                }
+                value={localLongBreakDuration}
+                onChange={(e) => {
+                  e.preventDefault();
+                  const value = parseInt(e.target.value) || 1;
+                  handleDurationChange("Long Break", value);
+                }}
                 className="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
             </div>
@@ -241,4 +357,4 @@ function TimerComponent({
   );
 }
 
-export default TimerComponent;
+export default React.memo(TimerComponent);

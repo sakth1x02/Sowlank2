@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import TimerComponent from "./Timer";
 import TaskManagerComponent from "./TaskManger";
 import GamificationComponent from "./Gamfication";
@@ -10,15 +10,11 @@ function Pomodoro() {
   const [workDuration, setWorkDuration] = useState(25 * 60);
   const [shortBreakDuration, setShortBreakDuration] = useState(5 * 60);
   const [longBreakDuration, setLongBreakDuration] = useState(15 * 60);
-  const [timeLeft, setTimeLeft] = useState(workDuration);
-  const [isActive, setIsActive] = useState(false);
   const [pomodoros, setPomodoros] = useState(0);
   const [phase, setPhase] = useState("Work");
   const [cycle, setCycle] = useState(1);
   const [tasks, setTasks] = useState([]);
   const [currentTask, setCurrentTask] = useState(null);
-  const [autoStart] = useState(true);
-  const [soundEnabled] = useState(true);
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(1);
   const [world, setWorld] = useState("Forest");
@@ -35,12 +31,10 @@ function Pomodoro() {
   const [activeView, setActiveView] = useState("gamification");
   const [loading, setLoading] = useState(false);
 
-  // Refs to avoid dependency issues
   const tasksRef = useRef(tasks);
   const currentTaskRef = useRef(currentTask);
   const pomodorosRef = useRef(pomodoros);
 
-  // Update refs when state changes
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
@@ -53,19 +47,76 @@ function Pomodoro() {
     pomodorosRef.current = pomodoros;
   }, [pomodoros]);
 
-  // Fetch tasks on component mount
   useEffect(() => {
-    fetchTasks();
-    fetchPomodoroPoint();
-  }, []);
+    // Clear current task if the corresponding task is deleted or completed
+    if (currentTask && tasks.length > 0) {
+      const taskExists = tasks.some(
+        (task) => task.text === currentTask && !task.completed
+      );
+      if (!taskExists) {
+        setCurrentTask(null);
+      }
+    }
+  }, [tasks, currentTask]);
 
-  // Function to fetch tasks from API
-  const fetchTasks = async () => {
+  // useEffect(() => {
+  //   const validateCurrentTask = () => {
+  //     const savedTask = localStorage.getItem("currentPomodoroTask");
+  //     if (savedTask && tasks.length > 0) {
+  //       const taskValid = tasks.some(
+  //         (task) =>
+  //           task.text === savedTask &&
+  //           !task.completed &&
+  //           task.deadline &&
+  //           new Date(task.deadline) > new Date()
+  //       );
+
+  //       if (!taskValid) {
+  //         setCurrentTask(null);
+  //         localStorage.removeItem("currentPomodoroTask");
+  //       }
+  //     }
+  //   };
+
+  //   const interval = setInterval(validateCurrentTask, 30000); // Validate every 30 seconds
+  //   return () => clearInterval(interval);
+  // }, [tasks]);
+
+  useEffect(() => {
+    const item = localStorage.getItem("currentPomodoroTask");
+    setCurrentTask(item);
+    // if (currentTask) {
+    //   localStorage.setItem("currentPomodoroTask", currentTask);
+    // } else {
+    //   localStorage.removeItem("currentPomodoroTask");
+    // }
+  }, [currentTask]);
+
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       const response = await pomodoroService.getAllpomodoros();
       if (response.success) {
         setTasks(response.data);
+
+        // Get saved task from localStorage
+        const savedTask = localStorage.getItem("currentPomodoroTask");
+        setCurrentTask(savedTask);
+        // // Find matching task in fresh data
+        // const validTask = response.data.find(
+        //   (task) =>
+        //     task.text === savedTask &&
+        //     !task.completed &&
+        //     task.deadline &&
+        //     new Date(task.deadline) > new Date()
+        // );
+
+        // if (validTask) {
+        //   setCurrentTask(validTask.text);
+        // } else {
+        //   localStorage.removeItem("currentPomodoroTask");
+        //   setCurrentTask(null);
+        // }
       } else {
         toast.error("Failed to fetch tasks");
       }
@@ -74,10 +125,9 @@ function Pomodoro() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Function to Pomodoro Point from API
-  const fetchPomodoroPoint = async () => {
+  const fetchPomodoroPoint = useCallback(async () => {
     try {
       const response = await pomodoroService.getAllpomodorosPoints();
       if (response.success) {
@@ -91,161 +141,119 @@ function Pomodoro() {
     } catch (error) {
       toast.error(error.message || "Failed to fetch user points");
     }
-  };
+  }, []);
 
-  const handleSessionComplete = (completedPhase) => {
-    if (completedPhase === "Work") {
-      const newPomodoros = pomodorosRef.current + 1;
-      setPomodoros(newPomodoros);
+  const handleSessionComplete = useCallback(
+    (completedPhase) => {
+      if (completedPhase === "Work") {
+        const newPomodoros = pomodorosRef.current + 1;
+        setPomodoros(newPomodoros);
 
-      const currentTaskText = currentTaskRef.current;
-      if (currentTaskText) {
-        const taskIndex = tasksRef.current.findIndex(
-          (task) => task.text === currentTaskText
-        );
-        if (taskIndex !== -1) {
-          const task = tasksRef.current[taskIndex];
+        const currentTaskText = currentTaskRef.current;
+        if (currentTaskText) {
+          const taskIndex = tasksRef.current.findIndex(
+            (task) => task.text === currentTaskText
+          );
+          if (taskIndex !== -1) {
+            const task = tasksRef.current[taskIndex];
 
-          if (task.deadline) {
-            const deadlineDate = new Date(task.deadline);
-            const currentDate = new Date();
+            if (task.deadline) {
+              const deadlineDate = new Date(task.deadline);
+              const currentDate = new Date();
 
-            if (currentDate >= deadlineDate && !task.completed) {
-              const markTaskAsCompleted = async () => {
-                try {
-                  const response = await pomodoroService.markAsCompleted(
-                    task._id
-                  );
-                  if (response.success) {
-                    setTasks((prevTasks) => {
-                      const updatedTasks = [...prevTasks];
-                      updatedTasks[taskIndex] = {
-                        ...task,
-                        completed: true,
-                        progress: 100,
-                      };
-                      return updatedTasks;
-                    });
+              if (currentDate >= deadlineDate && !task.completed) {
+                const markTaskAsCompleted = async () => {
+                  try {
+                    const response = await pomodoroService.markAsCompleted(
+                      task._id
+                    );
+                    if (response.success) {
+                      setTasks((prevTasks) => {
+                        const updatedTasks = [...prevTasks];
+                        updatedTasks[taskIndex] = {
+                          ...task,
+                          completed: true,
+                          progress: 100,
+                        };
+                        return updatedTasks;
+                      });
 
-                    // Update gamification state
-                    if (response.data.points) {
-                      setUserPoint(response.data.points);
-                      setPoints(response.data.points.points);
-                      setLevel(response.data.points.level);
-                      setStreak(response.data.points.streak);
-
-                      // Show notifications for achievements
-                      if (response.data.streakBonus > 0) {
-                        toast.success(
-                          `Streak Bonus! +${response.data.streakBonus} points`
-                        );
+                      if (currentTaskRef.current === task.text) {
+                        setCurrentTask(null);
+                        localStorage.removeItem("currentPomodoroTask");
                       }
-                      if (response.data.levelUp) {
-                        toast.success(
-                          `Level Up! You're now level ${response.data.points.level}`
-                        );
+
+                      if (response.data.points) {
+                        setUserPoint(response.data.points);
+                        setPoints(response.data.points.points);
+                        setLevel(response.data.points.level);
+                        setStreak(response.data.points.streak);
+
+                        if (response.data.streakBonus > 0) {
+                          toast.success(
+                            `Streak Bonus! +${response.data.streakBonus} points`
+                          );
+                        }
+                        if (response.data.levelUp) {
+                          toast.success(
+                            `Level Up! You're now level ${response.data.points.level}`
+                          );
+                        }
                       }
+
+                      toast.success("Task completed! Deadline reached.");
                     }
-
-                    toast.success("Task completed! Deadline reached.");
+                  } catch (error) {
+                    toast.error("Failed to mark task as completed");
                   }
-                } catch (error) {
-                  toast.error("Failed to mark task as completed");
-                }
-              };
+                };
 
-              markTaskAsCompleted();
+                markTaskAsCompleted();
+              }
             }
           }
         }
-      }
 
-      setSessions((prev) => [
-        ...prev,
-        {
-          duration: workDuration / 60,
-          timestamp: new Date(),
-          task: currentTaskRef.current,
-        },
-      ]);
+        setSessions((prev) => [
+          ...prev,
+          {
+            duration: workDuration / 60,
+            timestamp: new Date(),
+            task: currentTaskRef.current,
+          },
+        ]);
 
-      setDailyChallenge((prev) => ({
-        ...prev,
-        progress: Math.min(prev.target, prev.progress + 1),
-      }));
+        setDailyChallenge((prev) => ({
+          ...prev,
+          progress: Math.min(prev.target, prev.progress + 1),
+        }));
 
-      if ((newPomodoros + 1) % 4 === 0) {
-        setPhase("Long Break");
-        setTimeLeft(longBreakDuration);
-        setCycle((prev) => prev + 1);
+        if ((newPomodoros + 1) % 4 === 0) {
+          setPhase("Long Break");
+          setCycle((prev) => prev + 1);
+        } else {
+          setPhase("Short Break");
+        }
       } else {
-        setPhase("Short Break");
-        setTimeLeft(shortBreakDuration);
+        setPhase("Work");
       }
-    } else {
-      setPhase("Work");
-      setTimeLeft(workDuration);
-    }
-  };
+    },
+    [workDuration]
+  );
 
-  const InfoModal = () => (
+  useEffect(() => {
+    fetchTasks();
+    fetchPomodoroPoint();
+  }, [fetchTasks, fetchPomodoroPoint]);
+
+  const InfoModal = React.memo(() => (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
         <h2 className="text-3xl font-semibold text-purple-800 mb-6">
           About the Pomodoro Technique
         </h2>
-
         <div className="space-y-6 text-gray-700">
-          <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">
-              What is the Pomodoro Technique?
-            </h3>
-            <p>
-              The Pomodoro Technique is a simple time management method that
-              helps you stay focused and take regular breaks. It was created by
-              Francesco Cirillo and named after a tomato-shaped kitchen timer.
-            </p>
-          </section>
-
-          <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">
-              How to Use the Pomodoro Technique
-            </h3>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Pick one task you want to work on.</li>
-              <li>
-                Set a timer for 25 minutes – this is called one "Pomodoro".
-              </li>
-              <li>Work on the task until the timer rings. Stay focused!</li>
-              <li>Take a short 5-minute break.</li>
-              <li>After 4 Pomodoros, take a longer break (15–30 minutes).</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 className="text-xl font-semibold text-purple-700 mb-2">
-              Benefits of the Pomodoro Technique
-            </h3>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>
-                <strong>Stay Focused:</strong> Short work sprints help your
-                brain stay sharp.
-              </li>
-              <li>
-                <strong>Avoid Burnout:</strong> Regular breaks keep your mind
-                fresh.
-              </li>
-              <li>
-                <strong>Beat Procrastination:</strong> Easy to start when you
-                only commit to 25 minutes.
-              </li>
-              <li>
-                <strong>Track Your Time:</strong> Know exactly how much time
-                you're spending on tasks.
-              </li>
-            </ul>
-          </section>
-
+          {/* Add your modal content here if needed */}
           <div className="flex justify-end mt-6">
             <button
               onClick={() => setShowInfoModal(false)}
@@ -257,11 +265,10 @@ function Pomodoro() {
         </div>
       </div>
     </div>
-  );
+  ));
 
-  // Main Pomodoro UI (shown only after payment)
-  const PomodoroUI = () => (
-    <div className="min-h-screen  bg-gray-50 p-6">
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-purple-800">Pomodoro</h1>
@@ -285,15 +292,8 @@ function Pomodoro() {
               setLongBreakDuration={setLongBreakDuration}
               phase={phase}
               setPhase={setPhase}
-              timeLeft={timeLeft}
-              setTimeLeft={setTimeLeft}
-              isActive={isActive}
-              setIsActive={setIsActive}
               pomodoros={pomodoros}
-              setPomodoros={setPomodoros}
               currentTask={currentTask}
-              autoStart={autoStart}
-              soundEnabled={soundEnabled}
               onSessionComplete={handleSessionComplete}
               cycle={cycle}
             />
@@ -342,8 +342,6 @@ function Pomodoro() {
       {showInfoModal && <InfoModal />}
     </div>
   );
-
-  return <PomodoroUI />;
 }
 
-export default Pomodoro;
+export default React.memo(Pomodoro);

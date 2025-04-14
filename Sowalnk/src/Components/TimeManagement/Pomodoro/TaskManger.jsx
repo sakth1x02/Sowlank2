@@ -192,6 +192,10 @@ function TaskManagerComponent({
           i === index ? { ...t, completed: true, progress: 100 } : t
         );
         setTasks(updatedTasks);
+        if (currentTask === task.text) {
+          setCurrentTask(null);
+          localStorage.removeItem("currentPomodoroTask");
+        }
         onPointsUpdate(20);
         toast.success("Task completed!");
       } else {
@@ -213,15 +217,15 @@ function TaskManagerComponent({
 
       if (response.success) {
         setTasks(tasks.filter((_, i) => i !== index));
-        if (currentTask === task.text) setCurrentTask(null);
+        // Clear current task only if deleting the active task
+        if (currentTask === task.text) {
+          setCurrentTask(null);
+          localStorage.removeItem("currentPomodoroTask");
+        }
         toast.success("Task deleted successfully");
-      } else {
-        toast.error("Failed to delete task");
       }
     } catch (error) {
       toast.error(error.message || "Failed to delete task");
-    } finally {
-      setDeletingTaskId(null);
     }
   };
 
@@ -456,17 +460,27 @@ function TaskManagerComponent({
 
                 <div className="flex justify-between mt-2">
                   <button
-                    onClick={() => setCurrentTask(task.text)}
+                    onClick={() => {
+                      if (
+                        task.deadline &&
+                        new Date(task.deadline) > new Date()
+                      ) {
+                        setCurrentTask(task.text);
+                        localStorage.setItem("currentPomodoroTask", task.text);
+                      }
+                    }}
                     className={`text-sm ${
-                      !task.deadline || task.completed
+                      !task.deadline ||
+                      task.completed ||
+                      new Date(task.deadline) <= new Date()
                         ? "text-gray-400 cursor-not-allowed"
                         : "text-purple-600 hover:text-purple-800"
                     }`}
-                    aria-label={`Select task "${task.text}" for focus`}
-                    disabled={task.completed || isDeleting || !task.deadline}
                     title={
                       !task.deadline
                         ? "Set a deadline before selecting this task"
+                        : new Date(task.deadline) <= new Date()
+                        ? "This task's deadline has passed"
                         : ""
                     }
                   >
