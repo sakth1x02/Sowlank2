@@ -28,8 +28,11 @@ const LandingPage = () => {
             Welcome to Sowalnk
           </h1>
 
+          {/* Subscription Section */}
+          <div className="mt-8">{auth && <Subscription />}</div>
+
           {/* Something Big is Brewing Section */}
-          <section className="py-20 rounded-t-lg bg-gradient-to-r from-purple-900 via-violet-800 to-purple-900 overflow-hidden">
+          <section className="py-20 bg-gradient-to-r from-purple-900 via-violet-800 to-purple-900 overflow-hidden">
             <div className="container mx-auto px-4 text-center relative">
               <motion.div
                 initial={{ opacity: 0, y: 50 }}
@@ -198,9 +201,6 @@ const LandingPage = () => {
         <div className="mt-8">
           <Feature />
         </div>
-
-        {/* Subscription Section */}
-        <div className="mt-8">{auth && <Subscription />}</div>
       </div>
     </div>
   );

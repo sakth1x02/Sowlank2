@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Clock3,
   StickyNote,
+  Goal,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -61,6 +62,12 @@ const Sidebar = () => {
       icon: <Calendar className="h-5 w-5" />,
       className: advanceMember === true ? "" : "hidden",
     },
+    // {
+    //   path: "/goal",
+    //   label: "Goal Tracker",
+    //   icon: <Goal className="h-5 w-5" />,
+    //   className: advanceMember === true ? "" : "hidden",
+    // },
     {
       path: "/time-management",
       label: "15 Time Methods",

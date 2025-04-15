@@ -34,6 +34,7 @@ import { fetchUsers, setLoggedInUser } from "./store/user-slice";
 import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
 import StickyNotes from "./Components/StickyNotes/StickyNotes.jsx";
 import Motivation from "./Components/MotivationPage/Motivation.jsx";
+import GoalPage from "./Components/Goal/Goal.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
   const hasShownFeedback = useRef(false);
@@ -111,7 +112,6 @@ const App = () => {
       }
 
       // Handle other non-OK responses
-
       if (!res.ok) {
         const data = await res.json();
         if (data.isTokenExpired) {
@@ -201,6 +201,7 @@ const App = () => {
                   path="time-management"
                   element={auth ? <TimeManage /> : <Login />}
                 />
+                <Route path="goal" element={auth ? <GoalPage /> : <Login />} />
                 <Route
                   path="Motivation-Quotes"
                   element={auth ? <Motivation /> : <Login />}
