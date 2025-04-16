@@ -306,7 +306,7 @@ const pomodoroController = {
 
       // Update points and check for level up
       const currentPoints = pomodoroPoints.points;
-      const newPoints = currentPoints + 20; // Add 20 points for completing a task
+      const newPoints = currentPoints + 10; // Add 20 points for completing a task
       const newLevel = Math.floor(newPoints / 100) + 1; // Level up every 100 points
 
       // Check and update streak
