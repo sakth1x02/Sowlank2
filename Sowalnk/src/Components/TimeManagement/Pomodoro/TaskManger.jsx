@@ -196,7 +196,7 @@ function TaskManagerComponent({
           setCurrentTask(null);
           localStorage.removeItem("currentPomodoroTask");
         }
-        onPointsUpdate(20);
+        onPointsUpdate(10);
         toast.success("Task completed!");
       } else {
         toast.error("Failed to mark task as completed");

@@ -59,37 +59,9 @@ function Pomodoro() {
     }
   }, [tasks, currentTask]);
 
-  // useEffect(() => {
-  //   const validateCurrentTask = () => {
-  //     const savedTask = localStorage.getItem("currentPomodoroTask");
-  //     if (savedTask && tasks.length > 0) {
-  //       const taskValid = tasks.some(
-  //         (task) =>
-  //           task.text === savedTask &&
-  //           !task.completed &&
-  //           task.deadline &&
-  //           new Date(task.deadline) > new Date()
-  //       );
-
-  //       if (!taskValid) {
-  //         setCurrentTask(null);
-  //         localStorage.removeItem("currentPomodoroTask");
-  //       }
-  //     }
-  //   };
-
-  //   const interval = setInterval(validateCurrentTask, 30000); // Validate every 30 seconds
-  //   return () => clearInterval(interval);
-  // }, [tasks]);
-
   useEffect(() => {
     const item = localStorage.getItem("currentPomodoroTask");
     setCurrentTask(item);
-    // if (currentTask) {
-    //   localStorage.setItem("currentPomodoroTask", currentTask);
-    // } else {
-    //   localStorage.removeItem("currentPomodoroTask");
-    // }
   }, [currentTask]);
 
   const fetchTasks = useCallback(async () => {
@@ -102,21 +74,6 @@ function Pomodoro() {
         // Get saved task from localStorage
         const savedTask = localStorage.getItem("currentPomodoroTask");
         setCurrentTask(savedTask);
-        // // Find matching task in fresh data
-        // const validTask = response.data.find(
-        //   (task) =>
-        //     task.text === savedTask &&
-        //     !task.completed &&
-        //     task.deadline &&
-        //     new Date(task.deadline) > new Date()
-        // );
-
-        // if (validTask) {
-        //   setCurrentTask(validTask.text);
-        // } else {
-        //   localStorage.removeItem("currentPomodoroTask");
-        //   setCurrentTask(null);
-        // }
       } else {
         toast.error("Failed to fetch tasks");
       }
