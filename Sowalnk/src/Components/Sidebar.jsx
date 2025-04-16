@@ -62,17 +62,16 @@ const Sidebar = () => {
       icon: <Calendar className="h-5 w-5" />,
       className: advanceMember === true ? "" : "hidden",
     },
-    // {
-    //   path: "/goal",
-    //   label: "Goal Tracker",
-    //   icon: <Goal className="h-5 w-5" />,
-    //   className: advanceMember === true ? "" : "hidden",
-    // },
+    {
+      path: "/goal",
+      label: "Goal Tracker",
+      icon: <Goal className="h-5 w-5" />,
+      className: advanceMember === true ? "" : "hidden",
+    },
     {
       path: "/time-management",
       label: "15 Time Methods",
       icon: <Clock3 className="h-5 w-5" />,
-      className: advanceMember === true ? "" : "hidden",
     },
 
     {

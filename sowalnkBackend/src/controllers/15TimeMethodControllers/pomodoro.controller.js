@@ -324,7 +324,7 @@ const pomodoroController = {
         newStreak += 1;
         // Check for 7-day streak bonus
         if (newStreak % 7 === 0) {
-          streakBonus = 30; // Add 30 points for 7-day streak
+          streakBonus = 20; // Add 30 points for 7-day streak
         }
       } else if (daysSinceLastUpdate > 1) {
         // Reset streak if more than one day has passed
