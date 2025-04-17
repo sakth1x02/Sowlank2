@@ -81,7 +81,7 @@ const TimeManage = () => {
       id: 10,
       name: "Task Batching",
       description: "Group similar tasks to minimize context switching.",
-      // hidden: true,
+      hidden: true,
     },
     {
       id: 11,
