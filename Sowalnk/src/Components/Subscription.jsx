@@ -256,9 +256,7 @@ const Subscription = () => {
             key={index}
             className="py-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
           >
-            <h2 className="text-2xl font-semibold mb-3 overflow-scroll scrollbar-hide">
-              {plan.name}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-3">{plan.name}</h2>
             <p className="text-lg mb-1 line-through italic">{plan.of}</p>
             <p className="text-lg mb-6">{plan.price}</p>
             <button

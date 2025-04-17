@@ -14,10 +14,12 @@ const EisenhowerMethod = () => {
 
   // Load state from localStorage on mount
   useEffect(() => {
-    const savedTasks = JSON.parse(localStorage.getItem("eisenhowerTasks")) || [];
+    const savedTasks =
+      JSON.parse(localStorage.getItem("eisenhowerTasks")) || [];
     const savedPoints = parseInt(localStorage.getItem("eisenhowerPoints")) || 0;
     const savedLevel = parseInt(localStorage.getItem("eisenhowerLevel")) || 1;
-    const savedBadges = JSON.parse(localStorage.getItem("eisenhowerBadges")) || [];
+    const savedBadges =
+      JSON.parse(localStorage.getItem("eisenhowerBadges")) || [];
     setTasks(savedTasks);
     setPoints(savedPoints);
     setLevel(savedLevel);
@@ -77,7 +79,11 @@ const EisenhowerMethod = () => {
     };
 
     // Badges
-    if (action === "add" && totalTasks + 1 >= 5 && !badges.includes("Task Starter")) {
+    if (
+      action === "add" &&
+      totalTasks + 1 >= 5 &&
+      !badges.includes("Task Starter")
+    ) {
       setBadges((prev) => [...prev, "Task Starter"]);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
@@ -85,7 +91,10 @@ const EisenhowerMethod = () => {
 
     if (action === "delete") {
       Object.keys(quadrantTasks).forEach((quadrant) => {
-        if (quadrantTasks[quadrant] === 0 && !badges.includes(`Quadrant Master: ${quadrant}`)) {
+        if (
+          quadrantTasks[quadrant] === 0 &&
+          !badges.includes(`Quadrant Master: ${quadrant}`)
+        ) {
           setBadges((prev) => [...prev, `Quadrant Master: ${quadrant}`]);
           updatePoints(50); // Bonus for clearing a quadrant
           setShowConfetti(true);
@@ -131,20 +140,38 @@ const EisenhowerMethod = () => {
             <h3 className="text-xl font-semibold mb-2">The Four Quadrants</h3>
             <ul className="space-y-3">
               <li>
-                <span className="font-semibold text-red-600">Do First (Urgent & Important):</span>
-                <p className="text-gray-700">Tasks that require immediate attention and have significant consequences.</p>
+                <span className="font-semibold text-red-600">
+                  Do First (Urgent & Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that require immediate attention and have significant
+                  consequences.
+                </p>
               </li>
               <li>
-                <span className="font-semibold text-blue-600">Decide (Not Urgent & Important):</span>
-                <p className="text-gray-700">Tasks that contribute to long-term goals and should be scheduled.</p>
+                <span className="font-semibold text-blue-600">
+                  Decide (Not Urgent & Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that contribute to long-term goals and should be
+                  scheduled.
+                </p>
               </li>
               <li>
-                <span className="font-semibold text-yellow-600">Delegate (Urgent & Not Important):</span>
-                <p className="text-gray-700">Tasks that need to be done soon but can be delegated.</p>
+                <span className="font-semibold text-yellow-600">
+                  Delegate (Urgent & Not Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that need to be done soon but can be delegated.
+                </p>
               </li>
               <li>
-                <span className="font-semibold text-green-600">Delete (Not Urgent & Not Important):</span>
-                <p className="text-gray-700">Tasks that are distractions and should be eliminated.</p>
+                <span className="font-semibold text-green-600">
+                  Delete (Not Urgent & Not Important):
+                </span>
+                <p className="text-gray-700">
+                  Tasks that are distractions and should be eliminated.
+                </p>
               </li>
             </ul>
           </section>
@@ -187,21 +214,25 @@ const EisenhowerMethod = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gray-100 place-items-center p-4 ">
       {showConfetti && <Confetti />}
       {/* Sidebar for Gamification */}
-      <aside className="w-64 bg-white p-4 shadow-lg">
-        <h2 className="text-xl font-semibold text-blue-600 mb-4">Your Progress</h2>
+      <aside className="w-64 bg-white p-4 shadow-lg ">
+        <h2 className="text-xl font-semibold text-blue-600 mb-4">
+          Your Progress
+        </h2>
         <div className="space-y-4">
           <div>
             <p className="text-lg">Level: {level}</p>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full"
-                style={{ width: `${(points % 100)}%` }}
+                style={{ width: `${points % 100}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-500">{points % 100}/100 to next level</p>
+            <p className="text-sm text-gray-500">
+              {points % 100}/100 to next level
+            </p>
           </div>
           <p className="text-lg">Points: {points}</p>
           <div>
@@ -209,7 +240,10 @@ const EisenhowerMethod = () => {
             {badges.length > 0 ? (
               <ul className="mt-2 space-y-2">
                 {badges.map((badge, index) => (
-                  <li key={index} className="bg-yellow-400 text-white p-2 rounded-lg text-sm">
+                  <li
+                    key={index}
+                    className="bg-yellow-400 text-white p-2 rounded-lg text-sm"
+                  >
                     {badge}
                   </li>
                 ))}
@@ -267,7 +301,7 @@ const EisenhowerMethod = () => {
             </div>
           </form>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="md:grid space-y-6 md:grid-cols-2 gap-6">
             <QuadrantSection
               title="Do First"
               type="do"

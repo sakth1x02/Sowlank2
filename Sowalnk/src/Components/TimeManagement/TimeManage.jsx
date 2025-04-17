@@ -81,7 +81,7 @@ const TimeManage = () => {
       id: 10,
       name: "Task Batching",
       description: "Group similar tasks to minimize context switching.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 11,
@@ -178,67 +178,67 @@ const TimeManage = () => {
           </button>
           {activeMethod === 1 && <Pomodoro />}
           {activeMethod === 2 && (
-            <div className="blur-sm">
+            <div className="">
               <EisenhowerMethod />
             </div>
           )}
           {activeMethod === 3 && (
-            <div className="blur-sm">
+            <div className="">
               <ABCDEMethod />
             </div>
           )}
           {activeMethod === 4 && (
-            <div className="blur-sm">
+            <div className="">
               <DeepWorkTimer />
             </div>
           )}
           {activeMethod === 5 && (
-            <div className="blur-sm">
+            <div className="">
               <TwoMinuteRule />
             </div>
           )}
           {activeMethod === 6 && (
-            <div className="blur-sm">
+            <div className="">
               <Pareto80_20 />
             </div>
           )}
           {activeMethod === 7 && (
-            <div className="blur-sm">
+            <div className="">
               <EatFrog />
             </div>
           )}
           {activeMethod === 8 && (
-            <div className="blur-sm">
+            <div className="">
               <GtdApp />
             </div>
           )}
           {activeMethod === 9 && (
-            <div className="blur-sm">
+            <div className="">
               <KanbanBoard />
             </div>
           )}
           {activeMethod === 10 && (
-            <div className="blur-sm">
+            <div className="">
               <TaskBatchingApp />
             </div>
           )}
           {activeMethod === 11 && (
-            <div className="blur-sm">
+            <div className="">
               <WarrenBuffett525 />
             </div>
           )}
           {activeMethod === 12 && (
-            <div className="blur-sm">
+            <div className="">
               <MSCWMethod />
             </div>
           )}
           {activeMethod === 13 && (
-            <div className="blur-sm">
+            <div className="">
               <TimeBlocking />
             </div>
           )}
           {activeMethod === 14 && (
-            <div className="blur-sm">
+            <div className="">
               <ONEThreeFiveMethod />
             </div>
           )}
