@@ -96,7 +96,7 @@ const Subscription = () => {
     {
       name: "BASIC",
       of: "",
-      price: "Daily limits of 10 Tasks",
+      price: "Daily limits of 10 Tasks(free)",
       features: [
         "Access to Daily Goals Only ",
         "Limited support",
@@ -250,13 +250,13 @@ const Subscription = () => {
       <h1 className="text-4xl py-15 font-semibold text-gray-800 mt-8">
         Choose Your Perfect Plan
       </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-8 max-w-7xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full mt-8 max-w-7xl">
         {plans.map((plan, index) => (
           <div
             key={index}
-            className="p-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
+            className="py-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
           >
-            <h2 className="text-2xl font-semibold mb-3 overflow-scroll">
+            <h2 className="text-2xl font-semibold mb-3 overflow-scroll scrollbar-hide">
               {plan.name}
             </h2>
             <p className="text-lg mb-1 line-through italic">{plan.of}</p>
