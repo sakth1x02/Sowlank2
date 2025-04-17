@@ -310,7 +310,7 @@ function TaskManagerComponent({
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6 h-fit">
+    <div className="bg-white rounded-lg p-2 ">
       <h2 className="text-2xl font-bold text-purple-800 mb-4">Task Board</h2>
 
       <div className="flex gap-2 mb-4">
@@ -335,7 +335,7 @@ function TaskManagerComponent({
         </button>
       </div>
 
-      <div className="space-y-4 max-h-[500px] overflow-y-auto">
+      <div className="space-y-4 max-h-[590px] overflow-y-auto">
         {loading ? (
           <p className="text-center text-gray-500 py-4">Loading tasks...</p>
         ) : tasks.length === 0 ? (

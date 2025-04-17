@@ -16,6 +16,8 @@ const Subscription = () => {
 
   const [remainingIntermediateDays, setRemainingIntermediateDays] = useState(0);
   const [remainingAdvancedDays, setRemainingAdvancedDays] = useState(0);
+  const [remainingAdvancedMonthlyDays, setRemainingAdvancedMonthlyDays] =
+    useState(0);
 
   // Load Razorpay script
   useEffect(() => {
@@ -54,6 +56,7 @@ const Subscription = () => {
         dispatch(setAdvanceMember(false));
         setRemainingIntermediateDays(0);
         setRemainingAdvancedDays(0);
+        setRemainingAdvancedMonthlyDays(0);
 
         data.data.subscription.forEach((plan) => {
           // console.log(plan);
@@ -71,6 +74,13 @@ const Subscription = () => {
               timeDifference / (1000 * 60 * 60 * 24)
             );
             setRemainingAdvancedDays(remainingDays);
+            dispatch(setAdvanceMember(true));
+          } else if (plan.planType === "ADVANCEDMONTHLY" && isActive) {
+            const timeDifference = new Date(plan.endDate) - new Date();
+            const remainingDays = Math.ceil(
+              timeDifference / (1000 * 60 * 60 * 24)
+            );
+            setRemainingAdvancedMonthlyDays(remainingDays);
             dispatch(setAdvanceMember(true));
           }
         });
@@ -124,7 +134,6 @@ const Subscription = () => {
 
   const handleSubscribe = async (planName) => {
     if (planName === "BASIC") return;
-
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -163,7 +172,7 @@ const Subscription = () => {
         handler: async function (response) {
           // Verify payment
           try {
-            const token = await localStorage.getItem("token");
+            const token = localStorage.getItem("token");
             if (!token) {
               toast.error("Authentication required. Please login.");
               navigate("/login");
@@ -238,18 +247,18 @@ const Subscription = () => {
           🎉 Special Offer: Get 50% off on your first 3 months! 🎉
         </div>
       </div>
-
       <h1 className="text-4xl py-15 font-semibold text-gray-800 mt-8">
-        Choose Your Plan
+        Choose Your Perfect Plan
       </h1>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-8 max-w-7xl">
         {plans.map((plan, index) => (
           <div
             key={index}
             className="p-8 rounded-lg shadow-xl text-center text-white bg-purple-600"
           >
-            <h2 className="text-2xl font-semibold mb-3">{plan.name}</h2>
+            <h2 className="text-2xl font-semibold mb-3 overflow-scroll">
+              {plan.name}
+            </h2>
             <p className="text-lg mb-1 line-through italic">{plan.of}</p>
             <p className="text-lg mb-6">{plan.price}</p>
             <button
@@ -339,7 +348,42 @@ const Subscription = () => {
           </button>
         </div>
       )}
-
+      {/* monthly advance plan here */}
+      <h1 className="text-3xl font-bold text-gray-800 mt-16 mb-8 text-center">
+        Flexible Monthly Option
+      </h1>
+      <div className="w-full max-w-sm">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-8 text-white">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold">ADVANCED MONTHLY</h3>
+              <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                New
+              </div>
+            </div>
+            <p className="text-3xl font-bold mb-6">₹29/month</p>
+            <span className="text-white text-bold text-xl ">
+              ***Active {remainingAdvancedMonthlyDays} days are left***
+            </span>
+            <p className="text-lg mb-6">
+              Enjoy all the features of the Advanced plan with a flexible
+              monthly subscription.
+            </p>
+            <ul className="list-disc list-inside mb-6">
+              <li>Access to all premium features</li>
+              <li>Priority support</li>
+              <li>Exclusive content and resources</li>
+            </ul>
+            <button
+              onClick={() => handleSubscribe("ADVANCEDMONTHLY")}
+              className="w-full py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+              disabled={loading}
+            >
+              Subscribe Now
+            </button>
+          </div>
+        </div>
+      </div>
       <style jsx="true">{`
         @keyframes marquee {
           0% {

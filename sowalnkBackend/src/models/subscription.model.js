@@ -9,7 +9,7 @@ const subscriptionSchema = new mongoose.Schema(
     },
     planType: {
       type: String,
-      enum: ["BASIC", "INTERMEDIATE", "ADVANCED"],
+      enum: ["BASIC", "INTERMEDIATE", "ADVANCED", "ADVANCEDMONTHLY"],
       required: true,
     },
     razorpayOrderId: {
@@ -52,19 +52,4 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// subscriptionSchema.methods.isInTrialPeriod = function () {
-//   if (this.status === "trial" && this.startDate) {
-//     const trialEnd = new Date(this.startDate);
-//     trialEnd.setDate(trialEnd.getDate() + 10);
-//     return new Date() < trialEnd;
-//   }
-//   return false;
-// };
-
-// userSchema.methods.getEffectivePlan = function() {
-//   if (this.isInTrialPeriod()) {
-//     return 'advanced'; // Give full access during trial
-//   }
-//   return this.subscriptionPlan;
-// };
 export const Subscription = mongoose.model("Subscription", subscriptionSchema);

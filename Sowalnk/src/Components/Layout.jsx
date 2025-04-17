@@ -81,17 +81,8 @@ const Layout = () => {
     return "bg-red-600";
   };
 
-  // Toggle sticky notes visibility
-  // const toggleStickyNotes = () => {
-  //   setShowStickyNotes(!showStickyNotes);
-  //   // Stop bouncing when notes are opened
-  //   if (!showStickyNotes) {
-  //     setIsBouncing(false);
-  //   }
-  // };
-
   return (
-    <>
+    <div className="overflow-x-hidden">
       <Header />
       {/* Progress Bar Container */}
       <div
@@ -148,7 +139,7 @@ const Layout = () => {
       </div>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

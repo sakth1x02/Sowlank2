@@ -123,14 +123,10 @@ const TimeManage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
-      className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col"
+      className="min-h-screen bg-gradient-to-b  from-gray-50 to-gray-100"
     >
       <header className="w-full pt-16 px-8 md:px-12 flex flex-col items-center justify-between z-10">
-        <div
-          className={`${
-            activeMethod === null ? "" : "hidden"
-          } container max-w-7xl`}
-        >
+        <div className={`${activeMethod === null ? "" : "hidden"} container `}>
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="flex flex-col items-center">
               <motion.div
@@ -166,135 +162,123 @@ const TimeManage = () => {
         </div>
       </header>
 
-      <div className="my-1" />
-
-      <main className="flex-1 overflow-hidden">
-        <div className="h-full">
-          {activeMethod !== null ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-full flex flex-col"
-            >
-              <button
-                onClick={() => setActiveMethod(null)}
-                className="mb-4 flex items-center gap-2 group"
-              >
-                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                Back to All Methods
-              </button>
-              <div className=" place-items-center p-6">
-                {activeMethod === 1 && (
-                  <div className="">
-                    <Pomodoro />
-                  </div>
-                )}
-                {activeMethod === 2 && (
-                  <div className="blur-sm">
-                    <EisenhowerMethod />
-                  </div>
-                )}
-                {activeMethod === 3 && (
-                  <div className="blur-sm">
-                    <ABCDEMethod />
-                  </div>
-                )}
-                {activeMethod === 4 && (
-                  <div className="blur-sm">
-                    <DeepWorkTimer />
-                  </div>
-                )}
-                {activeMethod === 5 && (
-                  <div className="blur-sm">
-                    <TwoMinuteRule />
-                  </div>
-                )}
-                {activeMethod === 6 && (
-                  <div className="blur-sm">
-                    <Pareto80_20 />
-                  </div>
-                )}
-                {activeMethod === 7 && (
-                  <div className="blur-sm">
-                    <EatFrog />
-                  </div>
-                )}
-                {activeMethod === 8 && (
-                  <div className="blur-sm">
-                    <GtdApp />
-                  </div>
-                )}
-                {activeMethod === 9 && (
-                  <div className="blur-sm">
-                    <KanbanBoard />
-                  </div>
-                )}
-                {activeMethod === 10 && (
-                  <div className="blur-sm">
-                    <TaskBatchingApp />
-                  </div>
-                )}
-                {activeMethod === 11 && (
-                  <div className="blur-sm">
-                    <WarrenBuffett525 />
-                  </div>
-                )}
-                {activeMethod === 12 && (
-                  <div className="blur-sm">
-                    <MSCWMethod />
-                  </div>
-                )}
-                {activeMethod === 13 && (
-                  <div className="blur-sm">
-                    <TimeBlocking />
-                  </div>
-                )}
-                {activeMethod === 14 && (
-                  <div className="blur-sm">
-                    <ONEThreeFiveMethod />
-                  </div>
-                )}
-                {activeMethod === 15 && (
-                  <div className="blur-sm">
-                    <Pickle />
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ) : (
-            <div className="px-6 py-4 md:px-10">
-              <div className="container mx-auto max-w-7xl mt-16">
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                  Browse Time Management Methods
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {timeMethods.map((method) =>
-                    method.hidden ? (
-                      <div key={method.id} className="relative">
-                        <div className="blur-sm">
-                          <TimeMethodCard method={method} onClick={() => {}} />
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="bg-black/80 px-3 py-1 rounded-full text-sm font-medium text-white">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <TimeMethodCard
-                        key={method.id}
-                        method={method}
-                        onClick={() => setActiveMethod(method.id)}
-                      />
-                    )
-                  )}
-                </div>
-              </div>
+      {activeMethod !== null ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="container  mx-auto px-2 py-4 md:px-10"
+        >
+          <button
+            onClick={() => setActiveMethod(null)}
+            className="mb-4 flex items-center gap-2 group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back to All Methods
+          </button>
+          {activeMethod === 1 && <Pomodoro />}
+          {activeMethod === 2 && (
+            <div className="blur-sm">
+              <EisenhowerMethod />
             </div>
           )}
+          {activeMethod === 3 && (
+            <div className="blur-sm">
+              <ABCDEMethod />
+            </div>
+          )}
+          {activeMethod === 4 && (
+            <div className="blur-sm">
+              <DeepWorkTimer />
+            </div>
+          )}
+          {activeMethod === 5 && (
+            <div className="blur-sm">
+              <TwoMinuteRule />
+            </div>
+          )}
+          {activeMethod === 6 && (
+            <div className="blur-sm">
+              <Pareto80_20 />
+            </div>
+          )}
+          {activeMethod === 7 && (
+            <div className="blur-sm">
+              <EatFrog />
+            </div>
+          )}
+          {activeMethod === 8 && (
+            <div className="blur-sm">
+              <GtdApp />
+            </div>
+          )}
+          {activeMethod === 9 && (
+            <div className="blur-sm">
+              <KanbanBoard />
+            </div>
+          )}
+          {activeMethod === 10 && (
+            <div className="blur-sm">
+              <TaskBatchingApp />
+            </div>
+          )}
+          {activeMethod === 11 && (
+            <div className="blur-sm">
+              <WarrenBuffett525 />
+            </div>
+          )}
+          {activeMethod === 12 && (
+            <div className="blur-sm">
+              <MSCWMethod />
+            </div>
+          )}
+          {activeMethod === 13 && (
+            <div className="blur-sm">
+              <TimeBlocking />
+            </div>
+          )}
+          {activeMethod === 14 && (
+            <div className="blur-sm">
+              <ONEThreeFiveMethod />
+            </div>
+          )}
+          {activeMethod === 15 && (
+            <div className="blur-sm">
+              <Pickle />
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <div className="px-6 py-4 md:px-10">
+          <div className="container mx-auto max-w-7xl mt-16">
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Browse Time Management Methods
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {timeMethods.map((method) =>
+                method.hidden ? (
+                  <div key={method.id} className="relative">
+                    <div className="blur-sm">
+                      <TimeMethodCard method={method} onClick={() => {}} />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="bg-black/80 px-3 py-1 rounded-full text-sm font-medium text-white">
+                        Coming Soon
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <TimeMethodCard
+                    key={method.id}
+                    method={method}
+                    onClick={() => setActiveMethod(method.id)}
+                  />
+                )
+              )}
+            </div>
+          </div>
         </div>
-      </main>
+      )}
 
       {activeMethod === null && (
         <footer className="w-full py-6 px-8 text-center text-gray-500 text-sm">

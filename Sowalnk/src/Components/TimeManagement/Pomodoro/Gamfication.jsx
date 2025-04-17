@@ -12,8 +12,6 @@ function GamificationComponent({
   pomodoros,
 }) {
   const [showConfetti, setShowConfetti] = useState(false);
-  const pointsPerLevel = 100;
-
   const achievements = [
     {
       id: "focus_novice",
@@ -110,34 +108,6 @@ function GamificationComponent({
           <p className="text-2xl font-bold text-purple-700">{streak}d</p>
         </div>
       </div>
-
-      {/* <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-2">Next Level Progress</p>
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
-            className="bg-purple-600 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${progressToNextLevel}%` }}
-          />
-        </div>
-      </div> */}
-
-      {/* <div className="mb-6">
-        <p className="text-sm font-semibold text-gray-700 mb-2">Daily Quest</p>
-        <p className="text-sm text-gray-600">{dailyChallenge.description}</p>
-        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-          <div
-            className="bg-green-500 h-2 rounded-full"
-            style={{
-              width: `${
-                (dailyChallenge.progress / dailyChallenge.target) * 100
-              }%`,
-            }}
-          />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">
-          {dailyChallenge.progress}/{dailyChallenge.target}
-        </p>
-      </div> */}
 
       <div>
         <p className="text-sm font-semibold text-gray-700 mb-2">Achievements</p>

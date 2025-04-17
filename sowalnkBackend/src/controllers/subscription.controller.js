@@ -11,16 +11,22 @@ const razorpay = new Razorpay({
 
 const PLANS = {
   INTERMEDIATE: {
-    amount: 39900, // Amount in paise (₹750)
+    amount: 39900,
     currency: "INR",
     interval: "monthly",
     period: 90, // days
   },
   ADVANCED: {
-    amount: 49900, // Amount in paise (₹1550)
+    amount: 49900,
     currency: "INR",
     interval: "yearly",
     period: 365, // days
+  },
+  ADVANCEDMONTHLY: {
+    amount: 2900,
+    currency: "INR",
+    interval: "monthly",
+    period: 30, // days
   },
 };
 
@@ -29,7 +35,9 @@ const createSubscription = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   if (!planType || !PLANS[planType]) {
-    throw new ApiError(400, "Invalid plan type");
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid plan type" });
   }
 
   const plan = PLANS[planType];
@@ -65,7 +73,7 @@ const createSubscription = asyncHandler(async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to create order :" + error.error.description,
+      message: "Failed to create order :" + error.message || error,
     });
   }
 });
