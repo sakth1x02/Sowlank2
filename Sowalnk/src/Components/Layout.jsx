@@ -3,17 +3,23 @@ import Header from "./Header";
 import Footer from "./Footer";
 import "./Layout.css";
 import { Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Bell } from "lucide-react";
 import Notification from "./Notification/Notification.jsx";
 import { io } from "socket.io-client";
-
+import { toast } from "react-toastify";
+import { fetchTasks } from "../store/task-slice";
 const Layout = () => {
   const auth = useSelector((state) => state.user.loggedInUser);
   const [showNotifications, setShowNotifications] = useState(false);
   const [remainingTime, setRemainingTime] = useState(calculateRemainingTime());
   const [unreadCount, setUnreadCount] = useState(0);
   const [socket, setSocket] = useState(null);
+  const dispatch = useDispatch();
+  const { intermediateMember, advanceMember } = useSelector(
+    (state) => state.ui
+  );
+  const { dailyTask } = useSelector((state) => state.task);
   // const [showStickyNotes, setShowStickyNotes] = useState(false); // State for sticky notes popup
   // const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
 
@@ -81,6 +87,10 @@ const Layout = () => {
     return "bg-red-600";
   };
 
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch, dailyTask]);
+
   return (
     <div className="overflow-x-hidden">
       <Header />
@@ -108,9 +118,23 @@ const Layout = () => {
                   setUnreadCount(0);
                 }
               }}
-              className="relative p-1 hover:bg-gray-300 rounded-full duration-300"
+              className={`relative p-1 hover:bg-gray-300 rounded-full duration-300 ${
+                advanceMember
+                  ? ""
+                  : "hidden" && intermediateMember
+                  ? ""
+                  : "hidden"
+              }`}
             >
-              <Bell className="h-5" />
+              <Bell
+                className={`h-5 ${
+                  advanceMember
+                    ? ""
+                    : "hidden" && intermediateMember
+                    ? ""
+                    : "hidden"
+                }`}
+              />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {unreadCount}
@@ -124,7 +148,46 @@ const Layout = () => {
       {/* Notification Popup */}
       {showNotifications && (
         <Notification
-          onClose={() => setShowNotifications(false)}
+          onClose={() => {
+            setShowNotifications(false);
+            const getPendingTasks = () => {
+              return dailyTask.filter(
+                (task) => !task.isCompleted && !task.hasExceededTime
+              );
+            };
+            const pendingTasks = getPendingTasks().filter(
+              (task) => !task.isCompleted
+            );
+            const now = new Date();
+            const newNotifications = pendingTasks
+              .filter((task) => {
+                if (!task.endTime) return false;
+
+                // Parse the HH:mm time string
+                const [hours, minutes] = task.endTime.split(":").map(Number);
+
+                // Create a Date object for today with this end time
+                const endTimeToday = new Date();
+                endTimeToday.setHours(hours, minutes, 0, 0);
+
+                // Calculate difference in minutes
+                const timeDiff = (endTimeToday - now) / (1000 * 60);
+                return timeDiff <= 5 && timeDiff >= 0;
+              })
+              .map((task) => ({
+                id: task._id,
+                message: `Task "${task.taskName}" is ending soon!`,
+                endTime: task.endTime,
+                fullEndTime: new Date().setHours(
+                  ...task.endTime.split(":").map(Number)
+                ),
+                isRead: task.isRead,
+                createdAt: new Date().toISOString(),
+              }));
+            if (newNotifications.length > 0) {
+              toast.success("Please complete pending tasks");
+            }
+          }}
           unreadCount={unreadCount}
           setUnreadCount={setUnreadCount}
         />

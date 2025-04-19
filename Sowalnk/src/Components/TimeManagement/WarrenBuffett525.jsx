@@ -6,22 +6,34 @@ import toast, { Toaster } from "react-hot-toast";
 import Confetti from "react-confetti";
 
 function WarrenBuffett525() {
-  const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem("warrenBuffettTasks")) || []);
+  const [tasks, setTasks] = useState(
+    () => JSON.parse(localStorage.getItem("warrenBuffettTasks")) || []
+  );
   const [newTask, setNewTask] = useState("");
   const [newTaskNotes, setNewTaskNotes] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState("Medium");
   const [showPrioritize, setShowPrioritize] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedTasks, setSelectedTasks] = useState([]);
-  const [topFiveTasks, setTopFiveTasks] = useState(() => JSON.parse(localStorage.getItem("warrenBuffettTopFive")) || []);
+  const [topFiveTasks, setTopFiveTasks] = useState(
+    () => JSON.parse(localStorage.getItem("warrenBuffettTopFive")) || []
+  );
   const [sortOption, setSortOption] = useState("newest");
   const [filterOption, setFilterOption] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTasks, setExpandedTasks] = useState({});
-  const [points, setPoints] = useState(() => parseInt(localStorage.getItem("warrenPoints")) || 0);
-  const [level, setLevel] = useState(() => parseInt(localStorage.getItem("warrenLevel")) || 1);
-  const [badges, setBadges] = useState(() => JSON.parse(localStorage.getItem("warrenBadges")) || []);
-  const [rewards, setRewards] = useState(() => JSON.parse(localStorage.getItem("warrenRewards")) || []);
+  const [points, setPoints] = useState(
+    () => parseInt(localStorage.getItem("warrenPoints")) || 0
+  );
+  const [level, setLevel] = useState(
+    () => parseInt(localStorage.getItem("warrenLevel")) || 1
+  );
+  const [badges, setBadges] = useState(
+    () => JSON.parse(localStorage.getItem("warrenBadges")) || []
+  );
+  const [rewards, setRewards] = useState(
+    () => JSON.parse(localStorage.getItem("warrenRewards")) || []
+  );
   const [showConfetti, setShowConfetti] = useState(false);
   const [theme, setTheme] = useState("light");
   const [showSummary, setShowSummary] = useState(false);
@@ -47,12 +59,30 @@ function WarrenBuffett525() {
 
     const addedTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.completed).length;
-    const topFiveCompleted = tasks.filter((t) => topFiveTasks.includes(t.id) && t.completed).length;
+    const topFiveCompleted = tasks.filter(
+      (t) => topFiveTasks.includes(t.id) && t.completed
+    ).length;
 
-    if (action === "add" && addedTasks >= 5 && !badges.includes("Task Starter")) setBadges((prev) => [...prev, "Task Starter"]);
-    if (action === "complete" && completedTasks >= 5 && !badges.includes("Task Finisher")) setBadges((prev) => [...prev, "Task Finisher"]);
-    if (action === "top5" && topFiveTasks.length === 5 && !badges.includes("Focus Master")) setBadges((prev) => [...prev, "Focus Master"]);
-    if (action === "complete" && topFiveCompleted >= 3 && !badges.includes("Top 5 Pro")) setBadges((prev) => [...prev, "Top 5 Pro"]);
+    if (action === "add" && addedTasks >= 5 && !badges.includes("Task Starter"))
+      setBadges((prev) => [...prev, "Task Starter"]);
+    if (
+      action === "complete" &&
+      completedTasks >= 5 &&
+      !badges.includes("Task Finisher")
+    )
+      setBadges((prev) => [...prev, "Task Finisher"]);
+    if (
+      action === "top5" &&
+      topFiveTasks.length === 5 &&
+      !badges.includes("Focus Master")
+    )
+      setBadges((prev) => [...prev, "Focus Master"]);
+    if (
+      action === "complete" &&
+      topFiveCompleted >= 3 &&
+      !badges.includes("Top 5 Pro")
+    )
+      setBadges((prev) => [...prev, "Top 5 Pro"]);
   };
 
   const handleAddTask = (e) => {
@@ -170,30 +200,48 @@ function WarrenBuffett525() {
   };
 
   const redeemReward = (reward) => {
-    if (rewards.includes(reward.name)) return toast.error("Reward already redeemed!");
+    if (rewards.includes(reward.name))
+      return toast.error("Reward already redeemed!");
     if (points < reward.cost) return toast.error("Not enough points!");
     setPoints((prev) => prev - reward.cost);
     setRewards((prev) => [...prev, reward.name]);
     if (reward.name === "Dark Theme") setTheme("dark");
     if (reward.name === "Bonus 50 Points") setPoints((prev) => prev + 50);
-    if (reward.name === "Custom Badge") setBadges((prev) => [...prev, "Custom Star"]);
+    if (reward.name === "Custom Badge")
+      setBadges((prev) => [...prev, "Custom Star"]);
     toast.success(`${reward.name} redeemed successfully!`);
   };
 
   const getRewardsList = () => [
-    { name: "Dark Theme", cost: 500, description: "Switch to a sleek dark mode." },
-    { name: "Bonus 50 Points", cost: 300, description: "Get an extra 50 points." },
-    { name: "Custom Badge", cost: 700, description: "Earn a unique 'Custom Star' badge." },
+    {
+      name: "Dark Theme",
+      cost: 500,
+      description: "Switch to a sleek dark mode.",
+    },
+    {
+      name: "Bonus 50 Points",
+      cost: 300,
+      description: "Get an extra 50 points.",
+    },
+    {
+      name: "Custom Badge",
+      cost: 700,
+      description: "Earn a unique 'Custom Star' badge.",
+    },
   ];
 
-  const filteredTasks = tasks.filter((task) =>
-    searchQuery ? task.text.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  ).filter((task) => {
-    if (filterOption === "completed") return task.completed;
-    if (filterOption === "top5") return topFiveTasks.includes(task.id);
-    if (filterOption === "ignored") return task.ignored;
-    return true;
-  });
+  const filteredTasks = tasks
+    .filter((task) =>
+      searchQuery
+        ? task.text.toLowerCase().includes(searchQuery.toLowerCase())
+        : true
+    )
+    .filter((task) => {
+      if (filterOption === "completed") return task.completed;
+      if (filterOption === "top5") return topFiveTasks.includes(task.id);
+      if (filterOption === "ignored") return task.ignored;
+      return true;
+    });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
     if (sortOption === "newest") return parseInt(b.id) - parseInt(a.id);
@@ -212,7 +260,9 @@ function WarrenBuffett525() {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((t) => t.completed).length;
     const pendingTasks = totalTasks - completedTasks;
-    const topFiveCompleted = tasks.filter((t) => topFiveTasks.includes(t.id) && t.completed).length;
+    const topFiveCompleted = tasks.filter(
+      (t) => topFiveTasks.includes(t.id) && t.completed
+    ).length;
     return { totalTasks, completedTasks, pendingTasks, topFiveCompleted };
   };
 
@@ -232,50 +282,100 @@ function WarrenBuffett525() {
         total,
         completionRate: total > 0 ? (completed / total) * 100 : 0,
       }))
-      .sort((a, b) => b.completed - a.completed || b.completionRate - a.completionRate);
+      .sort(
+        (a, b) =>
+          b.completed - a.completed || b.completionRate - a.completionRate
+      );
   };
 
   const progress = getProgress();
   const rewardsList = getRewardsList();
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"} flex flex-col`}>
+    <div
+      className={`min-h-screen ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      } flex flex-col`}
+    >
       {showConfetti && <Confetti />}
       {/* Header */}
-      <header className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} shadow-lg p-6 flex items-center justify-between sticky top-0 z-10 mb-4`}>
-        <h1 className={`text-3xl font-extrabold ${theme === "dark" ? "text-purple-300" : "text-purple-500"} font-[Inter]`}>
+      <header
+        className={`${
+          theme === "dark" ? "bg-gray-800" : "bg-white"
+        }  p-6 flex items-center justify-between sticky top-0 z-10 `}
+      >
+        <h1
+          className={`text-3xl font-extrabold ${
+            theme === "dark" ? "text-purple-300" : "text-purple-500"
+          } font-[Inter]`}
+        >
           Warren Buffett 5/25 Rule
         </h1>
         <button
           onClick={() => setShowHelp(true)}
-          className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} p-3 rounded-full transition-all`}
+          className={`${
+            theme === "dark"
+              ? "bg-gray-700 hover:bg-gray-600"
+              : "bg-purple-200 hover:bg-purple-300"
+          } p-3 rounded-full transition-all`}
         >
-          <Info size={24} className={theme === "dark" ? "text-purple-300" : "text-purple-500"} />
+          <Info
+            size={24}
+            className={theme === "dark" ? "text-purple-300" : "text-purple-500"}
+          />
         </button>
       </header>
 
       {/* Main Layout */}
-      <div className="flex flex-1 gap-6 overflow-hidden px-4 sm:px-6 lg:px-8">
+      <div className="">
         {/* Sidebar: Gamification */}
-        <aside className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} w-full md:w-96 shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}>
+        <aside
+          className={`${
+            theme === "dark" ? "bg-gray-800" : "bg-white"
+          } w-full  shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r ${
+            theme === "dark" ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
           <div className="space-y-6">
-            <div className={`${theme === "dark" ? "bg-purple-700" : "bg-purple-500"} text-white p-6 rounded-xl shadow-lg`}>
+            <div
+              className={`${
+                theme === "dark" ? "bg-purple-700" : "bg-purple-500"
+              } text-white p-6 rounded-xl shadow-lg`}
+            >
               <h3 className="text-2xl font-semibold">Level {level}</h3>
               <p className="text-sm mt-2">Points: {points.toLocaleString()}</p>
               <div className="mt-4">
-                <div className={`${theme === "dark" ? "bg-purple-600" : "bg-purple-400"} w-full rounded-full h-3`}>
-                  <div className="bg-white h-3 rounded-full transition-all duration-500" style={{ width: `${points % 100}%` }}></div>
+                <div
+                  className={`${
+                    theme === "dark" ? "bg-purple-600" : "bg-purple-400"
+                  } w-full rounded-full h-3`}
+                >
+                  <div
+                    className="bg-white h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${points % 100}%` }}
+                  ></div>
                 </div>
-                <p className="text-xs mt-1 text-purple-100">{points % 100}/100 to Level {level + 1}</p>
+                <p className="text-xs mt-1 text-purple-100">
+                  {points % 100}/100 to Level {level + 1}
+                </p>
               </div>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Badges</h4>
               <div className="flex flex-wrap gap-3">
-                {badges.length ? badges.map((badge, idx) => (
-                  <span key={idx} className="bg-yellow-500 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">{badge}</span>
-                )) : (
-                  <p className="text-sm italic">Earn badges by managing tasks!</p>
+                {badges.length ? (
+                  badges.map((badge, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-yellow-500 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md"
+                    >
+                      {badge}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm italic">
+                    Earn badges by managing tasks!
+                  </p>
                 )}
               </div>
             </div>
@@ -283,12 +383,25 @@ function WarrenBuffett525() {
               <h4 className="text-lg font-semibold mb-4">Rewards</h4>
               <ul className="space-y-2">
                 {rewardsList.map((reward) => (
-                  <li key={reward.name} className="flex justify-between items-center">
-                    <span>{reward.name} ({reward.cost} pts): {reward.description}</span>
+                  <li
+                    key={reward.name}
+                    className="flex justify-between items-center"
+                  >
+                    <span>
+                      {reward.name} ({reward.cost} pts): {reward.description}
+                    </span>
                     <button
                       onClick={() => redeemReward(reward)}
-                      disabled={rewards.includes(reward.name) || points < reward.cost}
-                      className={`px-2 py-1 text-sm rounded ${rewards.includes(reward.name) ? "bg-gray-400" : points < reward.cost ? "bg-gray-300" : "bg-green-500 hover:bg-green-600"} text-white`}
+                      disabled={
+                        rewards.includes(reward.name) || points < reward.cost
+                      }
+                      className={`px-2 py-1 text-sm rounded ${
+                        rewards.includes(reward.name)
+                          ? "bg-gray-400"
+                          : points < reward.cost
+                          ? "bg-gray-300"
+                          : "bg-green-500 hover:bg-green-600"
+                      } text-white`}
                     >
                       {rewards.includes(reward.name) ? "Redeemed" : "Redeem"}
                     </button>
@@ -305,27 +418,47 @@ function WarrenBuffett525() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-semibold">Overall Progress</h2>
-              <span className="text-base font-medium">{Math.round(progress)}%</span>
+              <span className="text-base font-medium">
+                {Math.round(progress)}%
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
-              <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+              <div
+                className="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
           </div>
 
           {/* Task Input Form */}
-          <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mb-6`}>
-            <form onSubmit={handleAddTask} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            className={`${
+              theme === "dark" ? "bg-gray-800" : "bg-white"
+            } p-6 rounded-xl shadow-lg mb-6`}
+          >
+            <form
+              onSubmit={handleAddTask}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
               <input
                 type="text"
                 placeholder="Enter your task..."
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-gray-50 border-gray-300"
+                } p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
               />
               <select
                 value={newTaskPriority}
                 onChange={(e) => setNewTaskPriority(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-gray-50 border-gray-300"
+                } p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500`}
               >
                 <option value="High">Priority: High</option>
                 <option value="Medium">Priority: Medium</option>
@@ -335,7 +468,11 @@ function WarrenBuffett525() {
                 placeholder="Add notes (optional)..."
                 value={newTaskNotes}
                 onChange={(e) => setNewTaskNotes(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-gray-50 border-gray-300"} p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-20 resize-none md:col-span-2`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-gray-50 border-gray-300"
+                } p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-20 resize-none md:col-span-2`}
               />
               <button
                 type="submit"
@@ -378,12 +515,20 @@ function WarrenBuffett525() {
                 placeholder="Search tasks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300"
+                } p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
               />
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300"
+                } p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="oldest">Sort: Oldest First</option>
@@ -392,7 +537,11 @@ function WarrenBuffett525() {
               <select
                 value={filterOption}
                 onChange={(e) => setFilterOption(e.target.value)}
-                className={`${theme === "dark" ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"} p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
+                className={`${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300"
+                } p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-48`}
               >
                 <option value="all">Filter: All</option>
                 <option value="completed">Filter: Completed</option>
@@ -409,47 +558,83 @@ function WarrenBuffett525() {
                 <h2 className="text-2xl font-semibold">Your Tasks</h2>
                 <button
                   onClick={() => setShowSummary(!showSummary)}
-                  className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
+                  className={`${
+                    theme === "dark"
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-purple-200 hover:bg-purple-300"
+                  } px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
                 >
                   {showSummary ? "Hide Summary" : "Show Summary"}
                 </button>
                 <button
                   onClick={() => setShowRanking(!showRanking)}
-                  className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-200 hover:bg-purple-300"} px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
+                  className={`${
+                    theme === "dark"
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-purple-200 hover:bg-purple-300"
+                  } px-4 py-2 rounded-lg transition-all text-sm font-semibold`}
                 >
                   {showRanking ? "Hide Ranking" : "Show Ranking"}
                 </button>
               </div>
             </div>
-            <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg`}>
+            <div
+              className={`${
+                theme === "dark" ? "bg-gray-800" : "bg-white"
+              } p-6 rounded-xl shadow-lg`}
+            >
               {sortedTasks.length > 0 ? (
                 <DragDropContext onDragEnd={handleDragEnd}>
                   <Droppable droppableId="tasks">
                     {(provided) => (
-                      <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-3"
+                      >
                         {sortedTasks.map((task, index) => {
                           const isTopFive = topFiveTasks.includes(task.id);
                           return (
-                            <Draggable key={task.id} draggableId={task.id} index={index}>
+                            <Draggable
+                              key={task.id}
+                              draggableId={task.id}
+                              index={index}
+                            >
                               {(provided) => (
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={`${theme === "dark" ? "bg-gray-700" : "bg-gray-50"} flex flex-col p-4 rounded-lg border ${theme === "dark" ? "border-gray-600" : "border-gray-200"} hover:bg-gray-100 transition-all duration-300`}
+                                  className={`${
+                                    theme === "dark"
+                                      ? "bg-gray-700"
+                                      : "bg-gray-50"
+                                  } flex flex-col p-4 rounded-lg border ${
+                                    theme === "dark"
+                                      ? "border-gray-600"
+                                      : "border-gray-200"
+                                  } hover:bg-gray-100 transition-all duration-300`}
                                 >
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3 flex-1">
                                       <input
                                         type="checkbox"
                                         checked={task.completed}
-                                        onChange={() => handleToggleComplete(task.id)}
+                                        onChange={() =>
+                                          handleToggleComplete(task.id)
+                                        }
                                         className="h-5 w-5 text-purple-500 border-2 rounded focus:ring-purple-400"
                                       />
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 flex-wrap">
                                           <span
-                                            className={`text-lg font-medium ${task.completed ? "line-through text-gray-500" : theme === "dark" ? "text-white" : "text-gray-800"}`}
+                                            className={`text-lg font-medium ${
+                                              task.completed
+                                                ? "line-through text-gray-500"
+                                                : theme === "dark"
+                                                ? "text-white"
+                                                : "text-gray-800"
+                                            }`}
                                           >
                                             {task.text}
                                           </span>
@@ -458,7 +643,13 @@ function WarrenBuffett525() {
                                               Top 5
                                             </span>
                                           )}
-                                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${theme === "dark" ? "bg-gray-600 text-white" : "bg-gray-200 text-gray-800"}`}>
+                                          <span
+                                            className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                              theme === "dark"
+                                                ? "bg-gray-600 text-white"
+                                                : "bg-gray-200 text-gray-800"
+                                            }`}
+                                          >
                                             {task.priority}
                                           </span>
                                         </div>
@@ -466,17 +657,37 @@ function WarrenBuffett525() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       {task.notes && (
-                                        <button onClick={() => toggleTaskNotes(task.id)} className="text-gray-600 hover:text-gray-800">
-                                          {expandedTasks[task.id] ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+                                        <button
+                                          onClick={() =>
+                                            toggleTaskNotes(task.id)
+                                          }
+                                          className="text-gray-600 hover:text-gray-800"
+                                        >
+                                          {expandedTasks[task.id] ? (
+                                            <FaChevronUp size={14} />
+                                          ) : (
+                                            <FaChevronDown size={14} />
+                                          )}
                                         </button>
                                       )}
-                                      <button onClick={() => handleDeleteTask(task.id)} className="text-red-500 hover:text-red-700 transition-colors">
+                                      <button
+                                        onClick={() =>
+                                          handleDeleteTask(task.id)
+                                        }
+                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                      >
                                         <FaTrash size={14} />
                                       </button>
                                     </div>
                                   </div>
                                   {expandedTasks[task.id] && task.notes && (
-                                    <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-sm mt-2 p-2 rounded-lg`}>
+                                    <p
+                                      className={`${
+                                        theme === "dark"
+                                          ? "text-gray-300"
+                                          : "text-gray-600"
+                                      } text-sm mt-2 p-2 rounded-lg`}
+                                    >
                                       {task.notes}
                                     </p>
                                   )}
@@ -491,24 +702,44 @@ function WarrenBuffett525() {
                   </Droppable>
                 </DragDropContext>
               ) : (
-                <p className="text-center text-lg italic text-gray-500">No tasks added yet.</p>
+                <p className="text-center text-lg italic text-gray-500">
+                  No tasks added yet.
+                </p>
               )}
             </div>
 
             {/* Summary Section */}
             {showSummary && (
-              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mt-6`}>
+              <div
+                className={`${
+                  theme === "dark" ? "bg-gray-800" : "bg-white"
+                } p-6 rounded-xl shadow-lg mt-6`}
+              >
                 <h3 className="text-2xl font-bold mb-4">Task Summary</h3>
                 <div className="space-y-4">
                   {(() => {
-                    const { totalTasks, completedTasks, pendingTasks, topFiveCompleted } = getSummaryData();
+                    const {
+                      totalTasks,
+                      completedTasks,
+                      pendingTasks,
+                      topFiveCompleted,
+                    } = getSummaryData();
                     return (
                       <>
                         <div>
-                          <p><strong>Total Tasks:</strong> {totalTasks}</p>
-                          <p><strong>Completed:</strong> {completedTasks}</p>
-                          <p><strong>Pending:</strong> {pendingTasks}</p>
-                          <p><strong>Top 5 Completed:</strong> {topFiveCompleted}/{topFiveTasks.length}</p>
+                          <p>
+                            <strong>Total Tasks:</strong> {totalTasks}
+                          </p>
+                          <p>
+                            <strong>Completed:</strong> {completedTasks}
+                          </p>
+                          <p>
+                            <strong>Pending:</strong> {pendingTasks}
+                          </p>
+                          <p>
+                            <strong>Top 5 Completed:</strong> {topFiveCompleted}
+                            /{topFiveTasks.length}
+                          </p>
                         </div>
                       </>
                     );
@@ -519,7 +750,11 @@ function WarrenBuffett525() {
 
             {/* Ranking Section */}
             {showRanking && (
-              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-white"} p-6 rounded-xl shadow-lg mt-6`}>
+              <div
+                className={`${
+                  theme === "dark" ? "bg-gray-800" : "bg-white"
+                } p-6 rounded-xl shadow-lg mt-6`}
+              >
                 <h3 className="text-2xl font-bold mb-4">Priority Rankings</h3>
                 <div className="space-y-4">
                   {(() => {
@@ -527,11 +762,21 @@ function WarrenBuffett525() {
                     return rankings.length > 0 ? (
                       <ul className="space-y-3">
                         {rankings.map((rank, idx) => (
-                          <li key={rank.priority} className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-purple-600">{idx + 1}.</span>
+                          <li
+                            key={rank.priority}
+                            className="flex items-center gap-3"
+                          >
+                            <span className="text-lg font-bold text-purple-600">
+                              {idx + 1}.
+                            </span>
                             <div>
-                              <p><strong>{rank.priority}</strong></p>
-                              <p className="text-sm">Completed: {rank.completed}/{rank.total} ({rank.completionRate.toFixed(1)}%)</p>
+                              <p>
+                                <strong>{rank.priority}</strong>
+                              </p>
+                              <p className="text-sm">
+                                Completed: {rank.completed}/{rank.total} (
+                                {rank.completionRate.toFixed(1)}%)
+                              </p>
                             </div>
                           </li>
                         ))}
@@ -550,20 +795,40 @@ function WarrenBuffett525() {
       {/* Prioritize Modal */}
       {showPrioritize && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-White text-gray-700"} p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto`}>
+          <div
+            className={`${
+              theme === "dark"
+                ? "bg-gray-800 text-white"
+                : "bg-White text-gray-700"
+            } p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto`}
+          >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-semibold">Prioritize Tasks (5/25)</h3>
-              <button onClick={() => setShowPrioritize(false)} className="text-2xl font-bold hover:text-gray-500">×</button>
+              <h3 className="text-2xl font-semibold">
+                Prioritize Tasks (5/25)
+              </h3>
+              <button
+                onClick={() => setShowPrioritize(false)}
+                className="text-2xl font-bold hover:text-gray-500"
+              >
+                ×
+              </button>
             </div>
             <div className="mb-4">
-              <p>Select up to 25 tasks to prioritize. The first 5 will be your main focus.</p>
+              <p>
+                Select up to 25 tasks to prioritize. The first 5 will be your
+                main focus.
+              </p>
               <p className="mt-2">Selected: {selectedTasks.length}/25</p>
             </div>
             <div className="max-h-80 overflow-y-auto border-t border-gray-200 pt-3">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className={`flex items-center p-3 border-b cursor-pointer transition-colors ${selectedTasks.includes(task.id) ? "bg-purple-100" : "border-gray-100"}`}
+                  className={`flex items-center p-3 border-b cursor-pointer transition-colors ${
+                    selectedTasks.includes(task.id)
+                      ? "bg-purple-100"
+                      : "border-gray-100"
+                  }`}
                   onClick={() => handleTaskSelection(task.id)}
                 >
                   <input
@@ -597,13 +862,27 @@ function WarrenBuffett525() {
       {/* Help Modal */}
       {showHelp && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-White text-gray-700"} p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto`}>
+          <div
+            className={`${
+              theme === "dark"
+                ? "bg-gray-800 text-white"
+                : "bg-White text-gray-700"
+            } p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto`}
+          >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-2xl font-semibold">What is the 5/25 Rule?</h3>
-              <button onClick={() => setShowHelp(false)} className="text-2xl font-bold hover:text-gray-500">×</button>
+              <button
+                onClick={() => setShowHelp(false)}
+                className="text-2xl font-bold hover:text-gray-500"
+              >
+                ×
+              </button>
             </div>
             <div className="space-y-3">
-              <p>The 5/25 Rule is a strategy by Warren Buffett to focus on key goals.</p>
+              <p>
+                The 5/25 Rule is a strategy by Warren Buffett to focus on key
+                goals.
+              </p>
               <h3 className="text-xl font-semibold">Benefits:</h3>
               <ul className="list-disc list-inside">
                 <li>Helps maintain clarity and focus on key goals.</li>
@@ -611,12 +890,26 @@ function WarrenBuffett525() {
                 <li>Encourages disciplined attention to priorities.</li>
               </ul>
               <h3 className="text-xl font-semibold">How to Use:</h3>
-              <p>1. List all tasks.<br />2. Pick top 25.<br />3. Select top 5.<br />4. Ignore the rest.</p>
+              <p>
+                1. List all tasks.
+                <br />
+                2. Pick top 25.
+                <br />
+                3. Select top 5.
+                <br />
+                4. Ignore the rest.
+              </p>
               <h3 className="text-xl font-semibold">Gamification:</h3>
               <ul className="list-disc list-inside">
-                <li>+10 pts (add), +25 pts (complete), +50 pts (prioritize), -5 pts (delete).</li>
+                <li>
+                  +10 pts (add), +25 pts (complete), +50 pts (prioritize), -5
+                  pts (delete).
+                </li>
                 <li>Level up every 100 points.</li>
-                <li>Badges: Starter (5 tasks), Finisher (5 completed), Focus Master (Top 5 set), Top 5 Pro (3 Top 5 completed).</li>
+                <li>
+                  Badges: Starter (5 tasks), Finisher (5 completed), Focus
+                  Master (Top 5 set), Top 5 Pro (3 Top 5 completed).
+                </li>
               </ul>
             </div>
             <button

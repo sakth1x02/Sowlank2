@@ -109,6 +109,11 @@ const Sidebar = () => {
       path: "/reminders",
       label: "Reminders",
       icon: <Bell className="h-5 w-5" />,
+      className: advanceMember
+        ? ""
+        : "hidden" && intermediateMember
+        ? ""
+        : "hidden",
     },
     {
       path: "/coupons",

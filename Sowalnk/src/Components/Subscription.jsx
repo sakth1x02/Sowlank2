@@ -304,8 +304,18 @@ const Subscription = () => {
           )}
           <button
             onClick={() => handleSubscribe(selectedPlan)}
-            disabled={loading}
-            className={`mt-4 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={
+              loading ||
+              (selectedPlan === "INTERMEDIATE" && intermediateMember) ||
+              (selectedPlan === "ADVANCED" && advanceMember)
+            }
+            className={`mt-4 ${
+              loading ||
+              (selectedPlan === "INTERMEDIATE" && intermediateMember) ||
+              (selectedPlan === "ADVANCED" && advanceMember)
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            } `}
           >
             <span
               className={` ${
@@ -374,8 +384,10 @@ const Subscription = () => {
             </ul>
             <button
               onClick={() => handleSubscribe("ADVANCEDMONTHLY")}
-              className="w-full py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
-              disabled={loading}
+              className={`w-full ${
+                advanceMember ? "cursor-not-allowed opacity-50" : ""
+              } py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold`}
+              disabled={loading || advanceMember}
             >
               Subscribe Now
             </button>

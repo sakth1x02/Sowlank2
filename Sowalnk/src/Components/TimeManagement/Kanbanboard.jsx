@@ -19,9 +19,15 @@ function KanbanBoard() {
   });
   const [editingTask, setEditingTask] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
-  const [points, setPoints] = useState(() => parseInt(localStorage.getItem("kanbanPoints")) || 0);
-  const [level, setLevel] = useState(() => parseInt(localStorage.getItem("kanbanLevel")) || 1);
-  const [badges, setBadges] = useState(() => JSON.parse(localStorage.getItem("kanbanBadges")) || []);
+  const [points, setPoints] = useState(
+    () => parseInt(localStorage.getItem("kanbanPoints")) || 0
+  );
+  const [level, setLevel] = useState(
+    () => parseInt(localStorage.getItem("kanbanLevel")) || 1
+  );
+  const [badges, setBadges] = useState(
+    () => JSON.parse(localStorage.getItem("kanbanBadges")) || []
+  );
   const [showConfetti, setShowConfetti] = useState(false);
   const [showSummarySection, setShowSummarySection] = useState(false);
   const [showRankingsSection, setShowRankingsSection] = useState(false);
@@ -87,7 +93,9 @@ function KanbanBoard() {
   const handleEditTask = (task) => {
     setEditingTask({
       ...task,
-      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : "",
+      dueDate: task.dueDate
+        ? new Date(task.dueDate).toISOString().slice(0, 16)
+        : "",
     });
   };
 
@@ -110,7 +118,10 @@ function KanbanBoard() {
   const deleteTask = (taskId) => {
     const taskToDelete = tasks.find((task) => task.id === taskId);
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
-    setDeletedTasks((prev) => [...prev, { ...taskToDelete, deletedAt: new Date().toISOString() }]);
+    setDeletedTasks((prev) => [
+      ...prev,
+      { ...taskToDelete, deletedAt: new Date().toISOString() },
+    ]);
     toast("Task deleted!", {
       icon: "🗑️",
       duration: 3000,
@@ -149,7 +160,10 @@ function KanbanBoard() {
           ? {
               ...task,
               status: newStatus,
-              completedAt: newStatus === "Completed" ? new Date().toISOString() : task.completedAt,
+              completedAt:
+                newStatus === "Completed"
+                  ? new Date().toISOString()
+                  : task.completedAt,
             }
           : task
       )
@@ -167,7 +181,11 @@ function KanbanBoard() {
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    )
+      return;
 
     const updatedTasks = [...tasks];
     const [movedTask] = updatedTasks.splice(source.index, 1);
@@ -217,13 +235,17 @@ function KanbanBoard() {
 
   const getProgress = () => {
     const totalTasks = tasks.length;
-    const completedTasks = tasks.filter((task) => task.status === "Completed").length;
+    const completedTasks = tasks.filter(
+      (task) => task.status === "Completed"
+    ).length;
     return totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   };
 
   // Calculate completion regularity (mocked for single user)
   const getCompletionRegularity = () => {
-    const completedTasks = tasks.filter((task) => task.status === "Completed" && task.completedAt);
+    const completedTasks = tasks.filter(
+      (task) => task.status === "Completed" && task.completedAt
+    );
     if (completedTasks.length === 0) return [];
 
     const completionByDay = {};
@@ -249,7 +271,9 @@ function KanbanBoard() {
   // Sticky Note Task Component
   const Task = ({ task, index }) => {
     const isOverdue =
-      task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "Completed";
+      task.dueDate &&
+      new Date(task.dueDate) < new Date() &&
+      task.status !== "Completed";
     return (
       <Draggable draggableId={task.id} index={index}>
         {(provided) => (
@@ -269,12 +293,21 @@ function KanbanBoard() {
           >
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-gray-800 font-semibold text-base">{task.text}</span>
-                <p className="text-sm text-gray-600 mt-1">{task.description || "No description"}</p>
+                <span className="text-gray-800 font-semibold text-base">
+                  {task.text}
+                </span>
+                <p className="text-sm text-gray-600 mt-1">
+                  {task.description || "No description"}
+                </p>
                 {task.dueDate && (
                   <p className="text-xs text-gray-500 mt-1">
                     Due: {new Date(task.dueDate).toLocaleString()}
-                    {isOverdue && <span className="text-red-600 font-semibold"> (Overdue)</span>}
+                    {isOverdue && (
+                      <span className="text-red-600 font-semibold">
+                        {" "}
+                        (Overdue)
+                      </span>
+                    )}
                   </p>
                 )}
               </div>
@@ -317,11 +350,19 @@ function KanbanBoard() {
       </div>
       <Droppable droppableId={stage}>
         {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="min-h-[200px]">
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="min-h-[200px]"
+          >
             {stageTasks.length > 0 ? (
-              stageTasks.map((task, index) => <Task key={task.id} task={task} index={index} />)
+              stageTasks.map((task, index) => (
+                <Task key={task.id} task={task} index={index} />
+              ))
             ) : (
-              <p className="text-gray-500 italic text-center py-4">No tasks in this stage.</p>
+              <p className="text-gray-500 italic text-center py-4">
+                No tasks in this stage.
+              </p>
             )}
             {provided.placeholder}
           </div>
@@ -336,13 +377,41 @@ function KanbanBoard() {
 
   // Feature ranking data
   const featureRankings = [
-    { rank: 1, name: "Task Management", description: "Add, edit, delete, and move tasks across stages." },
-    { rank: 2, name: "Drag-and-Drop Sticky Notes", description: "Organize tasks visually with draggable sticky notes." },
-    { rank: 3, name: "Gamification", description: "Earn points, level up, and unlock badges." },
-    { rank: 4, name: "Time-Based Reminders", description: "Get alerts for overdue tasks." },
-    { rank: 5, name: "Progress Bar", description: "Track completion percentage." },
-    { rank: 6, name: "Full-Page Layout", description: "Structured, responsive design." },
-    { rank: 7, name: "Undo Delete", description: "Revert task deletion via toast." },
+    {
+      rank: 1,
+      name: "Task Management",
+      description: "Add, edit, delete, and move tasks across stages.",
+    },
+    {
+      rank: 2,
+      name: "Drag-and-Drop Sticky Notes",
+      description: "Organize tasks visually with draggable sticky notes.",
+    },
+    {
+      rank: 3,
+      name: "Gamification",
+      description: "Earn points, level up, and unlock badges.",
+    },
+    {
+      rank: 4,
+      name: "Time-Based Reminders",
+      description: "Get alerts for overdue tasks.",
+    },
+    {
+      rank: 5,
+      name: "Progress Bar",
+      description: "Track completion percentage.",
+    },
+    {
+      rank: 6,
+      name: "Full-Page Layout",
+      description: "Structured, responsive design.",
+    },
+    {
+      rank: 7,
+      name: "Undo Delete",
+      description: "Revert task deletion via toast.",
+    },
   ];
 
   return (
@@ -350,7 +419,9 @@ function KanbanBoard() {
       {showConfetti && <Confetti />}
       {/* Header */}
       <header className="bg-white shadow-lg p-6 flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-3xl font-extrabold text-purple-500">Kanban Board</h1>
+        <h1 className="text-3xl font-extrabold text-purple-500">
+          Kanban Board
+        </h1>
         <button
           onClick={() => setShowInfo(true)}
           className="p-3 rounded-full bg-purple-200 hover:bg-purple-300 transition-all"
@@ -360,9 +431,9 @@ function KanbanBoard() {
       </header>
 
       {/* Main Layout */}
-      <div className="flex flex-1 gap-x-6 overflow-hidden">
+      <div className="">
         {/* Sidebar: Gamification */}
-        <aside className="w-full md:w-72 bg-white shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r border-gray-200">
+        <aside className="w-full  bg-white shadow-lg p-6 flex-shrink-0 overflow-y-auto border-r border-gray-200">
           <div className="space-y-6">
             <div className="bg-purple-500 text-white p-6 rounded-xl shadow-lg">
               <h3 className="text-2xl font-semibold">Level {level}</h3>
@@ -380,7 +451,9 @@ function KanbanBoard() {
               </div>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">Badges</h4>
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                Badges
+              </h4>
               <div className="flex flex-wrap gap-3">
                 {badges.length ? (
                   badges.map((badge, idx) => (
@@ -392,20 +465,25 @@ function KanbanBoard() {
                     </span>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 italic">Earn badges by managing tasks!</p>
+                  <p className="text-sm text-gray-500 italic">
+                    Earn badges by managing tasks!
+                  </p>
                 )}
               </div>
             </div>
           </div>
         </aside>
-
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-semibold text-gray-800">Overall Progress</h2>
-              <span className="text-base font-medium text-gray-600">{Math.round(progress)}%</span>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Overall Progress
+              </h2>
+              <span className="text-base font-medium text-gray-600">
+                {Math.round(progress)}%
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div
@@ -478,7 +556,12 @@ function KanbanBoard() {
               }}
               className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
             >
-              Summary {showSummarySection ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              Summary{" "}
+              {showSummarySection ? (
+                <ChevronUp size={20} />
+              ) : (
+                <ChevronDown size={20} />
+              )}
             </button>
             <button
               onClick={() => {
@@ -487,34 +570,53 @@ function KanbanBoard() {
               }}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
             >
-              Rankings {showRankingsSection ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              Rankings{" "}
+              {showRankingsSection ? (
+                <ChevronUp size={20} />
+              ) : (
+                <ChevronDown size={20} />
+              )}
             </button>
           </div>
 
           {/* Summary Section */}
           {showSummarySection && (
             <div className="bg-white p-6 rounded-xl shadow-lg mt-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Summary</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Summary
+              </h2>
               <div className="space-y-6">
                 {/* Current Tasks */}
                 <div>
-                  <h3 className="text-lg font-semibold text-purple-600 mb-2">Current Tasks</h3>
+                  <h3 className="text-lg font-semibold text-purple-600 mb-2">
+                    Current Tasks
+                  </h3>
                   <p className="text-gray-700 mb-2">
-                    Total: {tasks.length} | Completed: {tasks.filter((t) => t.status === "Completed").length} | In Progress: {tasks.filter((t) => t.status === "Working On").length} | To Do: {tasks.filter((t) => t.status === "To Do").length}
+                    Total: {tasks.length} | Completed:{" "}
+                    {tasks.filter((t) => t.status === "Completed").length} | In
+                    Progress:{" "}
+                    {tasks.filter((t) => t.status === "Working On").length} | To
+                    Do: {tasks.filter((t) => t.status === "To Do").length}
                   </p>
                 </div>
 
                 {/* Previous (Deleted) Tasks */}
                 <div>
-                  <h3 className="text-lg font-semibold text-purple-600 mb-2">Previous Tasks</h3>
+                  <h3 className="text-lg font-semibold text-purple-600 mb-2">
+                    Previous Tasks
+                  </h3>
                   {deletedTasks.length > 0 ? (
                     <ul className="space-y-2 max-h-60 overflow-y-auto">
                       {deletedTasks.map((task) => (
-                        <li key={task.id} className="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
+                        <li
+                          key={task.id}
+                          className="flex justify-between items-center p-2 bg-gray-100 rounded-lg"
+                        >
                           <div>
                             <span className="font-semibold">{task.text}</span>
                             <p className="text-sm text-gray-600">
-                              Priority: {task.priority} | Deleted: {new Date(task.deletedAt).toLocaleString()}
+                              Priority: {task.priority} | Deleted:{" "}
+                              {new Date(task.deletedAt).toLocaleString()}
                             </p>
                           </div>
                           <button
@@ -527,7 +629,9 @@ function KanbanBoard() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 italic">No deleted tasks yet.</p>
+                    <p className="text-gray-500 italic">
+                      No deleted tasks yet.
+                    </p>
                   )}
                 </div>
               </div>
@@ -537,11 +641,15 @@ function KanbanBoard() {
           {/* Rankings Section */}
           {showRankingsSection && (
             <div className="bg-white p-6 rounded-xl shadow-lg mt-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Rankings</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Rankings
+              </h2>
               <div className="space-y-6">
                 {/* Feature Rankings */}
                 <div>
-                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">Feature Rankings</h3>
+                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">
+                    Feature Rankings
+                  </h3>
                   <ul className="space-y-3">
                     {featureRankings.map((feature) => (
                       <li
@@ -564,8 +672,12 @@ function KanbanBoard() {
                           #{feature.rank}
                         </span>
                         <div>
-                          <span className="font-semibold text-gray-800">{feature.name}:</span>{" "}
-                          <span className="text-gray-600">{feature.description}</span>
+                          <span className="font-semibold text-gray-800">
+                            {feature.name}:
+                          </span>{" "}
+                          <span className="text-gray-600">
+                            {feature.description}
+                          </span>
                         </div>
                       </li>
                     ))}
@@ -574,7 +686,9 @@ function KanbanBoard() {
 
                 {/* Task Completion Regularity */}
                 <div>
-                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">Task Completion Regularity</h3>
+                  <h3 className="text-lg font-semibold text-indigo-600 mb-2">
+                    Task Completion Regularity
+                  </h3>
                   {completionRegularity.length > 0 ? (
                     <ul className="space-y-3">
                       {completionRegularity.map((user) => (
@@ -598,16 +712,21 @@ function KanbanBoard() {
                             #{user.rank}
                           </span>
                           <div>
-                            <span className="font-semibold text-gray-800">{user.name}:</span>{" "}
+                            <span className="font-semibold text-gray-800">
+                              {user.name}:
+                            </span>{" "}
                             <span className="text-gray-600">
-                              Completed {user.completions} tasks - {user.regularity}
+                              Completed {user.completions} tasks -{" "}
+                              {user.regularity}
                             </span>
                           </div>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 italic">No completed tasks yet to rank regularity.</p>
+                    <p className="text-gray-500 italic">
+                      No completed tasks yet to rank regularity.
+                    </p>
                   )}
                 </div>
               </div>
@@ -633,18 +752,27 @@ function KanbanBoard() {
               <input
                 type="text"
                 value={editingTask.text}
-                onChange={(e) => setEditingTask({ ...editingTask, text: e.target.value })}
+                onChange={(e) =>
+                  setEditingTask({ ...editingTask, text: e.target.value })
+                }
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <textarea
                 value={editingTask.description}
-                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                onChange={(e) =>
+                  setEditingTask({
+                    ...editingTask,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Description (optional)"
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-24 resize-none"
               />
               <select
                 value={editingTask.priority}
-                onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                onChange={(e) =>
+                  setEditingTask({ ...editingTask, priority: e.target.value })
+                }
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 {priorities.map((priority) => (
@@ -656,12 +784,16 @@ function KanbanBoard() {
               <input
                 type="datetime-local"
                 value={editingTask.dueDate}
-                onChange={(e) => setEditingTask({ ...editingTask, dueDate: e.target.value })}
+                onChange={(e) =>
+                  setEditingTask({ ...editingTask, dueDate: e.target.value })
+                }
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <select
                 value={editingTask.status}
-                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
+                onChange={(e) =>
+                  setEditingTask({ ...editingTask, status: e.target.value })
+                }
                 className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 {stages.map((stage) => (
@@ -686,7 +818,9 @@ function KanbanBoard() {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
           <div className="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border-t-4 border-purple-500">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">About Kanban Board</h3>
+              <h3 className="text-xl font-bold text-gray-800">
+                About Kanban Board
+              </h3>
               <button
                 onClick={() => setShowInfo(false)}
                 className="text-gray-500 hover:text-gray-700 text-3xl font-bold"
@@ -696,35 +830,58 @@ function KanbanBoard() {
             </div>
             <div className="text-gray-700 space-y-4">
               <div>
-                <h4 className="text-lg font-semibold text-purple-600 mb-2">What is a Kanban Board?</h4>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">
+                  What is a Kanban Board?
+                </h4>
                 <p>
-                  A Kanban Board is a visual tool to manage tasks and workflows, organizing them into stages like "To Do," "Working On," and "Completed."
+                  A Kanban Board is a visual tool to manage tasks and workflows,
+                  organizing them into stages like "To Do," "Working On," and
+                  "Completed."
                 </p>
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-purple-600 mb-2">Benefits</h4>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">
+                  Benefits
+                </h4>
                 <ul className="list-disc list-inside space-y-2">
-                  <li><strong>Visual Clarity:</strong> See task status instantly.</li>
-                  <li><strong>Workflow:</strong> Optimize task flow.</li>
-                  <li><strong>Focus:</strong> Prioritize effectively.</li>
+                  <li>
+                    <strong>Visual Clarity:</strong> See task status instantly.
+                  </li>
+                  <li>
+                    <strong>Workflow:</strong> Optimize task flow.
+                  </li>
+                  <li>
+                    <strong>Focus:</strong> Prioritize effectively.
+                  </li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-purple-600 mb-2">How to Use</h4>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">
+                  How to Use
+                </h4>
                 <ul className="list-decimal list-inside space-y-2">
-                  <li>Add tasks with name, description, priority, and due date.</li>
-                  <li>Move tasks by clicking "Start"/"Complete" or dragging.</li>
+                  <li>
+                    Add tasks with name, description, priority, and due date.
+                  </li>
+                  <li>
+                    Move tasks by clicking "Start"/"Complete" or dragging.
+                  </li>
                   <li>Edit or delete tasks as needed.</li>
                   <li>Set reminders for timely alerts.</li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-purple-600 mb-2">Gamification</h4>
+                <h4 className="text-lg font-semibold text-purple-600 mb-2">
+                  Gamification
+                </h4>
                 <ul className="list-disc list-inside space-y-2">
                   <li>+10 points for adding a task.</li>
                   <li>+25 points for completing a task.</li>
                   <li>Level up every 100 points.</li>
-                  <li>Badges: "Task Starter" (5 added), "Task Finisher" (5 completed).</li>
+                  <li>
+                    Badges: "Task Starter" (5 added), "Task Finisher" (5
+                    completed).
+                  </li>
                 </ul>
               </div>
             </div>

@@ -243,7 +243,7 @@ const TimeManage = () => {
             </div>
           )}
           {activeMethod === 15 && (
-            <div className="blur-sm">
+            <div className="">
               <Pickle />
             </div>
           )}

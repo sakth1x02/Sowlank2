@@ -71,7 +71,7 @@ const GTDApp = () => {
 
       <div className="mt-8 bg-white shadow-lg rounded-lg overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-6 h-14">
+          <TabsList className="w-full grid grid-cols-3 md:grid md:grid-cols-6 h-14">
             <TabsTrigger value="capture" className="text-sm md:text-base">
               Capture
             </TabsTrigger>

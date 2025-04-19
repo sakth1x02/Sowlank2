@@ -34,7 +34,7 @@ const GTDOrganize = ({ tasks, updateTask, deleteTask }) => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all">
-            <TabsList className="grid grid-cols-6 mb-4">
+            <TabsList className="md:grid md:grid-cols-6 grid grid-cols-3 mb-4">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="work">Work</TabsTrigger>
               <TabsTrigger value="personal">Personal</TabsTrigger>
