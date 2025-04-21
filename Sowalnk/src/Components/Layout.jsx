@@ -88,7 +88,9 @@ const Layout = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchTasks());
+    if (auth) {
+      dispatch(fetchTasks());
+    }
   }, [dispatch, dailyTask]);
 
   return (

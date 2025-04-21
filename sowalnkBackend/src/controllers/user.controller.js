@@ -167,15 +167,15 @@ const userAuthentication = {
       await subscription.save();
     }
 
-    const subscription = await Subscription.create({
-      userId: user._id,
-      planType: "ADVANCED",
-      status: "trail",
-      amount: 0,
-      startDate: new Date(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
-    });
-    await subscription.save();
+    // const subscription = await Subscription.create({
+    //   userId: user._id,
+    //   planType: "ADVANCED",
+    //   status: "trail",
+    //   amount: 0,
+    //   startDate: new Date(),
+    //   endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
+    // });
+    // await subscription.save();
 
     user.isVerified = true;
     // Generate JWT token
