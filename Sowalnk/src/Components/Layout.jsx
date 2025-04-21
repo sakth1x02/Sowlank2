@@ -20,8 +20,6 @@ const Layout = () => {
     (state) => state.ui
   );
   const { dailyTask } = useSelector((state) => state.task);
-  // const [showStickyNotes, setShowStickyNotes] = useState(false); // State for sticky notes popup
-  // const [isBouncing, setIsBouncing] = useState(true); // State for bounce animation
 
   useEffect(() => {
     const newSocket = io();
@@ -91,7 +89,7 @@ const Layout = () => {
     if (auth) {
       dispatch(fetchTasks());
     }
-  }, [dispatch, dailyTask]);
+  }, [dispatch]);
 
   return (
     <div className="overflow-x-hidden">

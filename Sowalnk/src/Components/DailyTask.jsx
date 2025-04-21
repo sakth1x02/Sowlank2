@@ -212,19 +212,6 @@ function DailyTask() {
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      dailyTask.forEach((task) => {
-        if (!task.isCompleted && !task.hasExceededTime) {
-          checkIfTaskExceededTime(task);
-        }
-      });
-      dispatch(calculateTaskProgress());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [dailyTask]);
-
   const handleDelete = async (taskId) => {
     dispatch(deleteTask(taskId));
   };
@@ -325,6 +312,19 @@ function DailyTask() {
       sessionStorage.removeItem("hasNavigatedToPricing");
     }
   }, [todaysTasks, navigate]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dailyTask.forEach((task) => {
+        if (!task.isCompleted && !task.hasExceededTime) {
+          checkIfTaskExceededTime(task);
+        }
+      });
+      dispatch(calculateTaskProgress());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [dailyTask, dispatch]);
 
   return (
     <div className="min-h-screen ">

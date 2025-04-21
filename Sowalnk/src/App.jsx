@@ -35,6 +35,7 @@ import TimeManage from "./Components/TimeManagement/TimeManage.jsx";
 import StickyNotes from "./Components/StickyNotes/StickyNotes.jsx";
 import Motivation from "./Components/MotivationPage/Motivation.jsx";
 import GoalPage from "./Components/Goal/Goal.jsx";
+import Workspace from "./Components/GroupCollaboration/Workspace.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(false);
   const hasShownFeedback = useRef(false);
@@ -196,6 +197,10 @@ const App = () => {
                 <Route
                   path="yearly"
                   element={auth ? <YearlyTask /> : <Login />}
+                />
+                <Route
+                  path="workspace"
+                  element={auth ? <Workspace /> : <Login />}
                 />
                 <Route
                   path="time-management"
