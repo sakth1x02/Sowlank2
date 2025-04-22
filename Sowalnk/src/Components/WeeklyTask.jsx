@@ -207,14 +207,14 @@ function WeeklyTask() {
   // };
 
   useEffect(() => {
+    dispatch(fetchWeeklyTasks());
+  }, [dispatch]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       dispatch(calculateWeeklyTaskProgress());
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    dispatch(fetchWeeklyTasks());
   }, [dispatch]);
 
   const Dashboard = () => {

@@ -11,6 +11,8 @@ import {
   MessageSquare,
   User,
   X,
+  Trash2,
+  Edit,
 } from "lucide-react";
 
 export default function Workspace() {
@@ -22,12 +24,23 @@ export default function Workspace() {
       completed: false,
       dueDate: "2025-04-20",
       priority: "high",
+      description:
+        "Design 5 graphics for Instagram and Twitter to promote our new feature launch. Use the brand guidelines and color palette.",
       assignee: {
         id: 1,
         name: "Alex Johnson",
         avatar: "/api/placeholder/32/32",
       },
-      comments: 3,
+      comments: [
+        {
+          id: 1,
+          author: "Taylor Smith",
+          content:
+            "I've started working on these. What dimensions should we use for the Twitter headers?",
+          timestamp: "2h ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
     },
     {
       id: 2,
@@ -35,12 +48,14 @@ export default function Workspace() {
       completed: true,
       dueDate: "2025-04-15",
       priority: "medium",
+      description:
+        "Draft a blog post highlighting the new features and improvements in our latest release. Include screenshots and examples.",
       assignee: {
         id: 2,
         name: "Taylor Smith",
         avatar: "/api/placeholder/32/32",
       },
-      comments: 0,
+      comments: [],
     },
     {
       id: 3,
@@ -48,12 +63,29 @@ export default function Workspace() {
       completed: false,
       dueDate: "2025-04-25",
       priority: "low",
+      description:
+        "Analyze the strengths and weaknesses of our top 3 competitors. Prepare a report with recommendations for our strategy.",
       assignee: {
         id: 3,
         name: "Jamie Garcia",
         avatar: "/api/placeholder/32/32",
       },
-      comments: 2,
+      comments: [
+        {
+          id: 1,
+          author: "Alex Johnson",
+          content: "Please focus on our top 3 competitors",
+          timestamp: "1d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 2,
+          author: "Jamie Garcia",
+          content: "Will do. I'll have the report ready by Thursday.",
+          timestamp: "20h ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
     },
     {
       id: 4,
@@ -61,12 +93,36 @@ export default function Workspace() {
       completed: false,
       dueDate: "2025-04-18",
       priority: "high",
+      description:
+        "Create a presentation summarizing the progress of our current projects and any blockers we need to address. Include team updates.",
       assignee: {
         id: 1,
         name: "Alex Johnson",
         avatar: "/api/placeholder/32/32",
       },
-      comments: 5,
+      comments: [
+        {
+          id: 1,
+          author: "Mira Patel",
+          content: "Should we include the Q2 projections?",
+          timestamp: "3d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 2,
+          author: "Alex Johnson",
+          content: "Yes, but only the approved numbers",
+          timestamp: "2d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 3,
+          author: "Sam Wilson",
+          content: "I can help with the slides design",
+          timestamp: "1d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
     },
   ]);
   const [newTask, setNewTask] = useState({
@@ -75,6 +131,9 @@ export default function Workspace() {
     priority: "medium",
     assignee: null,
   });
+  const [newComment, setNewComment] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState("");
 
   const [selectedTask, setSelectedTask] = useState(null);
   const [screenSize, setScreenSize] = useState("large");
@@ -87,7 +146,10 @@ export default function Workspace() {
 
   const closeTaskDetails = () => {
     setSelectedTask(null);
+    setEditingComment(null);
+    setEditCommentContent("");
   };
+
   const members = [
     {
       id: 1,
@@ -138,7 +200,7 @@ export default function Workspace() {
       ...newTask,
       id: tasks.length + 1,
       completed: false,
-      comments: 0,
+      comments: [],
     };
     setTasks([...tasks, newTaskWithId]);
     setShowAddTaskModal(false);
@@ -148,6 +210,129 @@ export default function Workspace() {
       priority: "medium",
       assignee: null,
     });
+  };
+
+  const handleAddComment = (taskId) => {
+    if (!newComment.trim()) return;
+
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        const newCommentObj = {
+          id: task.comments.length + 1,
+          author: "Current User",
+          content: newComment,
+          timestamp: "Just now",
+          avatar: "/api/placeholder/32/32",
+        };
+        return {
+          ...task,
+          comments: [...task.comments, newCommentObj],
+        };
+      }
+      return task;
+    });
+
+    setTasks(updatedTasks);
+
+    if (selectedTask && selectedTask.id === taskId) {
+      const updatedSelectedTask = updatedTasks.find(
+        (task) => task.id === taskId
+      );
+      setSelectedTask(updatedSelectedTask);
+    }
+
+    setNewComment("");
+  };
+
+  const handleDeleteComment = (taskId, commentId) => {
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          comments: task.comments.filter((comment) => comment.id !== commentId),
+        };
+      }
+      return task;
+    });
+
+    setTasks(updatedTasks);
+
+    if (selectedTask && selectedTask.id === taskId) {
+      const updatedSelectedTask = updatedTasks.find(
+        (task) => task.id === taskId
+      );
+      setSelectedTask(updatedSelectedTask);
+    }
+
+    // If we were editing this comment, cancel the edit
+    if (editingComment && editingComment.id === commentId) {
+      setEditingComment(null);
+      setEditCommentContent("");
+    }
+  };
+
+  const handleStartEditComment = (comment) => {
+    setEditingComment(comment);
+    setEditCommentContent(comment.content);
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingComment(null);
+    setEditCommentContent("");
+  };
+
+  const handleSaveEditComment = (taskId) => {
+    if (!editCommentContent.trim()) return;
+
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          comments: task.comments.map((comment) =>
+            comment.id === editingComment.id
+              ? {
+                  ...comment,
+                  content: editCommentContent,
+                  timestamp: "Edited just now",
+                }
+              : comment
+          ),
+        };
+      }
+      return task;
+    });
+
+    setTasks(updatedTasks);
+
+    if (selectedTask && selectedTask.id === taskId) {
+      const updatedSelectedTask = updatedTasks.find(
+        (task) => task.id === taskId
+      );
+      setSelectedTask(updatedSelectedTask);
+    }
+
+    setEditingComment(null);
+    setEditCommentContent("");
+  };
+
+  const handleToggleTaskCompletion = (taskId) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+
+    if (selectedTask && selectedTask.id === taskId) {
+      setSelectedTask(updatedTasks.find((task) => task.id === taskId));
+    }
+  };
+
+  const handleDeleteTask = (taskId) => {
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+
+    if (selectedTask && selectedTask.id === taskId) {
+      setSelectedTask(null);
+    }
   };
 
   return (
@@ -201,7 +386,13 @@ export default function Workspace() {
                     onClick={() => handleTaskClick(task)}
                   >
                     <div className="flex items-start space-x-3">
-                      <button className="mt-0.5 flex-shrink-0">
+                      <button
+                        className="mt-0.5 flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleTaskCompletion(task.id);
+                        }}
+                      >
                         {task.completed ? (
                           <CheckCircle size={20} className="text-green-500" />
                         ) : (
@@ -235,10 +426,10 @@ export default function Workspace() {
                               <Calendar size={14} />
                               <span>{task.dueDate}</span>
                             </div>
-                            {task.comments > 0 && (
+                            {task.comments.length > 0 && (
                               <div className="flex items-center space-x-1">
                                 <MessageSquare size={14} />
-                                <span>{task.comments}</span>
+                                <span>{task.comments.length}</span>
                               </div>
                             )}
                           </div>
@@ -346,9 +537,6 @@ export default function Workspace() {
                             setNewTask({ ...newTask, dueDate: e.target.value })
                           }
                         />
-                        {/* <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <Calendar size={18} className="text-gray-400" />
-                        </div> */}
                       </div>
                     </div>
 
@@ -425,6 +613,43 @@ export default function Workspace() {
                       </div>
                     </div>
 
+                    {/* Description */}
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Description <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+                          placeholder="Enter description"
+                          value={newTask.description}
+                          onChange={(e) =>
+                            setNewTask({
+                              ...newTask,
+                              description: e.target.value,
+                            })
+                          }
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            ></path>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Form Actions */}
                     <div className="flex justify-end space-x-3 pt-4">
                       <button
@@ -472,7 +697,11 @@ export default function Workspace() {
 
                 <div className="flex-1 overflow-y-auto p-4">
                   <div className="mb-4 flex items-center space-x-3">
-                    <button>
+                    <button
+                      onClick={() =>
+                        handleToggleTaskCompletion(selectedTask.id)
+                      }
+                    >
                       {selectedTask.completed ? (
                         <CheckCircle size={22} className="text-green-500" />
                       ) : (
@@ -534,7 +763,7 @@ export default function Workspace() {
                       <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600">
                         {selectedTask.title === "Create social media graphics"
                           ? "Design 5 graphics for Instagram and Twitter to promote our new feature launch. Use the brand guidelines and color palette."
-                          : "Add a description for this task..."}
+                          : selectedTask.description}
                       </div>
                     </div>
 
@@ -546,39 +775,87 @@ export default function Workspace() {
                           <span>Comments</span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {selectedTask.comments} comments
+                          {selectedTask.comments.length} comments
                         </span>
                       </div>
 
-                      {selectedTask.comments > 0 && (
+                      {selectedTask.comments.length > 0 && (
                         <div className="space-y-4">
-                          <div className="flex space-x-3">
-                            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0" />
-                            <div>
-                              <div className="bg-gray-100 p-3 rounded-lg">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="font-medium text-sm">
-                                    Taylor Smith
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    2h ago
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-700">
-                                  I've started working on these. What dimensions
-                                  should we use for the Twitter headers?
-                                </p>
-                              </div>
-                              <div className="flex items-center mt-1 space-x-4 text-xs text-gray-500">
-                                <button className="hover:text-gray-700">
-                                  Reply
-                                </button>
-                                <button className="hover:text-gray-700">
-                                  Edit
-                                </button>
+                          {selectedTask.comments.map((comment) => (
+                            <div key={comment.id} className="flex space-x-3">
+                              <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0" />
+                              <div className="flex-1">
+                                {editingComment &&
+                                editingComment.id === comment.id ? (
+                                  <div className="space-y-2">
+                                    <textarea
+                                      className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      rows="3"
+                                      value={editCommentContent}
+                                      onChange={(e) =>
+                                        setEditCommentContent(e.target.value)
+                                      }
+                                    />
+                                    <div className="flex justify-end space-x-2">
+                                      <button
+                                        className="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                                        onClick={handleCancelEditComment}
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+                                        onClick={() =>
+                                          handleSaveEditComment(selectedTask.id)
+                                        }
+                                      >
+                                        Save
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="bg-gray-100 p-3 rounded-lg">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-sm">
+                                          {comment.author}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {comment.timestamp}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-700">
+                                        {comment.content}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center mt-1 space-x-4 text-xs text-gray-500">
+                                      <button
+                                        className="hover:text-gray-700 flex items-center"
+                                        onClick={() =>
+                                          handleStartEditComment(comment)
+                                        }
+                                      >
+                                        <Edit size={12} className="mr-1" />
+                                        Edit
+                                      </button>
+                                      <button
+                                        className="hover:text-gray-700 flex items-center"
+                                        onClick={() =>
+                                          handleDeleteComment(
+                                            selectedTask.id,
+                                            comment.id
+                                          )
+                                        }
+                                      >
+                                        <Trash2 size={12} className="mr-1" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
                       )}
 
@@ -591,9 +868,16 @@ export default function Workspace() {
                               className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="Add a comment..."
                               rows="2"
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
                             ></textarea>
                             <div className="mt-2 flex justify-end">
-                              <button className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm">
+                              <button
+                                className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+                                onClick={() =>
+                                  handleAddComment(selectedTask.id)
+                                }
+                              >
                                 Comment
                               </button>
                             </div>
@@ -603,89 +887,12 @@ export default function Workspace() {
                     </div>
                   </div>
                 </div>
-
-                <div className="p-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
-                    <button className="flex-1 p-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                      Delete
-                    </button>
-                    <button className="flex-1 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-// Additional icon components for the UI
-function ListIcon({ size, className }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <line x1="8" y1="6" x2="21" y2="6"></line>
-      <line x1="8" y1="12" x2="21" y2="12"></line>
-      <line x1="8" y1="18" x2="21" y2="18"></line>
-      <line x1="3" y1="6" x2="3.01" y2="6"></line>
-      <line x1="3" y1="12" x2="3.01" y2="12"></line>
-      <line x1="3" y1="18" x2="3.01" y2="18"></line>
-    </svg>
-  );
-}
-
-function LayoutGrid({ size, className }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <rect x="3" y="3" width="7" height="7"></rect>
-      <rect x="14" y="3" width="7" height="7"></rect>
-      <rect x="14" y="14" width="7" height="7"></rect>
-      <rect x="3" y="14" width="7" height="7"></rect>
-    </svg>
-  );
-}
-
-function Check({ className }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
   );
 }
 
