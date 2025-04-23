@@ -129,6 +129,7 @@ export default function Workspace() {
     title: "",
     dueDate: "",
     priority: "medium",
+    description: "",
     assignee: null,
   });
   const [newComment, setNewComment] = useState("");
@@ -191,7 +192,21 @@ export default function Workspace() {
   };
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/v1/group/", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await response.json();
+        setTasks(data.data);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
     dispatch(fetchUsers());
+    fetchTasks();
   }, []);
 
   const handleSubmit = (e) => {

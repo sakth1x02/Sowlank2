@@ -23,7 +23,6 @@ const Layout = () => {
 
   useEffect(() => {
     const newSocket = io();
-    // const newSocket = io("http://localhost:2000");
     setSocket(newSocket);
 
     return () => newSocket.disconnect();
