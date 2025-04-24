@@ -194,7 +194,7 @@ export default function Workspace() {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch("/api/v1/group/", {
+        const response = await fetch("/api/v1/group", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -206,7 +206,7 @@ export default function Workspace() {
       }
     };
     dispatch(fetchUsers());
-    fetchTasks();
+    // fetchTasks();
   }, []);
 
   const handleSubmit = (e) => {
