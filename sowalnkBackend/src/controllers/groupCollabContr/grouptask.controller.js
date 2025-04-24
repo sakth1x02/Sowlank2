@@ -12,10 +12,10 @@ const groupCollaboration = {
       if (!creator)
         return res.status(400).json({ message: "Invalid task creator" });
 
-      const validAssignees = await User.find({ _id: { $in: assignees } });
-      if (validAssignees.length !== assignees.length) {
-        return res.status(400).json({ message: "Invalid assignees" });
-      }
+      // const validAssignees = await User.find({ _id: { $in: assignees } });
+      // if (validAssignees.length !== assignees.length) {
+      //   return res.status(400).json({ message: "Invalid assignees" });
+      // }
 
       const task = await Task.create({
         ...taskData,
@@ -25,7 +25,7 @@ const groupCollaboration = {
 
       res.status(201).json(task);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error || error.message });
     }
   },
   // Get all task

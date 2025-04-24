@@ -12,125 +12,22 @@ import {
   User,
   X,
   Trash2,
+  Loader,
   Edit,
 } from "lucide-react";
 
 export default function Workspace() {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Create social media graphics",
-      completed: false,
-      dueDate: "2025-04-20",
-      priority: "high",
-      description:
-        "Design 5 graphics for Instagram and Twitter to promote our new feature launch. Use the brand guidelines and color palette.",
-      assignee: {
-        id: 1,
-        name: "Alex Johnson",
-        avatar: "/api/placeholder/32/32",
-      },
-      comments: [
-        {
-          id: 1,
-          author: "Taylor Smith",
-          content:
-            "I've started working on these. What dimensions should we use for the Twitter headers?",
-          timestamp: "2h ago",
-          avatar: "/api/placeholder/32/32",
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "Write blog post about new features",
-      completed: true,
-      dueDate: "2025-04-15",
-      priority: "medium",
-      description:
-        "Draft a blog post highlighting the new features and improvements in our latest release. Include screenshots and examples.",
-      assignee: {
-        id: 2,
-        name: "Taylor Smith",
-        avatar: "/api/placeholder/32/32",
-      },
-      comments: [],
-    },
-    {
-      id: 3,
-      title: "Review competitor analysis",
-      completed: false,
-      dueDate: "2025-04-25",
-      priority: "low",
-      description:
-        "Analyze the strengths and weaknesses of our top 3 competitors. Prepare a report with recommendations for our strategy.",
-      assignee: {
-        id: 3,
-        name: "Jamie Garcia",
-        avatar: "/api/placeholder/32/32",
-      },
-      comments: [
-        {
-          id: 1,
-          author: "Alex Johnson",
-          content: "Please focus on our top 3 competitors",
-          timestamp: "1d ago",
-          avatar: "/api/placeholder/32/32",
-        },
-        {
-          id: 2,
-          author: "Jamie Garcia",
-          content: "Will do. I'll have the report ready by Thursday.",
-          timestamp: "20h ago",
-          avatar: "/api/placeholder/32/32",
-        },
-      ],
-    },
-    {
-      id: 4,
-      title: "Prepare presentation for team meeting",
-      completed: false,
-      dueDate: "2025-04-18",
-      priority: "high",
-      description:
-        "Create a presentation summarizing the progress of our current projects and any blockers we need to address. Include team updates.",
-      assignee: {
-        id: 1,
-        name: "Alex Johnson",
-        avatar: "/api/placeholder/32/32",
-      },
-      comments: [
-        {
-          id: 1,
-          author: "Mira Patel",
-          content: "Should we include the Q2 projections?",
-          timestamp: "3d ago",
-          avatar: "/api/placeholder/32/32",
-        },
-        {
-          id: 2,
-          author: "Alex Johnson",
-          content: "Yes, but only the approved numbers",
-          timestamp: "2d ago",
-          avatar: "/api/placeholder/32/32",
-        },
-        {
-          id: 3,
-          author: "Sam Wilson",
-          content: "I can help with the slides design",
-          timestamp: "1d ago",
-          avatar: "/api/placeholder/32/32",
-        },
-      ],
-    },
-  ]);
+  const [loading, setLoading] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const auth = useSelector((state) => state.user.loggedInUser);
   const [newTask, setNewTask] = useState({
     title: "",
     dueDate: "",
     priority: "medium",
     description: "",
-    assignee: null,
+    assignee: [],
+    createdBy: auth._id,
   });
   const [newComment, setNewComment] = useState("");
   const [editingComment, setEditingComment] = useState(null);
@@ -140,6 +37,7 @@ export default function Workspace() {
   const [screenSize, setScreenSize] = useState("large");
   const { users } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+  // console.log(selectedTask.dueDate.split("T")[0]);
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -194,30 +92,38 @@ export default function Workspace() {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
+        setLoading(true);
         const response = await fetch("/api/v1/group", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const data = await response.json();
-        setTasks(data.data);
+        setTasks(data);
       } catch (error) {
         console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
       }
     };
     dispatch(fetchUsers());
-    // fetchTasks();
+    fetchTasks();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newTaskWithId = {
-      ...newTask,
-      id: tasks.length + 1,
-      completed: false,
-      comments: [],
-    };
-    setTasks([...tasks, newTaskWithId]);
+
+    const response = await fetch("/api/v1/group", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(newTask),
+    });
+    const data = await response.json();
+
+    setTasks([...tasks, data]);
     setShowAddTaskModal(false);
     setNewTask({
       title: "",
@@ -330,23 +236,43 @@ export default function Workspace() {
     setEditCommentContent("");
   };
 
-  const handleToggleTaskCompletion = (taskId) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
+  const handleToggleTaskCompletion = async (taskId) => {
+    // const updatedTasks = tasks.map((task) =>
+    //   task._id === taskId ? { ...task, completed: !task.completed } : task
+    // );
+    const response = await fetch(`/api/v1/group/${taskId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ completed: true }),
+    });
+    const updatedTasks = await response.json();
 
-    if (selectedTask && selectedTask.id === taskId) {
-      setSelectedTask(updatedTasks.find((task) => task.id === taskId));
+    setTasks((prevTasks) =>
+      prevTasks.map((t) => (t._id === updatedTasks._id ? updatedTasks : t))
+    );
+
+    if (selectedTask && selectedTask._id === taskId) {
+      setSelectedTask(updatedTasks);
     }
   };
 
-  const handleDeleteTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
-
-    if (selectedTask && selectedTask.id === taskId) {
+  const handleDeleteTask = async (taskId) => {
+    try {
+      const response = await fetch(`/api/v1/group/${taskId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      await response.json();
+      const updatedTasks = tasks.filter((task) => task._id !== taskId);
+      setTasks(updatedTasks);
       setSelectedTask(null);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
     }
   };
 
@@ -358,7 +284,7 @@ export default function Workspace() {
         <header className="bg-white border-b border-gray-200 flex items-center justify-between p-4">
           <div className="flex items-center">
             <div>
-              <h1 className="text-xl font-bold">Random Now</h1>
+              <h1 className="text-xl font-bold">Group Collaboration</h1>
               <div className="flex items-center text-sm text-gray-500">
                 <Users size={14} className="mr-1" />
                 <span>{users.length} members</span>
@@ -392,69 +318,74 @@ export default function Workspace() {
             <div className="p-4">
               {/* Task List */}
               <div className="space-y-2">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition-shadow ${
-                      task.completed ? "bg-gray-50" : ""
-                    }`}
-                    onClick={() => handleTaskClick(task)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <button
-                        className="mt-0.5 flex-shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleTaskCompletion(task.id);
-                        }}
-                      >
-                        {task.completed ? (
-                          <CheckCircle size={20} className="text-green-500" />
-                        ) : (
-                          <Circle size={20} className="text-gray-300" />
-                        )}
-                      </button>
+                {loading ? (
+                  <Loader className="w-10 h-10 text-purple-700 place-content-center place-items-center  animate-spin mx-auto" />
+                ) : (
+                  tasks.map((task) => (
+                    <div
+                      key={task._id}
+                      className={`p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition-shadow ${
+                        task.completed ? "bg-gray-50" : ""
+                      }`}
+                      onClick={() => handleTaskClick(task)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <button
+                          className="mt-0.5 flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          {task.completed ? (
+                            <CheckCircle size={20} className="text-green-500" />
+                          ) : (
+                            <Circle size={20} className="text-gray-300" />
+                          )}
+                        </button>
 
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3
-                            className={`font-medium ${
-                              task.completed ? "line-through text-gray-500" : ""
-                            }`}
-                          >
-                            {task.title}
-                          </h3>
-                          <div className="flex items-center space-x-2">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-xs ${
-                                priorityColors[task.priority]
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3
+                              className={`font-medium ${
+                                task.completed
+                                  ? "line-through text-gray-500"
+                                  : ""
                               }`}
                             >
-                              {task.priority}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-1">
-                              <Calendar size={14} />
-                              <span>{task.dueDate}</span>
+                              {task.title}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-xs ${
+                                  priorityColors[task.priority]
+                                }`}
+                              >
+                                {task.priority}
+                              </span>
                             </div>
-                            {task.comments.length > 0 && (
-                              <div className="flex items-center space-x-1">
-                                <MessageSquare size={14} />
-                                <span>{task.comments.length}</span>
-                              </div>
-                            )}
                           </div>
 
-                          <div className="w-6 h-6 rounded-full bg-gray-300 flex-shrink-0" />
+                          <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-1">
+                                <Calendar size={14} />
+                                <span>{task.dueDate.split("T")[0]}</span>
+                              </div>
+                              {/* {task.comments.length > 0 && (
+                                <div className="flex items-center space-x-1">
+                                  <MessageSquare size={14} />
+                                  <span>{task.comments.length}</span>
+                                </div>
+                              )} */}
+                            </div>
+
+                            <div className="w-6 h-6 rounded-full bg-gray-300 flex-shrink-0" />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* Add Task Button */}
@@ -613,7 +544,7 @@ export default function Workspace() {
                             });
                           }}
                           className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none"
-                          required
+                          // required
                         >
                           <option value="">Select team member</option>
                           {members.map((member) => (
@@ -639,7 +570,7 @@ export default function Workspace() {
                           required
                           className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
                           placeholder="Enter description"
-                          value={newTask.description}
+                          value={newTask.description || ""}
                           onChange={(e) =>
                             setNewTask({
                               ...newTask,
@@ -711,21 +642,19 @@ export default function Workspace() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4">
-                  <div className="mb-4 flex items-center space-x-3">
+                  <div className="mb-4 flex items-center justify-between ">
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-lg font-medium">
+                        {selectedTask.title}
+                      </h3>
+                    </div>
+
                     <button
-                      onClick={() =>
-                        handleToggleTaskCompletion(selectedTask.id)
-                      }
+                      onClick={() => handleDeleteTask(selectedTask._id)}
+                      className="px-2 py-1 text-sm text-red-700 bg-red-200/30 hover:ring-1 hover:bg-red-200 rounded-lg border border-red-400"
                     >
-                      {selectedTask.completed ? (
-                        <CheckCircle size={22} className="text-green-500" />
-                      ) : (
-                        <Circle size={22} className="text-gray-300" />
-                      )}
+                      Delete
                     </button>
-                    <h3 className="text-lg font-medium">
-                      {selectedTask.title}
-                    </h3>
                   </div>
 
                   <div className="space-y-4">
@@ -736,7 +665,7 @@ export default function Workspace() {
                         <span>Due Date</span>
                       </div>
                       <div className="text-sm font-medium">
-                        {selectedTask.dueDate}
+                        {selectedTask.dueDate.split("T")[0]}
                       </div>
                     </div>
 
@@ -764,7 +693,7 @@ export default function Workspace() {
                       <div className="flex items-center space-x-2">
                         <div className="w-6 h-6 rounded-full bg-gray-300" />
                         <span className="text-sm font-medium">
-                          {selectedTask.assignee.name}
+                          {selectedTask?.assignee?.name || "No User added"}
                         </span>
                       </div>
                     </div>
@@ -781,6 +710,19 @@ export default function Workspace() {
                           : selectedTask.description}
                       </div>
                     </div>
+                    <button
+                      onClick={() =>
+                        handleToggleTaskCompletion(selectedTask._id)
+                      }
+                    >
+                      {selectedTask.completed ? (
+                        <CheckCircle size={22} className="text-green-500" />
+                      ) : (
+                        <div className="text-sm border border-green-300 p-2 rounded-lg bg-green-300/20 hover:bg-green-500/40 hover:ring-1">
+                          Mark Complete
+                        </div>
+                      )}
+                    </button>
 
                     {/* Comments */}
                     <div>
@@ -790,13 +732,13 @@ export default function Workspace() {
                           <span>Comments</span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {selectedTask.comments.length} comments
+                          {selectedTask?.comments?.length || 0} comments
                         </span>
                       </div>
 
-                      {selectedTask.comments.length > 0 && (
+                      {selectedTask?.comments?.length > 0 && (
                         <div className="space-y-4">
-                          {selectedTask.comments.map((comment) => (
+                          {selectedTask?.comments?.map((comment) => (
                             <div key={comment.id} className="flex space-x-3">
                               <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0" />
                               <div className="flex-1">
@@ -952,3 +894,114 @@ function AlignLeft({ size, className }) {
     </svg>
   );
 }
+
+/**
+ [
+    {
+      id: 1,
+      title: "Create social media graphics",
+      completed: false,
+      dueDate: "2025-04-20",
+      priority: "high",
+      description:
+        "Design 5 graphics for Instagram and Twitter to promote our new feature launch. Use the brand guidelines and color palette.",
+      assignee: {
+        id: 1,
+        name: "Alex Johnson",
+        avatar: "/api/placeholder/32/32",
+      },
+      comments: [
+        {
+          id: 1,
+          author: "Taylor Smith",
+          content:
+            "I've started working on these. What dimensions should we use for the Twitter headers?",
+          timestamp: "2h ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
+    },
+    {
+      id: 2,
+      title: "Write blog post about new features",
+      completed: true,
+      dueDate: "2025-04-15",
+      priority: "medium",
+      description:
+        "Draft a blog post highlighting the new features and improvements in our latest release. Include screenshots and examples.",
+      assignee: {
+        id: 2,
+        name: "Taylor Smith",
+        avatar: "/api/placeholder/32/32",
+      },
+      comments: [],
+    },
+    {
+      id: 3,
+      title: "Review competitor analysis",
+      completed: false,
+      dueDate: "2025-04-25",
+      priority: "low",
+      description:
+        "Analyze the strengths and weaknesses of our top 3 competitors. Prepare a report with recommendations for our strategy.",
+      assignee: {
+        id: 3,
+        name: "Jamie Garcia",
+        avatar: "/api/placeholder/32/32",
+      },
+      comments: [
+        {
+          id: 1,
+          author: "Alex Johnson",
+          content: "Please focus on our top 3 competitors",
+          timestamp: "1d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 2,
+          author: "Jamie Garcia",
+          content: "Will do. I'll have the report ready by Thursday.",
+          timestamp: "20h ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
+    },
+    {
+      id: 4,
+      title: "Prepare presentation for team meeting",
+      completed: false,
+      dueDate: "2025-04-18",
+      priority: "high",
+      description:
+        "Create a presentation summarizing the progress of our current projects and any blockers we need to address. Include team updates.",
+      assignee: {
+        id: 1,
+        name: "Alex Johnson",
+        avatar: "/api/placeholder/32/32",
+      },
+      comments: [
+        {
+          id: 1,
+          author: "Mira Patel",
+          content: "Should we include the Q2 projections?",
+          timestamp: "3d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 2,
+          author: "Alex Johnson",
+          content: "Yes, but only the approved numbers",
+          timestamp: "2d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+        {
+          id: 3,
+          author: "Sam Wilson",
+          content: "I can help with the slides design",
+          timestamp: "1d ago",
+          avatar: "/api/placeholder/32/32",
+        },
+      ],
+    },
+  ]
+ */
