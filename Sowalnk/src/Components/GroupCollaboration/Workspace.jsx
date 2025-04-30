@@ -33,14 +33,29 @@ export default function Workspace() {
   const [newComment, setNewComment] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [editCommentContent, setEditCommentContent] = useState("");
-
+  const [comments, setComments] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [screenSize, setScreenSize] = useState("large");
   const { users } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const handleTaskClick = (task) => {
+  const handleTaskClick = async (task) => {
     setSelectedTask(task);
+    try {
+      const response = await fetch(`/api/v1/comment/task/${task._id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const data = await response.json();
+      setComments(data.data);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
   };
+  // console.log(
+  //   "Comment",
+  //   comments.map((comment) => console.log(comment.content))
+  // );
 
   const closeTaskDetails = () => {
     setSelectedTask(null);
@@ -77,6 +92,30 @@ export default function Workspace() {
     dispatch(fetchUsers());
     fetchTasks();
   }, []);
+
+  useEffect(() => {
+    const fetchComment = async () => {
+      try {
+        const response = await fetch(
+          `/api/v1/comment/task/${selectedTask._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const data = await response.json();
+        setComments(data.data);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+      }
+    };
+    if (selectedTask) {
+      fetchComment();
+    }
+  }, [setComments]);
+
   //This is for adding the task
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,45 +139,63 @@ export default function Workspace() {
       assignee: null,
     });
   };
+  // console.log("Tasks:", tasks);
+  // console.log("Selected Task:", selectedTask);
 
-  const handleAddComment = (taskId) => {
+  const handleAddComment = async (taskId) => {
     if (!newComment.trim()) return;
 
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        const newCommentObj = {
-          id: task.comments.length + 1,
-          author: "Current User",
+    try {
+      const response = await fetch(`/api/v1/comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          taskId,
           content: newComment,
-          timestamp: "Just now",
-          avatar: "/api/placeholder/32/32",
-        };
-        return {
-          ...task,
-          comments: [...task.comments, newCommentObj],
-        };
-      }
-      return task;
-    });
+        }),
+      });
 
-    setTasks(updatedTasks);
+      if (!response.ok) throw new Error("Failed to add comment");
 
-    if (selectedTask && selectedTask.id === taskId) {
-      const updatedSelectedTask = updatedTasks.find(
-        (task) => task.id === taskId
+      const { data } = await response.json();
+      console.log("Comment added:", data);
+
+      // Update tasks state
+      setTasks(
+        tasks.map((task) =>
+          task._id === taskId
+            ? { ...task, comments: [...task.comments, data._id] }
+            : task
+        )
       );
-      setSelectedTask(updatedSelectedTask);
-    }
+      // Update comments state with the new comment
+      setComments((prev) => [...prev, data]);
 
-    setNewComment("");
+      // Update selected task comments
+      if (selectedTask?._id === taskId) {
+        setSelectedTask((prev) => ({
+          ...prev,
+          comments: [...prev.comments, data._id],
+        }));
+      }
+
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
   };
 
   const handleDeleteComment = (taskId, commentId) => {
     const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
+      if (task._id === taskId) {
         return {
           ...task,
-          comments: task.comments.filter((comment) => comment.id !== commentId),
+          comments: task.comments.filter(
+            (comment) => comment._id !== commentId
+          ),
         };
       }
       return task;
@@ -146,15 +203,15 @@ export default function Workspace() {
 
     setTasks(updatedTasks);
 
-    if (selectedTask && selectedTask.id === taskId) {
+    if (selectedTask && selectedTask._id === taskId) {
       const updatedSelectedTask = updatedTasks.find(
-        (task) => task.id === taskId
+        (task) => task._id === taskId
       );
       setSelectedTask(updatedSelectedTask);
     }
 
     // If we were editing this comment, cancel the edit
-    if (editingComment && editingComment.id === commentId) {
+    if (editingComment && editingComment._id === commentId) {
       setEditingComment(null);
       setEditCommentContent("");
     }
@@ -174,11 +231,11 @@ export default function Workspace() {
     if (!editCommentContent.trim()) return;
 
     const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
+      if (task._id === taskId) {
         return {
           ...task,
           comments: task.comments.map((comment) =>
-            comment.id === editingComment.id
+            comment._id === editingComment._id
               ? {
                   ...comment,
                   content: editCommentContent,
@@ -193,9 +250,9 @@ export default function Workspace() {
 
     setTasks(updatedTasks);
 
-    if (selectedTask && selectedTask.id === taskId) {
+    if (selectedTask && selectedTask._id === taskId) {
       const updatedSelectedTask = updatedTasks.find(
-        (task) => task.id === taskId
+        (task) => task._id === taskId
       );
       setSelectedTask(updatedSelectedTask);
     }
@@ -490,84 +547,98 @@ export default function Workspace() {
                         </span>
                       </div>
 
-                      {selectedTask?.comments?.length > 0 && (
+                      {selectedTask?.comments?.length > 0 ? (
                         <div className="space-y-4">
-                          {selectedTask?.comments?.map((comment) => (
-                            <div key={comment.id} className="flex space-x-3">
-                              <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0" />
-                              <div className="flex-1">
-                                {editingComment &&
-                                editingComment.id === comment.id ? (
-                                  <div className="space-y-2">
-                                    <textarea
-                                      className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      rows="3"
-                                      value={editCommentContent}
-                                      onChange={(e) =>
-                                        setEditCommentContent(e.target.value)
-                                      }
-                                    />
-                                    <div className="flex justify-end space-x-2">
-                                      <button
-                                        className="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                                        onClick={handleCancelEditComment}
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
-                                        onClick={() =>
-                                          handleSaveEditComment(selectedTask.id)
+                          {selectedTask?.comments?.map((commentId) => {
+                            const comment = comments?.find(
+                              (c) => c._id === commentId
+                            );
+
+                            return comment ? (
+                              <div key={commentId} className="flex space-x-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0" />
+                                <div className="flex-1" key={commentId}>
+                                  {editingComment &&
+                                  editingComment._id === commentId ? (
+                                    <div className="space-y-2">
+                                      <textarea
+                                        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        rows="3"
+                                        value={editCommentContent}
+                                        onChange={(e) =>
+                                          setEditCommentContent(e.target.value)
                                         }
-                                      >
-                                        Save
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="bg-gray-100 p-3 rounded-lg">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="font-medium text-sm">
-                                          {comment.author}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                          {comment.timestamp}
-                                        </span>
+                                      />
+                                      <div className="flex justify-end space-x-2">
+                                        <button
+                                          className="px-3 py-1 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                                          onClick={handleCancelEditComment}
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
+                                          onClick={() =>
+                                            handleSaveEditComment(
+                                              selectedTask._id
+                                            )
+                                          }
+                                        >
+                                          Save
+                                        </button>
                                       </div>
-                                      <p className="text-sm text-gray-700">
-                                        {comment.content}
-                                      </p>
                                     </div>
-                                    <div className="flex items-center mt-1 space-x-4 text-xs text-gray-500">
-                                      <button
-                                        className="hover:text-gray-700 flex items-center"
-                                        onClick={() =>
-                                          handleStartEditComment(comment)
-                                        }
-                                      >
-                                        <Edit size={12} className="mr-1" />
-                                        Edit
-                                      </button>
-                                      <button
-                                        className="hover:text-gray-700 flex items-center"
-                                        onClick={() =>
-                                          handleDeleteComment(
-                                            selectedTask.id,
-                                            comment.id
-                                          )
-                                        }
-                                      >
-                                        <Trash2 size={12} className="mr-1" />
-                                        Delete
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
+                                  ) : (
+                                    <>
+                                      <div className="bg-gray-100 p-3 rounded-lg">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="font-medium text-sm">
+                                            {comment?.author?.name}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {comment?.timestamp}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-700">
+                                          {comment?.content}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center mt-1 space-x-4 text-xs text-gray-500">
+                                        <button
+                                          className="hover:text-gray-700 flex items-center"
+                                          onClick={() =>
+                                            handleStartEditComment(comment)
+                                          }
+                                        >
+                                          <Edit size={12} className="mr-1" />
+                                          Edit
+                                        </button>
+                                        <button
+                                          className="hover:text-gray-700 flex items-center"
+                                          onClick={() =>
+                                            handleDeleteComment(
+                                              selectedTask._id,
+                                              comment._id
+                                            )
+                                          }
+                                        >
+                                          <Trash2 size={12} className="mr-1" />
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ) : (
+                              <Loader className="place-content-center place-items-center  animate-spin mx-auto h-5 w-5 " />
+                            );
+                          })}
                         </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">
+                          No comments yet. Be the first to add one!
+                        </p>
                       )}
 
                       {/* Add comment */}
@@ -586,7 +657,7 @@ export default function Workspace() {
                               <button
                                 className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
                                 onClick={() =>
-                                  handleAddComment(selectedTask.id)
+                                  handleAddComment(selectedTask._id)
                                 }
                               >
                                 Comment
