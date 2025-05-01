@@ -188,32 +188,38 @@ export default function Workspace() {
     }
   };
 
-  const handleDeleteComment = (taskId, commentId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task._id === taskId) {
-        return {
-          ...task,
-          comments: task.comments.filter(
-            (comment) => comment._id !== commentId
-          ),
-        };
-      }
-      return task;
-    });
+  const handleDeleteComment = async (taskId, commentId) => {
+    try {
+      const response = await fetch(`/api/v1/comment/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-    setTasks(updatedTasks);
+      if (!response.ok) throw new Error("Failed to delete comment");
 
-    if (selectedTask && selectedTask._id === taskId) {
-      const updatedSelectedTask = updatedTasks.find(
-        (task) => task._id === taskId
+      // Update tasks state
+      setTasks((prev) =>
+        prev.map((task) =>
+          task._id === taskId
+            ? {
+                ...task,
+                comments: task.comments.filter((id) => id !== commentId),
+              }
+            : task
+        )
       );
-      setSelectedTask(updatedSelectedTask);
-    }
 
-    // If we were editing this comment, cancel the edit
-    if (editingComment && editingComment._id === commentId) {
-      setEditingComment(null);
-      setEditCommentContent("");
+      // Update comments state
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+
+      if (editingComment?._id === commentId) {
+        setEditingComment(null);
+        setEditCommentContent("");
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
     }
   };
 
