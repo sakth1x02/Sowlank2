@@ -132,28 +132,38 @@ const ShowAddTask = ({
             {/* Assignee Field */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
-                Assignee <span className="text-red-500">*</span>
+                Assignees <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
-                  value={newTask.assignee?.id || ""}
+                  value=""
                   onChange={(e) => {
-                    const selectedId = parseInt(e.target.value);
+                    const selectedId = e.target.value;
+                    if (!selectedId) return;
+
                     const selectedMember = members.find(
-                      (m) => m.id === selectedId
+                      (m) => m._id === selectedId
                     );
-                    setNewTask({
-                      ...newTask,
-                      assignee: selectedMember,
-                    });
+
+                    if (
+                      selectedMember &&
+                      !newTask.assignees?.some((a) => a._id === selectedId)
+                    ) {
+                      setNewTask({
+                        ...newTask,
+                        assignees: [
+                          ...(newTask.assignees || []),
+                          selectedMember,
+                        ],
+                      });
+                    }
                   }}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none"
-                  // required
                 >
                   <option value="">Select team member</option>
                   {members.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name} ({member.role})
+                    <option key={member._id} value={member._id}>
+                      {member.name} ({member.email})
                     </option>
                   ))}
                 </select>
@@ -161,6 +171,39 @@ const ShowAddTask = ({
                   <User size={18} className="text-gray-400" />
                 </div>
               </div>
+
+              {/* Selected Assignees */}
+              {newTask.assignees?.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Selected assignees:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {newTask.assignees.map((user) => (
+                      <div
+                        key={user._id}
+                        className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                      >
+                        <span>{user.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewTask({
+                              ...newTask,
+                              assignees: newTask.assignees.filter(
+                                (a) => a._id !== user._id
+                              ),
+                            });
+                          }}
+                          className="text-blue-400 hover:text-blue-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Description */}

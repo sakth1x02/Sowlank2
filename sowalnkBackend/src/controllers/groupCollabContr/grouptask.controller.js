@@ -42,12 +42,32 @@ const groupCollaboration = {
   //update task
   updateTask: async (req, res) => {
     try {
-      const task = await Task.findByIdAndUpdate(
+      const userId = req.user._id;
+      const task = await Task.findById(req.params.id);
+
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      // Check if user is the creator or an assignee
+      const isCreator = task.createdBy.toString() === userId.toString();
+      const isAssignee = task.assignees.some(
+        (assignee) => assignee.toString() === userId.toString()
+      );
+
+      if (!isCreator && !isAssignee) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to update this task" });
+      }
+
+      const updatedTask = await Task.findByIdAndUpdate(
         req.params.id,
         { completed: req.body.completed },
         { new: true }
       );
-      res.json(task);
+
+      res.json(updatedTask);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -55,6 +75,25 @@ const groupCollaboration = {
   //delete task
   deleteTask: async (req, res) => {
     try {
+      const userId = req.user._id;
+      const task = await Task.findById(req.params.id);
+
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      // Check if user is the creator or an assignee
+      const isCreator = task.createdBy.toString() === userId.toString();
+      const isAssignee = task.assignees.some(
+        (assignee) => assignee.toString() === userId.toString()
+      );
+
+      if (!isCreator && !isAssignee) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to delete this task" });
+      }
+
       await Task.findByIdAndDelete(req.params.id);
       res.json({ message: "Task deleted" });
     } catch (error) {
