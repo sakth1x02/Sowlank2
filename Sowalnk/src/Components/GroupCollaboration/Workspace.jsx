@@ -39,12 +39,15 @@ export default function Workspace() {
   const [editingComment, setEditingComment] = useState(null);
   const [editCommentContent, setEditCommentContent] = useState("");
   const [comments, setComments] = useState([]);
+  const [commentLoading, setCommentLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
   const [editingReply, setEditingReply] = useState(null);
   const [editReplyContent, setEditReplyContent] = useState("");
   const [screenSize, setScreenSize] = useState("large");
+  const [showTaskList, setShowTaskList] = useState(true);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
   const { users } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
@@ -57,6 +60,11 @@ export default function Workspace() {
         setScreenSize("medium");
       } else {
         setScreenSize("large");
+        // On large screens, always show task list, and show task details if a task is selected
+        setShowTaskList(true);
+        if (selectedTask) {
+          setShowTaskDetails(true);
+        }
       }
     };
 
@@ -68,27 +76,40 @@ export default function Workspace() {
 
     // Cleanup
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [selectedTask]);
 
   const handleTaskClick = async (task) => {
     setSelectedTask(task);
 
     // On small screens, show task details and hide task list
     if (screenSize === "small" || screenSize === "medium") {
-      document.getElementById("task-list").classList.add("hidden");
-      document.getElementById("task-details").classList.remove("hidden");
+      setShowTaskList(false);
+      setShowTaskDetails(true);
+    } else {
+      // On large screens, show both
+      setShowTaskList(true);
+      setShowTaskDetails(true);
     }
 
     try {
+      setCommentLoading(true);
       const response = await fetch(`/api/v1/comment/task/${task._id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch comments");
+      }
+
       const data = await response.json();
-      setComments(data.data);
+      setComments(data.data || []);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Error fetching comments:", error);
+      setComments([]);
+    } finally {
+      setCommentLoading(false);
     }
   };
   // console.log(
@@ -107,8 +128,12 @@ export default function Workspace() {
 
     // On small screens, show task list and hide task details when closing
     if (screenSize === "small" || screenSize === "medium") {
-      document.getElementById("task-list").classList.remove("hidden");
-      document.getElementById("task-details")?.classList.add("hidden");
+      setShowTaskList(true);
+      setShowTaskDetails(false);
+    } else {
+      // On large screens, always show task list, but hide details when closed
+      setShowTaskList(true);
+      setShowTaskDetails(false);
     }
   };
 
@@ -579,7 +604,13 @@ export default function Workspace() {
           {/* Task List */}
           <div
             id="task-list"
-            className="flex-1 w-full md:w-1/2 lg:w-3/5 overflow-y-auto bg-gray-50 transition-all duration-300"
+            className={`${showTaskList ? "flex-1" : "hidden"} 
+              ${
+                screenSize === "large" && showTaskDetails
+                  ? "w-full md:w-1/2 lg:w-3/5"
+                  : "w-full"
+              } 
+              overflow-y-auto bg-gray-50 transition-all duration-300`}
           >
             <div className="p-3 sm:p-4">
               {/* Task List Header */}
@@ -700,11 +731,14 @@ export default function Workspace() {
           {selectedTask && (
             <div
               id="task-details"
-              className={`border-l border-gray-200 bg-white w-full md:w-1/2 lg:w-2/5 h-full overflow-hidden shadow-lg md:shadow-none ${
-                screenSize === "small" || screenSize === "medium"
-                  ? "absolute inset-0 z-10"
-                  : ""
-              }`}
+              className={`border-l border-gray-200 bg-white h-full overflow-hidden shadow-lg md:shadow-none
+                ${
+                  screenSize === "small" || screenSize === "medium"
+                    ? "absolute inset-0 z-10 w-full"
+                    : "w-full md:w-1/2 lg:w-2/5"
+                }
+                ${showTaskDetails ? "" : "hidden"}
+              `}
             >
               <div className="h-full flex flex-col">
                 <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between bg-white sticky top-0 z-10 shadow-sm">
@@ -786,9 +820,9 @@ export default function Workspace() {
                       </div>
                       <div className="flex items-center space-x-2 flex-wrap justify-end">
                         {selectedTask?.assignees?.length > 0 ? (
-                          selectedTask.assignees.map((assignee) => (
+                          selectedTask.assignees.map((assignee, index) => (
                             <div
-                              key={assignee}
+                              key={`${assignee}-${index}`}
                               className="flex items-center space-x-1 bg-blue-50 px-2 py-0.5 rounded-full"
                             >
                               <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">
@@ -872,18 +906,31 @@ export default function Workspace() {
                         </span>
                       </div>
 
-                      {selectedTask?.comments?.length > 0 ? (
+                      {commentLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                          <Loader className="w-8 h-8 text-blue-500 animate-spin" />
+                          <span className="ml-3 text-sm text-gray-500">
+                            Loading comments...
+                          </span>
+                        </div>
+                      ) : selectedTask?.comments?.length === 0 ? (
+                        <p className="text-sm text-gray-500 text-center py-4">
+                          No comments yet. Be the first to add one!
+                        </p>
+                      ) : (
                         <div className="space-y-4">
                           {selectedTask?.comments?.map((commentId) => {
                             const comment = comments?.find(
                               (c) => c._id === commentId
                             );
+                            if (!comment) return null;
 
-                            return comment ? (
+                            return (
                               <div
                                 key={commentId}
                                 className="flex space-x-2 sm:space-x-3 group"
                               >
+                                {/* Comment avatar */}
                                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
                                   {comment?.author?.avatar ? (
                                     <img
@@ -897,38 +944,24 @@ export default function Workspace() {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* Comment content */}
                                 <div className="flex-1">
                                   {editingComment &&
                                   editingComment._id === commentId ? (
-                                    <div className="space-y-2">
-                                      <textarea
-                                        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        rows="3"
-                                        value={editCommentContent}
-                                        onChange={(e) =>
-                                          setEditCommentContent(e.target.value)
-                                        }
-                                      />
-                                      <div className="flex justify-end space-x-2">
-                                        <button
-                                          className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                                          onClick={handleCancelEditComment}
-                                        >
-                                          Cancel
-                                        </button>
-                                        <button
-                                          className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
-                                          onClick={() =>
-                                            handleSaveEditComment(
-                                              selectedTask._id,
-                                              comment._id
-                                            )
-                                          }
-                                        >
-                                          Save
-                                        </button>
-                                      </div>
-                                    </div>
+                                    <CommentEditForm
+                                      value={editCommentContent}
+                                      onChange={(e) =>
+                                        setEditCommentContent(e.target.value)
+                                      }
+                                      onCancel={handleCancelEditComment}
+                                      onSave={() =>
+                                        handleSaveEditComment(
+                                          selectedTask._id,
+                                          comment._id
+                                        )
+                                      }
+                                    />
                                   ) : (
                                     <div>
                                       <div className="bg-gray-100 p-2.5 sm:p-3 rounded-lg">
@@ -947,230 +980,103 @@ export default function Workspace() {
                                           {comment?.content}
                                         </p>
                                       </div>
-                                      <div className="flex items-center mt-1.5 space-x-3 text-xs text-gray-500 px-1 opacity-70 group-hover:opacity-100">
-                                        <button
-                                          className="hover:text-blue-600 flex items-center transition-colors"
-                                          onClick={() =>
-                                            handleStartEditComment(comment)
-                                          }
-                                        >
-                                          <Edit size={10} className="mr-1" />
-                                          Edit
-                                        </button>
-                                        <button
-                                          className="hover:text-red-600 flex items-center transition-colors"
-                                          onClick={() =>
-                                            handleDeleteComment(
-                                              selectedTask._id,
-                                              comment._id
-                                            )
-                                          }
-                                        >
-                                          <Trash2 size={10} className="mr-1" />
-                                          Delete
-                                        </button>
-                                        <button
-                                          className="hover:text-blue-600 flex items-center transition-colors"
-                                          onClick={() =>
-                                            handleStartReply(comment)
-                                          }
-                                        >
-                                          <CornerDownRight
-                                            size={10}
-                                            className="mr-1"
-                                          />
-                                          Reply
-                                        </button>
-                                      </div>
 
-                                      {/* Replies section */}
-                                      {comment.replies &&
-                                        comment.replies.length > 0 && (
-                                          <div className="mt-2 pl-2 sm:pl-3 border-l-2 border-gray-200 space-y-2 sm:space-y-3">
-                                            {comment.replies.map((reply) => (
-                                              <div
-                                                key={reply._id}
-                                                className="bg-gray-50 p-2 sm:p-2.5 rounded-lg transition-shadow hover:shadow-sm group"
-                                              >
-                                                {editingReply &&
-                                                editingReply._id ===
-                                                  reply._id ? (
-                                                  <div className="space-y-2">
-                                                    <textarea
-                                                      className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                      rows="2"
-                                                      value={editReplyContent}
-                                                      onChange={(e) =>
-                                                        setEditReplyContent(
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                    />
-                                                    <div className="flex justify-end space-x-2">
-                                                      <button
-                                                        className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                                                        onClick={
-                                                          handleCancelEditReply
-                                                        }
-                                                      >
-                                                        Cancel
-                                                      </button>
-                                                      <button
-                                                        className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
-                                                        onClick={() =>
-                                                          handleSaveEditReply(
-                                                            comment._id,
-                                                            reply._id
-                                                          )
-                                                        }
-                                                      >
-                                                        Save
-                                                      </button>
-                                                    </div>
-                                                  </div>
-                                                ) : (
-                                                  <>
-                                                    <div className="flex items-center justify-between mb-1">
-                                                      <span className="font-medium text-xs flex items-center">
-                                                        <CornerDownRight
-                                                          size={10}
-                                                          className="mr-1 text-gray-400"
-                                                        />
-                                                        {reply.author?.name}
-                                                      </span>
-                                                      <span className="text-[10px] sm:text-xs text-gray-500">
-                                                        {reply.edited
-                                                          ? "Edited • "
-                                                          : ""}
-                                                        {new Date(
-                                                          reply.updatedAt
-                                                        ).toDateString()}
-                                                      </span>
-                                                    </div>
-                                                    <p className="text-xs text-gray-700">
-                                                      {reply.content}
-                                                    </p>
-                                                    <div className="flex items-center mt-1 space-x-3 text-[10px] sm:text-xs text-gray-500 opacity-70 group-hover:opacity-100">
-                                                      <button
-                                                        className="hover:text-blue-600 flex items-center transition-colors"
-                                                        onClick={() =>
-                                                          handleStartEditReply(
-                                                            reply
-                                                          )
-                                                        }
-                                                      >
-                                                        <Edit
-                                                          size={9}
-                                                          className="mr-1"
-                                                        />
-                                                        Edit
-                                                      </button>
-                                                      <button
-                                                        className="hover:text-red-600 flex items-center transition-colors"
-                                                        onClick={() =>
-                                                          handleDeleteReply(
-                                                            comment._id,
-                                                            reply._id
-                                                          )
-                                                        }
-                                                      >
-                                                        <Trash2
-                                                          size={9}
-                                                          className="mr-1"
-                                                        />
-                                                        Delete
-                                                      </button>
-                                                    </div>
-                                                  </>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
+                                      {/* Comment actions */}
+                                      <CommentActions
+                                        onEdit={() =>
+                                          handleStartEditComment(comment)
+                                        }
+                                        onDelete={() =>
+                                          handleDeleteComment(
+                                            selectedTask._id,
+                                            comment._id
+                                          )
+                                        }
+                                        onReply={() =>
+                                          handleStartReply(comment)
+                                        }
+                                      />
 
-                                      {/* Reply input box */}
+                                      {/* Replies */}
+                                      <CommentReplies
+                                        comment={comment}
+                                        editingReply={editingReply}
+                                        editReplyContent={editReplyContent}
+                                        onEditReplyChange={(e) =>
+                                          setEditReplyContent(e.target.value)
+                                        }
+                                        onCancelEdit={handleCancelEditReply}
+                                        onSaveEdit={(replyId) =>
+                                          handleSaveEditReply(
+                                            comment._id,
+                                            replyId
+                                          )
+                                        }
+                                        onEdit={handleStartEditReply}
+                                        onDelete={(replyId) =>
+                                          handleDeleteReply(
+                                            comment._id,
+                                            replyId
+                                          )
+                                        }
+                                      />
+
+                                      {/* Reply form */}
                                       {replyingTo &&
                                         replyingTo._id === comment._id && (
-                                          <div className="mt-2 pl-2 sm:pl-3 border-l-2 border-blue-300">
-                                            <textarea
-                                              className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                              placeholder={`Reply to ${comment.author?.name}...`}
-                                              rows="2"
-                                              value={replyContent}
-                                              onChange={(e) =>
-                                                setReplyContent(e.target.value)
-                                              }
-                                            />
-                                            <div className="mt-1 flex justify-end space-x-2">
-                                              <button
-                                                className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                                                onClick={handleCancelReply}
-                                              >
-                                                Cancel
-                                              </button>
-                                              <button
-                                                className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
-                                                onClick={() =>
-                                                  handleSubmitReply(
-                                                    selectedTask._id,
-                                                    comment._id
-                                                  )
-                                                }
-                                              >
-                                                Reply
-                                              </button>
-                                            </div>
-                                          </div>
+                                          <ReplyForm
+                                            value={replyContent}
+                                            onChange={(e) =>
+                                              setReplyContent(e.target.value)
+                                            }
+                                            onCancel={handleCancelReply}
+                                            onSubmit={() =>
+                                              handleSubmitReply(
+                                                selectedTask._id,
+                                                comment._id
+                                              )
+                                            }
+                                            recipientName={comment.author?.name}
+                                          />
                                         )}
                                     </div>
                                   )}
                                 </div>
                               </div>
-                            ) : (
-                              <Loader
-                                key={commentId}
-                                className="place-content-center place-items-center animate-spin mx-auto h-5 w-5"
-                              />
                             );
                           })}
                         </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                          No comments yet. Be the first to add one!
-                        </p>
                       )}
+                    </div>
 
-                      {/* Add comment */}
-                      <div className="mt-6">
-                        <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                          Add Comment
-                        </h3>
-                        <div className="flex space-x-2 sm:space-x-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs sm:text-sm">
-                              {auth?.name?.charAt(0) || "U"}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <textarea
-                              className="border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                              placeholder="Add a comment..."
-                              rows="2"
-                              value={newComment}
-                              onChange={(e) => setNewComment(e.target.value)}
-                            ></textarea>
-                            <div className="mt-2 flex justify-end">
-                              <button
-                                className="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs sm:text-sm hover:bg-blue-600 transition-colors flex items-center"
-                                onClick={() =>
-                                  handleAddComment(selectedTask._id)
-                                }
-                                disabled={!newComment.trim()}
-                              >
-                                <MessageSquare size={12} className="mr-1.5" />
-                                <span>Comment</span>
-                              </button>
-                            </div>
+                    {/* Add comment */}
+                    <div className="mt-6">
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Add Comment
+                      </h3>
+                      <div className="flex space-x-2 sm:space-x-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs sm:text-sm">
+                            {auth?.name?.charAt(0) || "U"}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <textarea
+                            className="border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                            placeholder="Add a comment..."
+                            rows="2"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                          ></textarea>
+                          <div className="mt-2 flex justify-end">
+                            <button
+                              className="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs sm:text-sm hover:bg-blue-600 transition-colors flex items-center"
+                              onClick={() => handleAddComment(selectedTask._id)}
+                              disabled={!newComment.trim()}
+                            >
+                              <MessageSquare size={12} className="mr-1.5" />
+                              <span>Comment</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1181,6 +1087,169 @@ export default function Workspace() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper components for cleaner code
+function CommentEditForm({ value, onChange, onCancel, onSave }) {
+  return (
+    <div className="space-y-2">
+      <textarea
+        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        rows="3"
+        value={value}
+        onChange={onChange}
+      />
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
+          onClick={onSave}
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CommentActions({ onEdit, onDelete, onReply }) {
+  return (
+    <div className="flex items-center mt-1.5 space-x-3 text-xs text-gray-500 px-1 opacity-70 group-hover:opacity-100">
+      <button
+        className="hover:text-blue-600 flex items-center transition-colors"
+        onClick={onEdit}
+      >
+        <Edit size={10} className="mr-1" />
+        Edit
+      </button>
+      <button
+        className="hover:text-red-600 flex items-center transition-colors"
+        onClick={onDelete}
+      >
+        <Trash2 size={10} className="mr-1" />
+        Delete
+      </button>
+      <button
+        className="hover:text-blue-600 flex items-center transition-colors"
+        onClick={onReply}
+      >
+        <CornerDownRight size={10} className="mr-1" />
+        Reply
+      </button>
+    </div>
+  );
+}
+
+function CommentReplies({
+  comment,
+  editingReply,
+  editReplyContent,
+  onEditReplyChange,
+  onCancelEdit,
+  onSaveEdit,
+  onEdit,
+  onDelete,
+}) {
+  if (!comment.replies || comment.replies.length === 0) return null;
+
+  return (
+    <div className="mt-2 pl-2 sm:pl-3 border-l-2 border-gray-200 space-y-2 sm:space-y-3">
+      {comment.replies.map((reply) => (
+        <div
+          key={reply._id}
+          className="bg-gray-50 p-2 sm:p-2.5 rounded-lg transition-shadow hover:shadow-sm group"
+        >
+          {editingReply && editingReply._id === reply._id ? (
+            <div className="space-y-2">
+              <textarea
+                className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="2"
+                value={editReplyContent}
+                onChange={onEditReplyChange}
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={onCancelEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
+                  onClick={() => onSaveEdit(reply._id)}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium text-xs flex items-center">
+                  <CornerDownRight size={10} className="mr-1 text-gray-400" />
+                  {reply.author?.name}
+                </span>
+                <span className="text-[10px] sm:text-xs text-gray-500">
+                  {reply.edited ? "Edited • " : ""}
+                  {new Date(reply.updatedAt).toDateString()}
+                </span>
+              </div>
+              <p className="text-xs text-gray-700">{reply.content}</p>
+              <div className="flex items-center mt-1 space-x-3 text-[10px] sm:text-xs text-gray-500 opacity-70 group-hover:opacity-100">
+                <button
+                  className="hover:text-blue-600 flex items-center transition-colors"
+                  onClick={() => onEdit(reply)}
+                >
+                  <Edit size={9} className="mr-1" />
+                  Edit
+                </button>
+                <button
+                  className="hover:text-red-600 flex items-center transition-colors"
+                  onClick={() => onDelete(reply._id)}
+                >
+                  <Trash2 size={9} className="mr-1" />
+                  Delete
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReplyForm({ value, onChange, onCancel, onSubmit, recipientName }) {
+  return (
+    <div className="mt-2 pl-2 sm:pl-3 border-l-2 border-blue-300">
+      <textarea
+        className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={`Reply to ${recipientName}...`}
+        rows="2"
+        value={value}
+        onChange={onChange}
+      />
+      <div className="mt-1 flex justify-end space-x-2">
+        <button
+          className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
+          onClick={onSubmit}
+        >
+          Reply
+        </button>
       </div>
     </div>
   );
