@@ -581,7 +581,7 @@ export default function Workspace() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <div className="relative hidden md:block">
               <input
                 type="text"
@@ -596,7 +596,7 @@ export default function Workspace() {
             <button className="md:hidden p-2 rounded-md border border-gray-200 hover:bg-gray-50">
               <Menu size={20} />
             </button>
-          </div>
+          </div> */}
         </header>
 
         {/* Workspace Content */}

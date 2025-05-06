@@ -80,11 +80,11 @@ const Sidebar = () => {
       icon: <Clock3 className="h-5 w-5" />,
     },
 
-    // {
-    //   path: "/Motivation-Quotes",
-    //   label: "Community Page",
-    //   icon: <CalendarCheck className="h-5 w-5" />,
-    // },
+    {
+      path: "/Motivation-Quotes",
+      label: "Community Page",
+      icon: <CalendarCheck className="h-5 w-5" />,
+    },
     {
       path: "/notes",
       label: "Sticky Notes",

@@ -1,185 +1,183 @@
-import React, { useState } from 'react';
-import { GiphyFetch } from '@giphy/js-fetch-api';
-import { Gif, Grid } from '@giphy/react-components';
-import EmojiPicker from 'emoji-picker-react';
-
-const giphyFetch = new GiphyFetch('YOUR_GIPHY_API_KEY');
+import React, { useState } from "react";
+import {
+  PhotoIcon,
+  FaceSmileIcon,
+  GifIcon,
+  XMarkIcon,
+  HashtagIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
+import EmojiPicker from "emoji-picker-react";
 
 function QuoteForm({ currentUser, onPost }) {
-  const [text, setText] = useState('');
-  const [hashtags, setHashtags] = useState('');
+  const [text, setText] = useState("");
+  const [hashtags, setHashtags] = useState("");
   const [image, setImage] = useState(null);
-  const [gif, setGif] = useState(null);
-  const [showGifPicker, setShowGifPicker] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [gifSearchTerm, setGifSearchTerm] = useState('');
+  const [showHashtagInput, setShowHashtagInput] = useState(false);
   const maxChars = 280;
-  const defaultAvatar = 'https://via.placeholder.com/40/cccccc/ffffff?text=User';
+  const defaultAvatar =
+    "https://via.placeholder.com/40/cccccc/ffffff?text=User";
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!text || text.length > maxChars) return;
 
+    setIsSubmitting(true);
+
     const hashtagArray = hashtags
       .trim()
-      .split(/\s+/)
-      .map((h) => (h.startsWith('#') ? h : `#${h}`))
-      .filter((h) => h.length > 1);
+      .split(/\s+|,+/)
+      .map((h) => (h.startsWith("#") ? h.substring(1) : h))
+      .filter((h) => h.length > 0);
 
     const newQuote = {
       text,
       hashtags: hashtagArray,
-      image: image || (gif ? gif.images.original.url : null),
+      image: image,
     };
 
     if (onPost) onPost(newQuote);
 
-    setText('');
-    setHashtags('');
+    setText("");
+    setHashtags("");
     setImage(null);
-    setGif(null);
-    setShowGifPicker(false);
     setShowEmojiPicker(false);
-    setGifSearchTerm('');
+    setShowHashtagInput(false);
+    setIsSubmitting(false);
   };
 
-  const handleEmojiClick = (emojiObject) => {
-    setText((prev) => prev + emojiObject.emoji);
-  };
-
-  const fetchGifs = (offset) => {
-    if (gifSearchTerm) {
-      return giphyFetch.search(gifSearchTerm, { offset, limit: 10 });
-    }
-    return giphyFetch.trending({ offset, limit: 10 });
+  const handleEmojiClick = (emojiData) => {
+    setText((prev) => prev + emojiData.emoji);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-6 rounded-lg bg-white text-black max-w-lg mx-auto transform transition-all duration-300 border border-gray-200 shadow-sm">
-      <div className="flex items-start space-x-4">
-        <img
-          src={currentUser?.avatar || defaultAvatar}
-          alt="Avatar"
-          className="w-12 h-12 rounded-full border-2 border-gray-300"
-        />
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="What's happening?"
-          className="flex-1 p-3 bg-transparent text-black placeholder-gray-500 text-lg focus:outline-none resize-none border-b border-gray-300 hover:border-gray-400 transition-colors"
-          rows="4"
-        />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* User avatar and textarea */}
+      <div className="flex">
+        <div className="mr-3">
+          <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-indigo-500 p-[2px] bg-gradient-to-tr from-yellow-400 to-purple-500">
+            <img
+              src={currentUser?.avatar || defaultAvatar}
+              alt="Your avatar"
+              className="h-full w-full rounded-full object-cover border-2 border-white"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 relative">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="What's on your mind?"
+            className={`w-full resize-none border-0 focus:ring-0 text-gray-900 placeholder-gray-500 text-lg bg-transparent`}
+            rows="3"
+            maxLength={maxChars}
+          />
+
+          <div className="text-right text-xs text-gray-500 -mt-2">
+            {text.length}/{maxChars}
+          </div>
+        </div>
       </div>
-      <div className="mt-3">
-        <input
-          value={hashtags}
-          onChange={(e) => setHashtags(e.target.value)}
-          placeholder="#motivation #inspire"
-          className="w-full p-3 bg-transparent text-black placeholder-gray-500 text-base focus:outline-none border-b border-gray-300 hover:border-gray-400 transition-colors"
-        />
-      </div>
-      {(image || gif) && (
-        <div className="relative mt-4">
-          {image ? (
-            <img src={image} alt="Preview" className="w-full h-48 object-cover rounded-lg shadow-sm" />
-          ) : (
-            <Gif gif={gif} width="100%" className="rounded-lg shadow-sm" />
-          )}
+
+      {/* Image preview */}
+      {image && (
+        <div className="relative mt-2 rounded-xl overflow-hidden bg-gray-100">
+          <img
+            src={image}
+            alt="Selected"
+            className="w-full h-60 object-cover"
+          />
           <button
             type="button"
-            onClick={() => {
-              setImage(null);
-              setGif(null);
-            }}
-            className="absolute top-2 right-2 bg-gray-200 text-black rounded-full p-1.5 hover:bg-gray-300 transition-colors"
+            onClick={() => setImage(null)}
+            className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-opacity"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
       )}
-      <div className="flex items-center space-x-4 mt-3">
-        <label className="cursor-pointer">
-          <svg className="w-6 h-6 text-indigo-500 hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+
+      {/* Hashtag input */}
+      {showHashtagInput && (
+        <div className="relative flex items-center ml-12">
+          <HashtagIcon className="h-5 w-5 text-indigo-500 absolute left-2" />
           <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              if (e.target.files[0]) {
-                setImage(URL.createObjectURL(e.target.files[0]));
-                setGif(null);
-              }
-            }}
-            className="hidden"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => {
-            setShowGifPicker(!showGifPicker);
-            setShowEmojiPicker(false);
-          }}
-          className="text-indigo-500 hover:text-indigo-400 transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setShowEmojiPicker(!showEmojiPicker);
-            setShowGifPicker(false);
-          }}
-          className="text-indigo-500 hover:text-indigo-400 transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
-      </div>
-      {showGifPicker && (
-        <div className="mt-3 bg-white rounded-lg p-3 max-h-48 overflow-y-auto border border-gray-200 shadow-sm">
-          <input
-            type="text"
-            placeholder="Search GIFs..."
-            value={gifSearchTerm}
-            onChange={(e) => setGifSearchTerm(e.target.value)}
-            className="w-full p-2 mb-2 bg-gray-50 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 border border-gray-200"
-          />
-          <Grid
-            width={400}
-            columns={2}
-            gutter={6}
-            fetchGifs={fetchGifs}
-            onGifClick={(gif, e) => {
-              e.preventDefault();
-              setGif(gif);
-              setImage(null);
-              setShowGifPicker(false);
-            }}
-            className="rounded-lg"
+            value={hashtags}
+            onChange={(e) => setHashtags(e.target.value)}
+            placeholder="Add hashtags separated by spaces"
+            className="pl-9 w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
           />
         </div>
       )}
+
+      {/* Emoji picker */}
       {showEmojiPicker && (
-        <div className="mt-3 max-h-48 overflow-y-auto bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
-          <EmojiPicker onEmojiClick={handleEmojiClick} width="100%" />
+        <div className="absolute bottom-20 left-0 z-10">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(false)}
+              className="absolute -right-2 -top-2 bg-gray-200 rounded-full p-1 hover:bg-gray-300 z-10"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              width={300}
+              height={350}
+            />
+          </div>
         </div>
       )}
-      <div className="flex justify-between items-center mt-4">
-        <span className={`text-sm font-medium ${text.length > maxChars ? 'text-red-500 animate-pulse' : 'text-gray-500'}`}>
-          {text.length}/{maxChars}
-        </span>
+
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 pt-3 mt-2">
+        <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+          >
+            <FaceSmileIcon className="h-6 w-6" />
+          </button>
+
+          <label className="cursor-pointer p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
+            <PhotoIcon className="h-6 w-6" />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setImage(URL.createObjectURL(e.target.files[0]));
+                }
+              }}
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setShowHashtagInput(!showHashtagInput)}
+            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+          >
+            <HashtagIcon className="h-6 w-6" />
+          </button>
+        </div>
+
         <button
           type="submit"
-          disabled={text.length > maxChars || !text}
-          className="bg-indigo-500 text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-indigo-600 disabled:bg-gray-300 disabled:text-gray-500 transition-all duration-200 transform hover:scale-105"
+          disabled={!text.trim() || text.length > maxChars || isSubmitting}
+          className={`px-5 py-2 flex items-center gap-2 rounded-full font-medium ${
+            !text.trim() || text.length > maxChars || isSubmitting
+              ? "bg-indigo-300 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          } text-white transition-colors`}
         >
-          Post
+          <span>Post</span>
+          <PaperAirplaneIcon className="h-4 w-4" />
         </button>
       </div>
     </form>

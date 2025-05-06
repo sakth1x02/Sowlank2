@@ -1,53 +1,60 @@
-import React, { useState } from 'react';
-import CommentSection from './CommentSection';
+import React, { useState } from "react";
+import CommentSection from "./CommentSection";
 import {
   HeartIcon,
-  ArrowPathRoundedSquareIcon,
-  ChatBubbleOvalLeftEllipsisIcon,
-  ArrowUpTrayIcon,
+  ChatBubbleLeftIcon,
+  PaperAirplaneIcon,
   BookmarkIcon,
-  ClipboardDocumentIcon,
-} from '@heroicons/react/24/outline';
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
+  EllipsisHorizontalIcon,
+  ShareIcon,
+} from "@heroicons/react/24/outline";
+import {
+  HeartIcon as HeartIconSolid,
+  BookmarkIcon as BookmarkIconSolid,
+} from "@heroicons/react/24/solid";
 
 function QuoteCard({ quote, currentUser, isFollowing, onFollow, onUnfollow }) {
   const [showComments, setShowComments] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [likesCount, setLikesCount] = useState(quote.likes || 0);
   const [repostsCount, setRepostsCount] = useState(quote.reposts || 0);
   const [comments, setComments] = useState(quote.comments || []);
-  const [isSaved, setIsSaved] = useState(false);
-  const defaultAvatar = 'https://via.placeholder.com/40/cccccc/ffffff?text=User';
+  const defaultAvatar =
+    "https://via.placeholder.com/40/cccccc/ffffff?text=User";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(quote.text);
-    alert('Quote copied to clipboard!');
+    alert("Quote copied to clipboard!");
+    setShowOptions(false);
   };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
-    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+    setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
   const handleRepost = () => {
     setIsReposted(!isReposted);
-    setRepostsCount(prev => isReposted ? prev - 1 : prev + 1);
+    setRepostsCount((prev) => (isReposted ? prev - 1 : prev + 1));
   };
 
   const handleSave = () => {
     setIsSaved(!isSaved);
-    alert(isSaved ? 'Quote unsaved!' : 'Quote saved!');
+    // In a real app, this would call a prop function to handle saved state
   };
 
   const handleAddComment = (commentText) => {
     const newComment = {
       id: Date.now(),
-      user: currentUser || { username: 'Anonymous', avatar: defaultAvatar },
+      user: currentUser || { username: "Anonymous", avatar: defaultAvatar },
       text: commentText,
+      timestamp: new Date().toISOString(),
     };
-    setComments(prev => [...prev, newComment]);
+    setComments((prev) => [...prev, newComment]);
   };
 
   const handleFollowToggle = () => {
@@ -60,145 +67,206 @@ function QuoteCard({ quote, currentUser, isFollowing, onFollow, onUnfollow }) {
 
   const shareTo = (platform) => {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(`${quote.text} - Check out this quote! ${url}`);
+    const text = encodeURIComponent(
+      `${quote.text} - Check out this quote! ${url}`
+    );
     const shareUrls = {
       whatsapp: `https://api.whatsapp.com/send?text=${text}`,
       x: `https://twitter.com/intent/tweet?text=${text}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
     };
-    window.open(shareUrls[platform], '_blank');
+    window.open(shareUrls[platform], "_blank");
     setShowShareMenu(false);
   };
 
-  const isOwnQuote = currentUser?.id && quote.user?.id && currentUser.id === quote.user.id;
+  const formatTimeAgo = (timestamp) => {
+    // Simple time ago formatter - in a real app use a library
+    return "2h ago";
+  };
+
+  const isOwnQuote =
+    currentUser?.id && quote.user?.id && currentUser.id === quote.user.id;
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 shadow-lg max-w-2xl mx-auto my-8 overflow-hidden transform transition-all hover:scale-105 hover:shadow-2xl">
-      <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center gap-4">
-          <img
-            src={quote.user.avatar || defaultAvatar}
-            alt="Avatar"
-            className="w-12 h-12 rounded-full border-2 border-indigo-500 shadow-md object-cover transition-transform hover:scale-110"
-          />
-          <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              {quote.user.username || 'Anonymous'}
-            </h2>
-            <p className="text-xs text-gray-400 tracking-wide">
-              {new Date(quote.timestamp).toLocaleString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </p>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Post header */}
+      <div className="flex items-center justify-between p-3 border-b border-gray-100">
+        <div className="flex items-center">
+          <div className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-indigo-500 p-[2px] bg-gradient-to-tr from-yellow-400 to-purple-500">
+            <img
+              src={quote.user.avatar || defaultAvatar}
+              alt={quote.user.username}
+              className="h-full w-full rounded-full object-cover border-2 border-white"
+            />
+          </div>
+          <div className="ml-3">
+            <span className="font-semibold text-[15px] text-gray-900">
+              {quote.user.username || "Anonymous"}
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center space-x-2">
           {!isOwnQuote && (
             <button
               onClick={handleFollowToggle}
-              className={`px-4 py-1 rounded-full font-medium text-sm transition-all duration-200 ${
-                isFollowing ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              className={`text-xs px-3 py-1 rounded-full font-medium transition-all ${
+                isFollowing
+                  ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  : "bg-indigo-500 text-white hover:bg-indigo-600"
               }`}
             >
-              {isFollowing ? 'Following' : 'Follow'}
+              {isFollowing ? "Following" : "Follow"}
             </button>
           )}
-          <button
-            onClick={copyToClipboard}
-            title="Copy quote"
-            className="p-2 rounded-full bg-indigo-50 hover:bg-indigo-100 transition-colors"
-          >
-            <ClipboardDocumentIcon className="w-5 h-5 text-indigo-600" />
-          </button>
-        </div>
-      </div>
-      <div className="relative p-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
-        <blockquote className="text-gray-900 text-xl italic font-serif leading-relaxed px-6 py-4 bg-white/70 rounded-2xl shadow-md border-l-4 border-indigo-600">
-          "{quote.text || 'No text available'}"
-        </blockquote>
-        <span className="absolute -top-6 -left-6 text-6xl text-indigo-300/50 select-none">“</span>
-        <span className="absolute -bottom-6 -right-6 text-6xl text-indigo-300/50 select-none">”</span>
-      </div>
-      {quote.image && (
-        <img
-          src={quote.image}
-          alt="Quote Visual"
-          className="w-full h-72 object-cover mx-6 mb-6 rounded-2xl shadow-lg transition-transform hover:scale-105"
-        />
-      )}
-      {quote.hashtags && quote.hashtags.length > 0 && (
-        <div className="flex flex-wrap gap-2 px-6 mb-6">
-          {quote.hashtags.map((h) => (
-            <span
-              key={h}
-              className="bg-indigo-600 text-white text-sm font-medium px-3 py-1 rounded-full hover:bg-indigo-700 transition-all cursor-pointer"
+
+          <div className="relative">
+            <button
+              onClick={() => setShowOptions(!showOptions)}
+              className="text-gray-700 p-1 hover:bg-gray-100 rounded-full"
             >
-              #{h}
-            </span>
-          ))}
+              <EllipsisHorizontalIcon className="h-5 w-5" />
+            </button>
+
+            {showOptions && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10 animate-fade-in">
+                <button
+                  onClick={copyToClipboard}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Copy text
+                </button>
+                <button
+                  onClick={() => {
+                    setShowOptions(false);
+                    // Report functionality would go here
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Report
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quote content */}
+      <div className="px-4 pt-3 pb-2">
+        <p className="text-gray-800 text-[15px] leading-relaxed">
+          {quote.text}
+        </p>
+
+        {/* Hashtags */}
+        {quote.hashtags && quote.hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {quote.hashtags.map((h) => (
+              <span
+                key={h}
+                className="text-indigo-600 text-sm hover:underline cursor-pointer"
+              >
+                #{h}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Image if available */}
+      {quote.image && (
+        <div className="mt-2 border-t border-b border-gray-100">
+          <img
+            src={quote.image}
+            alt="Quote visual"
+            className="w-full object-cover"
+            style={{ maxHeight: "480px" }}
+          />
         </div>
       )}
-      <div className="flex justify-between items-center px-6 py-4 bg-white/80 border-t border-gray-100">
-        <div className="flex items-center gap-8">
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 transition-colors"
-          >
-            <ChatBubbleOvalLeftEllipsisIcon className="w-6 h-6 transition-transform hover:rotate-12" />
-            <span className="text-sm font-medium">{comments.length}</span>
-          </button>
-          <button
-            onClick={handleRepost}
-            className={`flex items-center gap-2 transition-colors ${isReposted ? 'text-green-600' : 'text-gray-600 hover:text-green-600'}`}
-          >
-            <ArrowPathRoundedSquareIcon className="w-6 h-6 transition-transform hover:rotate-90" />
-            <span className="text-sm font-medium">{repostsCount}</span>
-          </button>
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-600' : 'text-gray-600 hover:text-red-600'}`}
-          >
-            {isLiked ? <HeartIconSolid className="w-6 h-6 animate-pulse" /> : <HeartIcon className="w-6 h-6 transition-transform hover:scale-125" />}
-            <span className="text-sm font-medium">{likesCount}</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-4 relative">
-          <button
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            className="text-gray-600 hover:text-indigo-600 transition-colors"
-          >
-            <ArrowUpTrayIcon className="w-6 h-6 transition-transform hover:rotate-12" />
-          </button>
-          {showShareMenu && (
-            <div className="absolute right-0 top-10 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-10 animate-fade-in">
-              {['whatsapp', 'x', 'facebook'].map((platform) => (
-                <button
-                  key={platform}
-                  onClick={() => shareTo(platform)}
-                  className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white transition-all capitalize"
-                >
-                  <span className="w-6 h-6 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-800">
-                    {platform[0].toUpperCase()}
-                  </span>
-                  {platform}
-                </button>
-              ))}
-            </div>
-          )}
+
+      {/* Actions */}
+      <div className="px-4 pt-3 pb-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center -ml-2 space-x-2">
+            <button
+              onClick={handleLike}
+              className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${
+                isLiked ? "text-red-500" : "text-gray-700"
+              }`}
+            >
+              {isLiked ? (
+                <HeartIconSolid className="h-6 w-6 scale-110 transition-transform" />
+              ) : (
+                <HeartIcon className="h-6 w-6" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700"
+            >
+              <ChatBubbleLeftIcon className="h-6 w-6 -scale-x-100" />
+            </button>
+
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700"
+            >
+              <PaperAirplaneIcon className="h-6 w-6 rotate-45" />
+            </button>
+
+            {showShareMenu && (
+              <div className="absolute left-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-10 py-2 w-48 animate-fade-in">
+                {["whatsapp", "x", "facebook"].map((platform) => (
+                  <button
+                    key={platform}
+                    onClick={() => shareTo(platform)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 capitalize flex items-center"
+                  >
+                    <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-xs font-bold mr-3">
+                      {platform[0].toUpperCase()}
+                    </span>
+                    Share to {platform}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleSave}
-            className={`transition-colors ${isSaved ? 'text-yellow-500' : 'text-gray-600 hover:text-yellow-500'}`}
+            className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${
+              isSaved ? "text-black" : "text-gray-700"
+            }`}
           >
-            <BookmarkIcon className="w-6 h-6 transition-transform hover:scale-125" />
+            {isSaved ? (
+              <BookmarkIconSolid className="h-6 w-6" />
+            ) : (
+              <BookmarkIcon className="h-6 w-6" />
+            )}
           </button>
         </div>
+
+        {/* Likes count */}
+        {likesCount > 0 && (
+          <div className="mt-1 mb-1">
+            <span className="font-semibold text-sm">
+              {likesCount} {likesCount === 1 ? "like" : "likes"}
+            </span>
+          </div>
+        )}
+
+        {/* Timestamp */}
+        <div className="mb-2">
+          <span className="text-gray-500 text-[10px] uppercase tracking-wide">
+            {formatTimeAgo(quote.timestamp)}
+          </span>
+        </div>
       </div>
+
+      {/* Comments section */}
       {showComments && (
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 animate-slide-down">
+        <div className="border-t border-gray-100 px-4 py-2">
           <CommentSection
             quoteId={quote.id}
             comments={comments}
