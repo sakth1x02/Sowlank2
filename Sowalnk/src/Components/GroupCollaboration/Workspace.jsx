@@ -191,14 +191,14 @@ export default function Workspace() {
   }, [setComments]);
 
   //This is for adding the task
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, taskWithInvites) => {
     e.preventDefault();
 
     try {
-      // Format task data - ensure assignees are just IDs
+      // Format task data
       const taskData = {
-        ...newTask,
-        assignees: newTask.assignees.map((user) => user._id),
+        ...(taskWithInvites || newTask),
+        emailInvites: taskWithInvites?.emailInvites || [],
       };
 
       const response = await fetch("/api/v1/group", {

@@ -1,5 +1,6 @@
-import React from "react";
-import { Plus, User, X } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, User, X, Mail } from "lucide-react";
+
 const ShowAddTask = ({
   setShowAddTaskModal,
   newTask,
@@ -7,6 +8,30 @@ const ShowAddTask = ({
   handleSubmit,
   members,
 }) => {
+  const [emailInvites, setEmailInvites] = useState([]);
+  const [newEmail, setNewEmail] = useState("");
+
+  const handleAddEmailInvite = () => {
+    if (newEmail && !emailInvites.includes(newEmail)) {
+      setEmailInvites([...emailInvites, newEmail]);
+      setNewEmail("");
+    }
+  };
+
+  const handleRemoveEmailInvite = (email) => {
+    setEmailInvites(emailInvites.filter((e) => e !== email));
+  };
+
+  const handleSubmitWithInvites = async (e) => {
+    e.preventDefault();
+    // Add email invites to the task data
+    const taskWithInvites = {
+      ...newTask,
+      emailInvites: emailInvites,
+    };
+    await handleSubmit(e, taskWithInvites);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
       <div
@@ -37,7 +62,7 @@ const ShowAddTask = ({
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmitWithInvites} className="space-y-4">
             {/* Title Field */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
@@ -129,72 +154,42 @@ const ShowAddTask = ({
               </div>
             </div>
 
-            {/* Assignee Field */}
+            {/* Email Invites Field */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
-                Assignees <span className="text-red-500">*</span>
+                Invite Team Members <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const selectedId = e.target.value;
-                    if (!selectedId) return;
-
-                    const selectedMember = members.find(
-                      (m) => m._id === selectedId
-                    );
-
-                    if (
-                      selectedMember &&
-                      !newTask.assignees?.some((a) => a._id === selectedId)
-                    ) {
-                      setNewTask({
-                        ...newTask,
-                        assignees: [
-                          ...(newTask.assignees || []),
-                          selectedMember,
-                        ],
-                      });
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none"
-                >
-                  <option value="">Select team member</option>
-                  {members.map((member) => (
-                    <option key={member._id} value={member._id}>
-                      {member.name} ({member.email})
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <User size={18} className="text-gray-400" />
+              <div className="space-y-2">
+                <div className="flex space-x-2">
+                  <input
+                    type="email"
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter email address"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddEmailInvite}
+                    className="px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+                  >
+                    <Mail size={16} className="mr-2" />
+                    Add
+                  </button>
                 </div>
-              </div>
 
-              {/* Selected Assignees */}
-              {newTask.assignees?.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-xs text-gray-500 mb-2">
-                    Selected assignees:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {newTask.assignees.map((user) => (
+                {/* Display added email invites */}
+                {emailInvites.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {emailInvites.map((email) => (
                       <div
-                        key={user._id}
-                        className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                        key={email}
+                        className="flex items-center justify-between bg-blue-50 text-blue-700 px-3 py-2 rounded-lg"
                       >
-                        <span>{user.name}</span>
+                        <span className="text-sm">{email}</span>
                         <button
                           type="button"
-                          onClick={() => {
-                            setNewTask({
-                              ...newTask,
-                              assignees: newTask.assignees.filter(
-                                (a) => a._id !== user._id
-                              ),
-                            });
-                          }}
+                          onClick={() => handleRemoveEmailInvite(email)}
                           className="text-blue-400 hover:text-blue-700"
                         >
                           <X size={14} />
@@ -202,8 +197,8 @@ const ShowAddTask = ({
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Description */}
@@ -270,6 +265,7 @@ const ShowAddTask = ({
 };
 
 export default ShowAddTask;
+
 function Flag({ size, className }) {
   return (
     <svg
