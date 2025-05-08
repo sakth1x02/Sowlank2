@@ -3,6 +3,7 @@ import {
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
+  TASK_INVITATION_TEMPLATE,
 } from "./emailTemplate.js";
 import { transporter } from "./mailtrap.config.js";
 
@@ -118,5 +119,34 @@ export const sendResetSuccessEmail = async (email) => {
     console.error(`Error sending password reset success email`, error);
 
     throw new Error(`Error sending password reset success email: ${error}`);
+  }
+};
+
+export const sendTaskInvitationEmail = async (email, taskData, creatorName) => {
+  try {
+    const taskURL = `${process.env.FRONTEND_URL}/workspace?task=${taskData._id}`;
+    const formattedDate = new Date(taskData.dueDate).toLocaleDateString();
+
+    const html = TASK_INVITATION_TEMPLATE.replace("{taskTitle}", taskData.title)
+      .replace("{dueDate}", formattedDate)
+      .replace("{priority}", taskData.priority)
+      .replace(
+        "{description}",
+        taskData.description || "No description provided"
+      )
+      .replace("{taskURL}", taskURL)
+      .replace("{creatorName}", creatorName);
+
+    const response = await transporter.sendMail({
+      from: process.env.BREVO_EMAIL,
+      to: email,
+      subject: `Task Invitation: ${taskData.title}`,
+      html: html,
+    });
+
+    return response;
+  } catch (error) {
+    console.error(`Error sending task invitation email`, error);
+    throw new Error(`Error sending task invitation email: ${error}`);
   }
 };

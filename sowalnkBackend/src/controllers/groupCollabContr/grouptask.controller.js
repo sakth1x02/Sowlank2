@@ -1,27 +1,36 @@
 import { User } from "../../models/user.model.js";
 import Task from "../../models/groupCollaboration/grouptask.model.js";
+import { sendTaskInvitationEmail } from "../../mailtrap/emails.js";
 
 const groupCollaboration = {
   //create new task
   addTask: async (req, res) => {
     try {
-      const { assignees, createdBy, ...taskData } = req.body;
+      const { assignees, createdBy, emailInvites, ...taskData } = req.body;
 
       // Validate users exist
       const creator = await User.findById(createdBy);
       if (!creator)
         return res.status(400).json({ message: "Invalid task creator" });
 
-      // const validAssignees = await User.find({ _id: { $in: assignees } });
-      // if (validAssignees.length !== assignees.length) {
-      //   return res.status(400).json({ message: "Invalid assignees" });
-      // }
-
       const task = await Task.create({
         ...taskData,
         assignees,
         createdBy,
       });
+
+      // Send invitation emails to non-registered users
+      if (emailInvites && emailInvites.length > 0) {
+        try {
+          const emailPromises = emailInvites.map((email) =>
+            sendTaskInvitationEmail(email, task, creator.name)
+          );
+          await Promise.all(emailPromises);
+        } catch (emailError) {
+          console.error("Error sending invitation emails:", emailError);
+          // Don't fail the task creation if email sending fails
+        }
+      }
 
       res.status(201).json(task);
     } catch (error) {
