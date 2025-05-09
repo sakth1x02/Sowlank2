@@ -995,6 +995,7 @@ export default function Workspace() {
                                         onReply={() =>
                                           handleStartReply(comment)
                                         }
+                                        comment={comment}
                                       />
 
                                       {/* Replies */}
@@ -1120,23 +1121,30 @@ function CommentEditForm({ value, onChange, onCancel, onSave }) {
   );
 }
 
-function CommentActions({ onEdit, onDelete, onReply }) {
+function CommentActions({ onEdit, onDelete, onReply, comment }) {
+  const auth = useSelector((state) => state.user.loggedInUser);
+  const isAuthor = comment?.author?._id === auth._id;
+
   return (
     <div className="flex items-center mt-1.5 space-x-3 text-xs text-gray-500 px-1 opacity-70 group-hover:opacity-100">
-      <button
-        className="hover:text-blue-600 flex items-center transition-colors"
-        onClick={onEdit}
-      >
-        <Edit size={10} className="mr-1" />
-        Edit
-      </button>
-      <button
-        className="hover:text-red-600 flex items-center transition-colors"
-        onClick={onDelete}
-      >
-        <Trash2 size={10} className="mr-1" />
-        Delete
-      </button>
+      {isAuthor && (
+        <>
+          <button
+            className="hover:text-blue-600 flex items-center transition-colors"
+            onClick={onEdit}
+          >
+            <Edit size={10} className="mr-1" />
+            Edit
+          </button>
+          <button
+            className="hover:text-red-600 flex items-center transition-colors"
+            onClick={onDelete}
+          >
+            <Trash2 size={10} className="mr-1" />
+            Delete
+          </button>
+        </>
+      )}
       <button
         className="hover:text-blue-600 flex items-center transition-colors"
         onClick={onReply}
@@ -1158,71 +1166,78 @@ function CommentReplies({
   onEdit,
   onDelete,
 }) {
+  const auth = useSelector((state) => state.user.loggedInUser);
+
   if (!comment.replies || comment.replies.length === 0) return null;
 
   return (
     <div className="mt-2 pl-2 sm:pl-3 border-l-2 border-gray-200 space-y-2 sm:space-y-3">
-      {comment.replies.map((reply) => (
-        <div
-          key={reply._id}
-          className="bg-gray-50 p-2 sm:p-2.5 rounded-lg transition-shadow hover:shadow-sm group"
-        >
-          {editingReply && editingReply._id === reply._id ? (
-            <div className="space-y-2">
-              <textarea
-                className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="2"
-                value={editReplyContent}
-                onChange={onEditReplyChange}
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                  onClick={onCancelEdit}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
-                  onClick={() => onSaveEdit(reply._id)}
-                >
-                  Save
-                </button>
+      {comment.replies.map((reply) => {
+        const isAuthor = reply?.author?._id === auth._id;
+        return (
+          <div
+            key={reply._id}
+            className="bg-gray-50 p-2 sm:p-2.5 rounded-lg transition-shadow hover:shadow-sm group"
+          >
+            {editingReply && editingReply._id === reply._id ? (
+              <div className="space-y-2">
+                <textarea
+                  className="w-full border border-gray-300 rounded-md p-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="2"
+                  value={editReplyContent}
+                  onChange={onEditReplyChange}
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    className="px-2 py-1 text-xs text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                    onClick={onCancelEdit}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600"
+                    onClick={() => onSaveEdit(reply._id)}
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-xs flex items-center">
-                  <CornerDownRight size={10} className="mr-1 text-gray-400" />
-                  {reply.author?.name}
-                </span>
-                <span className="text-[10px] sm:text-xs text-gray-500">
-                  {reply.edited ? "Edited • " : ""}
-                  {new Date(reply.updatedAt).toDateString()}
-                </span>
-              </div>
-              <p className="text-xs text-gray-700">{reply.content}</p>
-              <div className="flex items-center mt-1 space-x-3 text-[10px] sm:text-xs text-gray-500 opacity-70 group-hover:opacity-100">
-                <button
-                  className="hover:text-blue-600 flex items-center transition-colors"
-                  onClick={() => onEdit(reply)}
-                >
-                  <Edit size={9} className="mr-1" />
-                  Edit
-                </button>
-                <button
-                  className="hover:text-red-600 flex items-center transition-colors"
-                  onClick={() => onDelete(reply._id)}
-                >
-                  <Trash2 size={9} className="mr-1" />
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      ))}
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-xs flex items-center">
+                    <CornerDownRight size={10} className="mr-1 text-gray-400" />
+                    {reply.author?.name}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-gray-500">
+                    {reply.edited ? "Edited • " : ""}
+                    {new Date(reply.updatedAt).toDateString()}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-700">{reply.content}</p>
+                {isAuthor && (
+                  <div className="flex items-center mt-1 space-x-3 text-[10px] sm:text-xs text-gray-500 opacity-70 group-hover:opacity-100">
+                    <button
+                      className="hover:text-blue-600 flex items-center transition-colors"
+                      onClick={() => onEdit(reply)}
+                    >
+                      <Edit size={9} className="mr-1" />
+                      Edit
+                    </button>
+                    <button
+                      className="hover:text-red-600 flex items-center transition-colors"
+                      onClick={() => onDelete(reply._id)}
+                    >
+                      <Trash2 size={9} className="mr-1" />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

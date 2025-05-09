@@ -124,7 +124,7 @@ export const sendResetSuccessEmail = async (email) => {
 
 export const sendTaskInvitationEmail = async (email, taskData, creatorName) => {
   try {
-    const taskURL = `${process.env.FRONTEND_URL}/workspace?task=${taskData._id}`;
+    const taskURL = `https://www.sowalnk.com/workspace`;
     const formattedDate = new Date(taskData.dueDate).toLocaleDateString();
 
     const html = TASK_INVITATION_TEMPLATE.replace("{taskTitle}", taskData.title)
