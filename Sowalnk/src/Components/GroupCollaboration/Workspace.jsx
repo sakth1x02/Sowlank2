@@ -155,7 +155,16 @@ export default function Workspace() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch tasks");
+        }
+
         const data = await response.json();
+
+        // Log the tasks data to see the structure
+        console.log("Fetched tasks:", data);
+
         setTasks(data);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -201,6 +210,8 @@ export default function Workspace() {
         emailInvites: taskWithInvites?.emailInvites || [],
       };
 
+      console.log("Submitting task data:", taskData);
+
       const response = await fetch("/api/v1/group", {
         method: "POST",
         headers: {
@@ -215,7 +226,11 @@ export default function Workspace() {
       }
 
       const data = await response.json();
-      setTasks([...tasks, data]);
+      console.log("Created task:", data);
+
+      // Make sure we update the tasks list with the newly created task
+      setTasks((prevTasks) => [...prevTasks, data]);
+
       setShowAddTaskModal(false);
       setNewTask({
         title: "",
@@ -374,7 +389,10 @@ export default function Workspace() {
       return assigneeId === auth._id;
     });
 
-    return isCreator || isAssignee;
+    // Check if user's email is in emailAssignees
+    const isEmailAssignee = task.emailAssignees?.includes(auth.email);
+
+    return isCreator || isAssignee || isEmailAssignee;
   };
 
   // This is for toggling the complete part
@@ -424,10 +442,17 @@ export default function Workspace() {
         throw new Error(errorData.message || "Failed to delete task");
       }
 
-      await response.json();
-      const updatedTasks = tasks.filter((task) => task._id !== taskId);
-      setTasks(updatedTasks);
+      // Update tasks state by filtering out the deleted task
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+
+      // Close task details and reset related states
       setSelectedTask(null);
+      setShowTaskDetails(false);
+
+      // On small/medium screens, ensure task list is visible
+      if (screenSize === "small" || screenSize === "medium") {
+        setShowTaskList(true);
+      }
     } catch (error) {
       console.error("Error deleting task:", error);
       alert(error.message || "You don't have permission to delete this task");
@@ -819,23 +844,44 @@ export default function Workspace() {
                         <span className="text-sm">Assignees</span>
                       </div>
                       <div className="flex items-center space-x-2 flex-wrap justify-end">
-                        {selectedTask?.assignees?.length > 0 ? (
-                          selectedTask.assignees.map((assignee, index) => (
-                            <div
-                              key={`${assignee}-${index}`}
-                              className="flex items-center space-x-1 bg-blue-50 px-2 py-0.5 rounded-full"
-                            >
-                              <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">
-                                {members
-                                  .find((m) => m._id === assignee)
-                                  ?.name?.charAt(0) || "U"}
+                        {selectedTask?.assignees?.length > 0 ||
+                        selectedTask?.emailAssignees?.length > 0 ? (
+                          <>
+                            {/* Display regular assignees */}
+                            {selectedTask.assignees?.map((assignee, index) => (
+                              <div
+                                key={`user-${assignee}-${index}`}
+                                className="flex items-center space-x-1 bg-blue-50 px-2 py-0.5 rounded-full"
+                              >
+                                <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">
+                                  {members
+                                    .find((m) => m._id === assignee)
+                                    ?.name?.charAt(0) || "U"}
+                                </div>
+                                <span className="text-xs text-blue-700">
+                                  {members.find((m) => m._id === assignee)
+                                    ?.name || "User"}
+                                </span>
                               </div>
-                              <span className="text-xs text-blue-700">
-                                {members.find((m) => m._id === assignee)
-                                  ?.name || "User"}
-                              </span>
-                            </div>
-                          ))
+                            ))}
+
+                            {/* Display email assignees */}
+                            {selectedTask.emailAssignees?.map(
+                              (email, index) => (
+                                <div
+                                  key={`email-${index}`}
+                                  className="flex items-center space-x-1 bg-indigo-50 px-2 py-0.5 rounded-full"
+                                >
+                                  <div className="w-4 h-4 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs">
+                                    {email.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-xs text-indigo-700">
+                                    {email}
+                                  </span>
+                                </div>
+                              )
+                            )}
+                          </>
                         ) : (
                           <span className="text-xs text-gray-500">
                             No assignees
@@ -902,7 +948,7 @@ export default function Workspace() {
                           </span>
                         </div>
                         <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">
-                          {selectedTask?.comments?.length || 0} comments
+                          {comments?.length || 0} comments
                         </span>
                       </div>
 
@@ -913,144 +959,132 @@ export default function Workspace() {
                             Loading comments...
                           </span>
                         </div>
-                      ) : selectedTask?.comments?.length === 0 ? (
+                      ) : comments?.length === 0 ? (
                         <p className="text-sm text-gray-500 text-center py-4">
                           No comments yet. Be the first to add one!
                         </p>
                       ) : (
                         <div className="space-y-4">
-                          {selectedTask?.comments?.map((commentId) => {
-                            const comment = comments?.find(
-                              (c) => c._id === commentId
-                            );
-                            if (!comment) return null;
+                          {comments?.map((comment) => (
+                            <div
+                              key={comment._id}
+                              className="flex space-x-2 sm:space-x-3 group"
+                            >
+                              {/* Comment avatar */}
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                                {comment?.author?.avatar ? (
+                                  <img
+                                    src={comment.author.avatar}
+                                    alt={comment.author.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-xs sm:text-sm">
+                                    {comment?.author?.name?.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
 
-                            return (
-                              <div
-                                key={commentId}
-                                className="flex space-x-2 sm:space-x-3 group"
-                              >
-                                {/* Comment avatar */}
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
-                                  {comment?.author?.avatar ? (
-                                    <img
-                                      src={comment.author.avatar}
-                                      alt={comment.author.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-xs sm:text-sm">
-                                      {comment?.author?.name?.charAt(0)}
+                              {/* Comment content */}
+                              <div className="flex-1">
+                                {editingComment &&
+                                editingComment._id === comment._id ? (
+                                  <CommentEditForm
+                                    value={editCommentContent}
+                                    onChange={(e) =>
+                                      setEditCommentContent(e.target.value)
+                                    }
+                                    onCancel={handleCancelEditComment}
+                                    onSave={() =>
+                                      handleSaveEditComment(
+                                        selectedTask._id,
+                                        comment._id
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <div>
+                                    <div className="bg-gray-100 p-2.5 sm:p-3 rounded-lg">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-xs sm:text-sm">
+                                          {comment?.author?.name}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {comment?.edited ? "Edited • " : ""}
+                                          {new Date(
+                                            comment?.updatedAt
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs sm:text-sm text-gray-700">
+                                        {comment?.content}
+                                      </p>
                                     </div>
-                                  )}
-                                </div>
 
-                                {/* Comment content */}
-                                <div className="flex-1">
-                                  {editingComment &&
-                                  editingComment._id === commentId ? (
-                                    <CommentEditForm
-                                      value={editCommentContent}
-                                      onChange={(e) =>
-                                        setEditCommentContent(e.target.value)
+                                    {/* Comment actions */}
+                                    <CommentActions
+                                      onEdit={() =>
+                                        handleStartEditComment(comment)
                                       }
-                                      onCancel={handleCancelEditComment}
-                                      onSave={() =>
-                                        handleSaveEditComment(
+                                      onDelete={() =>
+                                        handleDeleteComment(
                                           selectedTask._id,
                                           comment._id
                                         )
                                       }
+                                      onReply={() => handleStartReply(comment)}
+                                      comment={comment}
                                     />
-                                  ) : (
-                                    <div>
-                                      <div className="bg-gray-100 p-2.5 sm:p-3 rounded-lg">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="font-medium text-xs sm:text-sm">
-                                            {comment?.author?.name}
-                                          </span>
-                                          <span className="text-xs text-gray-500">
-                                            {comment?.edited ? "Edited • " : ""}
-                                            {new Date(
-                                              comment?.updatedAt
-                                            ).toDateString()}
-                                          </span>
-                                        </div>
-                                        <p className="text-xs sm:text-sm text-gray-700">
-                                          {comment?.content}
-                                        </p>
-                                      </div>
 
-                                      {/* Comment actions */}
-                                      <CommentActions
-                                        onEdit={() =>
-                                          handleStartEditComment(comment)
-                                        }
-                                        onDelete={() =>
-                                          handleDeleteComment(
-                                            selectedTask._id,
-                                            comment._id
-                                          )
-                                        }
-                                        onReply={() =>
-                                          handleStartReply(comment)
-                                        }
-                                        comment={comment}
-                                      />
+                                    {/* Replies */}
+                                    <CommentReplies
+                                      comment={comment}
+                                      editingReply={editingReply}
+                                      editReplyContent={editReplyContent}
+                                      onEditReplyChange={(e) =>
+                                        setEditReplyContent(e.target.value)
+                                      }
+                                      onCancelEdit={handleCancelEditReply}
+                                      onSaveEdit={(replyId) =>
+                                        handleSaveEditReply(
+                                          comment._id,
+                                          replyId
+                                        )
+                                      }
+                                      onEdit={handleStartEditReply}
+                                      onDelete={(replyId) =>
+                                        handleDeleteReply(comment._id, replyId)
+                                      }
+                                    />
 
-                                      {/* Replies */}
-                                      <CommentReplies
-                                        comment={comment}
-                                        editingReply={editingReply}
-                                        editReplyContent={editReplyContent}
-                                        onEditReplyChange={(e) =>
-                                          setEditReplyContent(e.target.value)
-                                        }
-                                        onCancelEdit={handleCancelEditReply}
-                                        onSaveEdit={(replyId) =>
-                                          handleSaveEditReply(
-                                            comment._id,
-                                            replyId
-                                          )
-                                        }
-                                        onEdit={handleStartEditReply}
-                                        onDelete={(replyId) =>
-                                          handleDeleteReply(
-                                            comment._id,
-                                            replyId
-                                          )
-                                        }
-                                      />
-
-                                      {/* Reply form */}
-                                      {replyingTo &&
-                                        replyingTo._id === comment._id && (
-                                          <ReplyForm
-                                            value={replyContent}
-                                            onChange={(e) =>
-                                              setReplyContent(e.target.value)
-                                            }
-                                            onCancel={handleCancelReply}
-                                            onSubmit={() =>
-                                              handleSubmitReply(
-                                                selectedTask._id,
-                                                comment._id
-                                              )
-                                            }
-                                            recipientName={comment.author?.name}
-                                          />
-                                        )}
-                                    </div>
-                                  )}
-                                </div>
+                                    {/* Reply form */}
+                                    {replyingTo &&
+                                      replyingTo._id === comment._id && (
+                                        <ReplyForm
+                                          value={replyContent}
+                                          onChange={(e) =>
+                                            setReplyContent(e.target.value)
+                                          }
+                                          onCancel={handleCancelReply}
+                                          onSubmit={() =>
+                                            handleSubmitReply(
+                                              selectedTask._id,
+                                              comment._id
+                                            )
+                                          }
+                                          recipientName={comment.author?.name}
+                                        />
+                                      )}
+                                  </div>
+                                )}
                               </div>
-                            );
-                          })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
 
-                    {/* Add comment */}
+                    {/* Add comment - Now available to all users */}
                     <div className="mt-6">
                       <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Add Comment
@@ -1071,7 +1105,7 @@ export default function Workspace() {
                           ></textarea>
                           <div className="mt-2 flex justify-end">
                             <button
-                              className="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs sm:text-sm hover:bg-blue-600 transition-colors flex items-center"
+                              className="px-3 py-1.5 bg-blue-500 text-white rounded-md text-xs sm:text-sm hover:bg-blue-600 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => handleAddComment(selectedTask._id)}
                               disabled={!newComment.trim()}
                             >

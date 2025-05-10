@@ -26,6 +26,17 @@ const taskSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    emailAssignees: [
+      {
+        type: String,
+        validate: {
+          validator: function (v) {
+            return /^\S+@\S+\.\S+$/.test(v);
+          },
+          message: (props) => `${props.value} is not a valid email address!`,
+        },
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

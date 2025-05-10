@@ -13,9 +13,11 @@ const groupCollaboration = {
       if (!creator)
         return res.status(400).json({ message: "Invalid task creator" });
 
+      // Create the task with both user IDs and email assignees
       const task = await Task.create({
         ...taskData,
         assignees,
+        emailAssignees: emailInvites || [], // Store email invites separately
         createdBy,
       });
 
@@ -52,19 +54,22 @@ const groupCollaboration = {
   updateTask: async (req, res) => {
     try {
       const userId = req.user._id;
+      const userEmail = req.user.email;
       const task = await Task.findById(req.params.id);
 
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
 
-      // Check if user is the creator or an assignee
+      // Check if user is the creator, an assignee, or an email assignee
       const isCreator = task.createdBy.toString() === userId.toString();
       const isAssignee = task.assignees.some(
         (assignee) => assignee.toString() === userId.toString()
       );
+      const isEmailAssignee =
+        task.emailAssignees && task.emailAssignees.includes(userEmail);
 
-      if (!isCreator && !isAssignee) {
+      if (!isCreator && !isAssignee && !isEmailAssignee) {
         return res
           .status(403)
           .json({ message: "You don't have permission to update this task" });
@@ -85,19 +90,22 @@ const groupCollaboration = {
   deleteTask: async (req, res) => {
     try {
       const userId = req.user._id;
+      const userEmail = req.user.email;
       const task = await Task.findById(req.params.id);
 
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
 
-      // Check if user is the creator or an assignee
+      // Check if user is the creator, an assignee, or an email assignee
       const isCreator = task.createdBy.toString() === userId.toString();
       const isAssignee = task.assignees.some(
         (assignee) => assignee.toString() === userId.toString()
       );
+      const isEmailAssignee =
+        task.emailAssignees && task.emailAssignees.includes(userEmail);
 
-      if (!isCreator && !isAssignee) {
+      if (!isCreator && !isAssignee && !isEmailAssignee) {
         return res
           .status(403)
           .json({ message: "You don't have permission to delete this task" });

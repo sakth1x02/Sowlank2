@@ -24,11 +24,19 @@ const ShowAddTask = ({
 
   const handleSubmitWithInvites = async (e) => {
     e.preventDefault();
+
+    // Make sure email addresses are valid
+    const validEmails = emailInvites.filter((email) =>
+      /^\S+@\S+\.\S+$/.test(email)
+    );
+
     // Add email invites to the task data
     const taskWithInvites = {
       ...newTask,
-      emailInvites: emailInvites,
+      emailInvites: validEmails,
     };
+
+    console.log("Submitting task with email invites:", taskWithInvites);
     await handleSubmit(e, taskWithInvites);
   };
 

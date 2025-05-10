@@ -15,16 +15,6 @@ const commentController = {
           .json({ success: false, message: "Task not found" });
       }
 
-      const isAssignee = task.assignees.some((assignee) =>
-        assignee.equals(userId)
-      );
-      if (!task.createdBy.equals(userId) && !isAssignee) {
-        return res.status(403).json({
-          success: false,
-          message: "Not authorized to comment on this task",
-        });
-      }
-
       const commentData = {
         content,
         task: taskId,
