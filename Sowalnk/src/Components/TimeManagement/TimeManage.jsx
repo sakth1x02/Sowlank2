@@ -32,7 +32,7 @@ const TimeManage = () => {
       id: 2,
       name: "Eisenhower Matrix",
       description: "Prioritize tasks based on urgency and importance.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 3,

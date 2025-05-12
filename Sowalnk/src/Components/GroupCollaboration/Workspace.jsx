@@ -112,10 +112,6 @@ export default function Workspace() {
       setCommentLoading(false);
     }
   };
-  // console.log(
-  //   "Comment",
-  //   comments.map((comment) => console.log(comment.content))
-  // );
 
   const closeTaskDetails = () => {
     setSelectedTask(null);
@@ -162,9 +158,6 @@ export default function Workspace() {
 
         const data = await response.json();
 
-        // Log the tasks data to see the structure
-        console.log("Fetched tasks:", data);
-
         setTasks(data);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -210,8 +203,6 @@ export default function Workspace() {
         emailInvites: taskWithInvites?.emailInvites || [],
       };
 
-      console.log("Submitting task data:", taskData);
-
       const response = await fetch("/api/v1/group", {
         method: "POST",
         headers: {
@@ -226,7 +217,6 @@ export default function Workspace() {
       }
 
       const data = await response.json();
-      console.log("Created task:", data);
 
       // Make sure we update the tasks list with the newly created task
       setTasks((prevTasks) => [...prevTasks, data]);
@@ -245,8 +235,6 @@ export default function Workspace() {
       alert(error.message || "An error occurred while creating the task");
     }
   };
-  // console.log("Tasks:", tasks);
-  // console.log("Selected Task:", selectedTask);
 
   const handleAddComment = async (taskId) => {
     if (!newComment.trim()) return;

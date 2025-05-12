@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Trash2, Info, X } from "lucide-react";
 import Confetti from "react-confetti";
+import { toast } from "react-toastify";
+import eisenhowerService from "../../services/eisenhowerService";
 
 const EisenhowerMethod = () => {
   const [tasks, setTasks] = useState([]);
@@ -12,106 +14,120 @@ const EisenhowerMethod = () => {
   const [badges, setBadges] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Load state from localStorage on mount
+  // Load tasks from backend on mount
   useEffect(() => {
-    const savedTasks =
-      JSON.parse(localStorage.getItem("eisenhowerTasks")) || [];
-    const savedPoints = parseInt(localStorage.getItem("eisenhowerPoints")) || 0;
-    const savedLevel = parseInt(localStorage.getItem("eisenhowerLevel")) || 1;
-    const savedBadges =
-      JSON.parse(localStorage.getItem("eisenhowerBadges")) || [];
-    setTasks(savedTasks);
-    setPoints(savedPoints);
-    setLevel(savedLevel);
-    setBadges(savedBadges);
+    fetchTasks();
   }, []);
 
-  // Save state to localStorage on update
-  useEffect(() => {
-    localStorage.setItem("eisenhowerTasks", JSON.stringify(tasks));
-    localStorage.setItem("eisenhowerPoints", points);
-    localStorage.setItem("eisenhowerLevel", level);
-    localStorage.setItem("eisenhowerBadges", JSON.stringify(badges));
-  }, [tasks, points, level, badges]);
+  const fetchTasks = async () => {
+    const response = await eisenhowerService.getAllTasks();
+    if (response.success) {
+      // Ensure we're working with an array
+      const fetchedTasks = Array.isArray(response.data) ? response.data : [];
+      setTasks(fetchedTasks);
 
-  const addTask = (e) => {
+      // Calculate total points and level from tasks
+      const totalPoints = fetchedTasks.reduce(
+        (sum, task) => sum + (task.points || 0),
+        0
+      );
+      const calculatedLevel = Math.floor(totalPoints / 100) + 1;
+
+      setPoints(totalPoints);
+      setLevel(calculatedLevel);
+
+      // Get unique badges from all tasks
+      const allBadges = fetchedTasks.reduce((acc, task) => {
+        if (task.badges && Array.isArray(task.badges)) {
+          return [...acc, ...task.badges];
+        }
+        return acc;
+      }, []);
+      setBadges([...new Set(allBadges)]);
+    } else {
+      toast.error(response.error || "Error fetching tasks");
+    }
+  };
+
+  const addTask = async (e) => {
     e.preventDefault();
     if (!newTask.trim()) return;
 
-    const task = {
-      id: Date.now().toString(),
+    const response = await eisenhowerService.createTask({
       text: newTask,
       quadrant: selectedQuadrant,
-    };
-
-    setTasks([...tasks, task]);
-    setNewTask("");
-    updatePoints(10); // Award 10 points for adding a task
-    checkGamification("add");
-  };
-
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
-    updatePoints(25); // Award 25 points for deleting a task
-    checkGamification("delete");
-  };
-
-  const updatePoints = (amount) => {
-    setPoints((prev) => {
-      const newPoints = prev + amount;
-      const newLevel = Math.floor(newPoints / 100) + 1;
-      if (newLevel > level) {
-        setLevel(newLevel);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000); // Confetti for 3 seconds
-      }
-      return newPoints;
     });
+
+    if (response.success) {
+      const newTaskData = response.data;
+      setTasks((prevTasks) => [...prevTasks, newTaskData]);
+      setNewTask("");
+
+      // Update points and badges from response
+      if (newTaskData.points) {
+        setPoints((prev) => prev + newTaskData.points);
+      }
+      if (newTaskData.badges && Array.isArray(newTaskData.badges)) {
+        setBadges((prev) => [...new Set([...prev, ...newTaskData.badges])]);
+      }
+
+      toast.success("Task added successfully");
+    } else {
+      toast.error(response.error || "Error adding task");
+    }
   };
 
-  const checkGamification = (action) => {
-    const totalTasks = tasks.length;
-    const quadrantTasks = {
-      do: getQuadrantTasks("do").length,
-      decide: getQuadrantTasks("decide").length,
-      delegate: getQuadrantTasks("delegate").length,
-      delete: getQuadrantTasks("delete").length,
-    };
+  const deleteTask = async (taskId) => {
+    const response = await eisenhowerService.deleteTask(taskId);
 
-    // Badges
-    if (
-      action === "add" &&
-      totalTasks + 1 >= 5 &&
-      !badges.includes("Task Starter")
-    ) {
-      setBadges((prev) => [...prev, "Task Starter"]);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+    if (response.success) {
+      const {
+        points: newPoints,
+        badges: newBadges,
+        level: newLevel,
+      } = response.data;
+
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+
+      // Update points, badges, and level from response
+      if (newPoints) setPoints(newPoints);
+      if (newBadges && Array.isArray(newBadges)) setBadges(newBadges);
+      if (newLevel) setLevel(newLevel);
+
+      // Show confetti if level up
+      if (newLevel > level) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+
+      toast.success("Task deleted successfully");
+    } else {
+      toast.error(response.error || "Error deleting task");
     }
+  };
 
-    if (action === "delete") {
-      Object.keys(quadrantTasks).forEach((quadrant) => {
-        if (
-          quadrantTasks[quadrant] === 0 &&
-          !badges.includes(`Quadrant Master: ${quadrant}`)
-        ) {
-          setBadges((prev) => [...prev, `Quadrant Master: ${quadrant}`]);
-          updatePoints(50); // Bonus for clearing a quadrant
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }
-      });
-    }
+  const updateTaskStatus = async (taskId, isCompleted) => {
+    const response = await eisenhowerService.updateTaskStatus(
+      taskId,
+      isCompleted
+    );
 
-    if (level >= 5 && !badges.includes("Eisenhower Pro")) {
-      setBadges((prev) => [...prev, "Eisenhower Pro"]);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+    if (response.success) {
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? { ...task, isCompleted } : task
+        )
+      );
+      toast.success("Task status updated");
+    } else {
+      toast.error(response.error || "Error updating task status");
     }
   };
 
   const getQuadrantTasks = (quadrant) => {
-    return tasks.filter((task) => task.quadrant === quadrant);
+    return Array.isArray(tasks)
+      ? tasks.filter((task) => task.quadrant === quadrant)
+      : [];
   };
 
   const InfoModal = () => (
@@ -124,7 +140,6 @@ const EisenhowerMethod = () => {
           <X size={24} />
         </button>
         <h2 className="text-2xl font-bold mb-4">The Eisenhower Method</h2>
-        {/* Info content remains unchanged */}
         <div className="space-y-4">
           <section>
             <h3 className="text-xl font-semibold mb-2">What is it?</h3>
@@ -197,12 +212,24 @@ const EisenhowerMethod = () => {
       <ul className="space-y-2">
         {getQuadrantTasks(type).map((task) => (
           <li
-            key={task.id}
+            key={task._id}
             className="flex items-center justify-between bg-white p-2 rounded shadow-sm"
           >
-            <span>{task.text}</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={task.isCompleted}
+                onChange={(e) => updateTaskStatus(task._id, e.target.checked)}
+                className="h-4 w-4 text-blue-600"
+              />
+              <span
+                className={task.isCompleted ? "line-through text-gray-500" : ""}
+              >
+                {task.text}
+              </span>
+            </div>
             <button
-              onClick={() => deleteTask(task.id)}
+              onClick={() => deleteTask(task._id)}
               className="text-red-500 hover:text-red-700"
             >
               <Trash2 size={18} />
@@ -214,10 +241,10 @@ const EisenhowerMethod = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 place-items-center p-4 ">
+    <div className="min-h-screen bg-gray-100 place-items-center p-4">
       {showConfetti && <Confetti />}
       {/* Sidebar for Gamification */}
-      <aside className="w-64 bg-white p-4 shadow-lg ">
+      <aside className="w-64 bg-white p-4 shadow-lg">
         <h2 className="text-xl font-semibold text-blue-600 mb-4">
           Your Progress
         </h2>
