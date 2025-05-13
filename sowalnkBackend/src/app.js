@@ -57,6 +57,7 @@ import groupCollabRouter from "./routers/groupCollabRouter/groupCollab.router.js
 import pomodoroRouter from "./routers/15TimesMethodRoutes/pomodoro.routes.js";
 import commentRouter from "./routers/groupCollabRouter/comment.route.js";
 import eisenhowerRouter from "./routers/15TimesMethodRoutes/eisenHower.route.js";
+import abcdmethodRouter from "./routers/15TimesMethodRoutes/abcdmethod.route.js";
 
 //Route Declaration
 app.use("/api/v1/task", dailyTaskRouter);
@@ -69,6 +70,7 @@ app.use("/api/v1/pomodoro", pomodoroRouter);
 app.use("/api/v1/group", groupCollabRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/eisenhower", eisenhowerRouter);
+app.use("/api/v1/abcdmethod", abcdmethodRouter);
 
 //Socket.io
 const activeUsers = new Map(); // userId -> socketId mapping

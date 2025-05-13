@@ -38,7 +38,7 @@ const TimeManage = () => {
       id: 3,
       name: "ABCDE Method",
       description: "Categorize tasks and prioritize by importance.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 4,

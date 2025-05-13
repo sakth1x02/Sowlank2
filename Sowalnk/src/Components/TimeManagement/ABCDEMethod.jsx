@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Circle as CircleLetterA,
   Circle as CircleLetterB,
@@ -10,6 +10,8 @@ import {
   Info,
   X,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import abcdmethodService from "../../services/abcdmethodService";
 
 const ABCDEMethod = () => {
   const [tasks, setTasks] = useState([]);
@@ -17,31 +19,53 @@ const ABCDEMethod = () => {
   const [selectedPriority, setSelectedPriority] = useState("A");
   const [showInfo, setShowInfo] = useState(false);
 
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    const response = await abcdmethodService.getAllTasks();
+    if (response.success) {
+      setTasks(response.data);
+    } else {
+      toast.error(response.error || "Error fetching tasks");
+    }
+  };
+
+  const addTask = async (e) => {
+    e.preventDefault();
+    if (!newTask.trim()) return;
+
+    const response = await abcdmethodService.createTask({
+      text: newTask.trim(),
+      priority: selectedPriority,
+    });
+
+    if (response.success) {
+      setTasks((prevTasks) => [...prevTasks, response.data]);
+      setNewTask("");
+      toast.success("Task added successfully");
+    } else {
+      toast.error(response.error || "Error adding task");
+    }
+  };
+
+  const deleteTask = async (taskId) => {
+    const response = await abcdmethodService.deleteTask(taskId);
+    if (response.success) {
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+      toast.success("Task deleted successfully");
+    } else {
+      toast.error(response.error || "Error deleting task");
+    }
+  };
+
   const priorityInfo = {
     A: { label: "Most Important", icon: CircleLetterA, color: "text-red-600" },
     B: { label: "Important", icon: CircleLetterB, color: "text-orange-500" },
     C: { label: "Nice to do", icon: CircleLetterC, color: "text-yellow-500" },
     D: { label: "Delegate", icon: CircleLetterD, color: "text-blue-500" },
     E: { label: "Eliminate", icon: CircleLetterE, color: "text-gray-500" },
-  };
-
-  const addTask = (e) => {
-    e.preventDefault();
-    if (newTask.trim()) {
-      setTasks([
-        ...tasks,
-        {
-          id: crypto.randomUUID(),
-          text: newTask.trim(),
-          priority: selectedPriority,
-        },
-      ]);
-      setNewTask("");
-    }
-  };
-
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
   const priorityGroups = ["A", "B", "C", "D", "E"].map((priority) => ({
@@ -233,12 +257,12 @@ const ABCDEMethod = () => {
                     <ul className="space-y-2">
                       {priorityTasks.map((task) => (
                         <li
-                          key={task.id}
+                          key={task._id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <span className="text-gray-700">{task.text}</span>
                           <button
-                            onClick={() => deleteTask(task.id)}
+                            onClick={() => deleteTask(task._id)}
                             className="text-red-500 hover:text-red-700 p-1 transition-colors"
                           >
                             <Trash2 size={20} />

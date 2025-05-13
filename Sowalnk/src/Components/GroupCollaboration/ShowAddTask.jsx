@@ -36,7 +36,6 @@ const ShowAddTask = ({
       emailInvites: validEmails,
     };
 
-    console.log("Submitting task with email invites:", taskWithInvites);
     await handleSubmit(e, taskWithInvites);
   };
 
