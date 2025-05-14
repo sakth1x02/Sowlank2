@@ -1,4 +1,4 @@
-import { EisenhowerTask } from "../../models/15TimeMethods/Eisenhower.model.js";
+import { EisenhowerTask } from "../../models/15TimeMethods/eisenHower.model.js";
 
 // Create a new task
 const createTask = async (req, res) => {
