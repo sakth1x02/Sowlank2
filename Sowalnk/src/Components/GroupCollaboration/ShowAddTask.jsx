@@ -164,7 +164,7 @@ const ShowAddTask = ({
             {/* Email Invites Field */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
-                Invite Team Members <span className="text-red-500">*</span>
+                Invite Team Members
               </label>
               <div className="space-y-2">
                 <div className="flex space-x-2">

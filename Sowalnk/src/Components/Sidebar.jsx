@@ -63,11 +63,11 @@ const Sidebar = () => {
       icon: <Calendar className="h-5 w-5" />,
       className: advanceMember === true ? "" : "hidden",
     },
-    {
-      path: "/workspace",
-      label: "Workspace",
-      icon: <BookOpenCheck className="h-5 w-5" />,
-    },
+    // {
+    //   path: "/workspace",
+    //   label: "Workspace",
+    //   icon: <BookOpenCheck className="h-5 w-5" />,
+    // },
     // {
     //   path: "/goal",
     //   label: "Goal Tracker",
