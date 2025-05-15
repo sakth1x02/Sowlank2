@@ -71,10 +71,10 @@ def send_push_notification(user_id: str, title: str, body: str):
         return None
 
 
-def get_user_id_from_token(auth_header: str) -> str:
-    # Check if Authorization header exists and starts with "Bearer "
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid token format")
+# def get_user_id_from_token(auth_header: str) -> str:
+#     # Check if Authorization header exists and starts with "Bearer "
+#     if not auth_header or not auth_header.startswith("Bearer "):
+#         raise HTTPException(status_code=401, detail="Invalid token format")
 
-    # This is for testing only — return dummy user ID
-    return "dummy_user_id_123"
+#     # This is for testing only — return dummy user ID
+#     return "dummy_user_id_123"

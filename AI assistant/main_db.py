@@ -36,8 +36,8 @@ from .time_cost_calculator import estimate_task_time_and_cost
 from .template_generator import call_groq_and_generate_template
 
 # Make sure you have this in estimator.py
-#from .firebase_auth import get_user_id_from_token  # Keep using your Firebase decode function
-#from notification import send_push_notification  # Make sure this import is present
+from .firebase_auth import get_user_id_from_token  # Keep using your Firebase decode function
+from notification import send_push_notification  # Make sure this import is present
 
 
 router = APIRouter()
@@ -146,59 +146,59 @@ async def prioritize_tasks(request: Request):
 
 scheduler = BackgroundScheduler()
 
-# Create function to send reminders
-def send_reminder(task):
-    # Logic to send a reminder (could be a push notification, email, etc.)
-    print(f"Reminder: {task['title']} is due soon!")
-
+# # Create function to send reminders
 # def send_reminder(task):
+#     # Logic to send a reminder (could be a push notification, email, etc.)
 #     print(f"Reminder: {task['title']} is due soon!")
 
-#     user_id = task.get("user_id")
-#     title = "Task Reminder"
-#     body = f"Your task '{task['title']}' is due soon!"
+def send_reminder(task):
+    print(f"Reminder: {task['title']} is due soon!")
 
-#     if user_id:
-#         send_push_notification(user_id, title, body)
+    user_id = task.get("user_id")
+    title = "Task Reminder"
+    body = f"Your task '{task['title']}' is due soon!"
+
+    if user_id:
+        send_push_notification(user_id, title, body)
 
 
-# Schedule reminders for tasks
-@app.post("/smart-reminders/{user_id}")
-async def get_smart_reminders(request: Request):
-    # Extract user ID from the Authorization header
-    authorization_header = request.headers.get("Authorization")
-    if not authorization_header:
-        raise HTTPException(status_code=401, detail="Authorization header missing")
-    
-    user_id = get_user_id_from_token(authorization_header)
-      
-    tasks = await fetch_user_tasks(user_id)  # Fetch tasks from the database
-
-    for task in tasks:
-        if task.get('deadline'):  # Ensure the task has a deadline
-            deadline = datetime.strptime(task['deadline'], "%Y-%m-%d %H:%M:%S")
-            scheduler.add_job(send_reminder, 'date', run_date=deadline, args=[task])
-    if not scheduler.running:
-        scheduler.start()  # Start the scheduler to send reminders
-    return {"message": "Reminders set successfully."}
-
+# # Schedule reminders for tasks
 # @app.post("/smart-reminders/{user_id}")
 # async def get_smart_reminders(request: Request):
+#     # Extract user ID from the Authorization header
 #     authorization_header = request.headers.get("Authorization")
 #     if not authorization_header:
 #         raise HTTPException(status_code=401, detail="Authorization header missing")
     
 #     user_id = get_user_id_from_token(authorization_header)
-#     tasks = await fetch_user_tasks(user_id)
+      
+#     tasks = await fetch_user_tasks(user_id)  # Fetch tasks from the database
 
 #     for task in tasks:
-#         if task.get('deadline'):
+#         if task.get('deadline'):  # Ensure the task has a deadline
 #             deadline = datetime.strptime(task['deadline'], "%Y-%m-%d %H:%M:%S")
-#             task['user_id'] = user_id  # Required for push
 #             scheduler.add_job(send_reminder, 'date', run_date=deadline, args=[task])
-
-#     scheduler.start()
+#     if not scheduler.running:
+#         scheduler.start()  # Start the scheduler to send reminders
 #     return {"message": "Reminders set successfully."}
+
+@app.post("/smart-reminders/{user_id}")
+async def get_smart_reminders(request: Request):
+    authorization_header = request.headers.get("Authorization")
+    if not authorization_header:
+        raise HTTPException(status_code=401, detail="Authorization header missing")
+    
+    user_id = get_user_id_from_token(authorization_header)
+    tasks = await fetch_user_tasks(user_id)
+
+    for task in tasks:
+        if task.get('deadline'):
+            deadline = datetime.strptime(task['deadline'], "%Y-%m-%d %H:%M:%S")
+            task['user_id'] = user_id  # Required for push
+            scheduler.add_job(send_reminder, 'date', run_date=deadline, args=[task])
+
+    scheduler.start()
+    return {"message": "Reminders set successfully."}
 
 
 
@@ -255,89 +255,6 @@ async def generate_recurring_tasks(request: Request):
     recurring_tasks =  generate_recurrent_tasks(tasks)
     return {"recurring_tasks": recurring_tasks}
 
-
-# @app.get("/ai/recommend-method")
-# async def recommend_method(current_user: TokenData = Depends(get_current_user)):
-#     user_info = await db.users.find_one({"_id": ObjectId(current_user.user_id)})
-#     tasks = await fetch_pending_tasks(current_user.user_id)
-
-#     context = analyze_user_context(user_info, tasks)
-#     prompt = build_prompt(context)
-#     response = await recommend_method(prompt)
-
-#     return {"recommendation": response}
-
-# class MethodInput(BaseModel):
-#     situation: str
-#     importance: str  # Expected: "high", "medium", "low"
-
-# @app.post("/suggest-method")
-# async def suggest_productivity_method(user_input: MethodInput):
-#     try:
-#         method = recommend_method(user_input.situation, user_input.importance)
-#         return {"recommended_method": method}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e)) 
-    
-    
-# @app.post("/recommend", response_model=dict)
-# async def recommend_method_endpoint(request: RecommendRequest):
-#     try:
-#         # Call the function to recommend method based on user input
-#         recommendation = await recommend_method(request)
-#         return recommendation
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-    
-    
-# @app.post("/recommend-productivity-method/{user_id}")
-# async def recommend_productivity_method(request: RecommendRequest):
-#     try:
-#         # Extract the Authorization header from the request
-#         authorization_header = request.headers.get("Authorization")
-#         if not authorization_header:
-#             raise HTTPException(status_code=401, detail="Authorization header missing")
-        
-#         # Get the user ID from the token (you can replace this with your own logic)
-#         user_id = get_user_id_from_token(authorization_header)
-        
-#         # Call the recommend_method function and get the recommendation
-#         recommendation = await recommend_method(request)
-#         return recommendation
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-    
-    
-# from fastapi import APIRouter, HTTPException, Request
-# from .methods import recommend_method, RecommendRequest  # Make sure 'recommend_method' and 'RecommendRequest' are correctly imported
-# from typing import Dict,Optional
-
-# from pydantic import BaseModel
-
-# class RecommendRequest(BaseModel):
-#     current_situation: str  # e.g., 'overwhelmed', 'procrastination', 'focus_issues', 'managing_well', 'other'
-#     importance: str         # 'high', 'medium', 'low'
-#     urgency: str            # 'high', 'medium', 'low'
-#     additional_details: Optional[str] = None
-
-# # --- Step 2: Define the API endpoint for recommending productivity methods ---
-# @app.post("/recommend-productivity-method/{user_id}")
-# async def recommend_productivity_method(request: Request, body: RecommendRequest):
-#     try:
-#         # Extract the Authorization header from the Request object
-#         authorization_header = request.headers.get("Authorization")
-#         if not authorization_header:
-#             raise HTTPException(status_code=401, detail="Authorization header missing")
-        
-#         # Get the user ID from the token (you can replace this with your own logic)
-#         user_id = get_user_id_from_token(authorization_header)
-#         tasks = await fetch_user_tasks(user_id)
-        
-#         # Call the recommend_method function and get the recommendation
-#         recommendation = await recommend_method(body)
-#         return recommendation
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/recommend-productivity-method/by-category")
 async def ai_suggestions(
