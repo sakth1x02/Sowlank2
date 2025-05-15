@@ -9,6 +9,8 @@ import {
   Trash2,
   Info,
   X,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import abcdmethodService from "../../services/abcdmethodService";
@@ -18,9 +20,11 @@ const ABCDEMethod = () => {
   const [newTask, setNewTask] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("A");
   const [showInfo, setShowInfo] = useState(false);
+  const [userPoints, setUserPoints] = useState(0);
 
   useEffect(() => {
     fetchTasks();
+    fetchUserPoints();
   }, []);
 
   const fetchTasks = async () => {
@@ -29,6 +33,15 @@ const ABCDEMethod = () => {
       setTasks(response.data);
     } else {
       toast.error(response.error || "Error fetching tasks");
+    }
+  };
+
+  const fetchUserPoints = async () => {
+    const response = await abcdmethodService.getUserPoints();
+    if (response.success) {
+      setUserPoints(response.data.points);
+    } else {
+      toast.error(response.error || "Error fetching points");
     }
   };
 
@@ -57,6 +70,28 @@ const ABCDEMethod = () => {
       toast.success("Task deleted successfully");
     } else {
       toast.error(response.error || "Error deleting task");
+    }
+  };
+
+  const updateTaskCompletion = async (taskId, isCompleted) => {
+    const response = await abcdmethodService.updateTaskStatus(
+      taskId,
+      isCompleted
+    );
+    if (response.success) {
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? { ...response.data.task } : task
+        )
+      );
+      setUserPoints(response.data.points);
+      toast.success(
+        isCompleted
+          ? "Task completed! +10 points! 🎉"
+          : "Task marked as incomplete"
+      );
+    } else {
+      toast.error(response.error || "Error updating task status");
     }
   };
 
@@ -195,9 +230,17 @@ const ABCDEMethod = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-xl p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ABCDE Method Task Manager
-            </h1>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ABCDE Method Task Manager
+              </h1>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Your Points:</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-semibold">
+                  {userPoints} 🏆
+                </span>
+              </div>
+            </div>
             <button
               onClick={() => setShowInfo(true)}
               className="bg-white p-3 rounded-full hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
@@ -258,12 +301,37 @@ const ABCDEMethod = () => {
                       {priorityTasks.map((task) => (
                         <li
                           key={task._id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
                         >
-                          <span className="text-gray-700">{task.text}</span>
+                          <div className="flex items-center gap-3 flex-1">
+                            <button
+                              onClick={() =>
+                                updateTaskCompletion(
+                                  task._id,
+                                  !task.isCompleted
+                                )
+                              }
+                              className="text-gray-500 hover:text-blue-600 transition-colors"
+                            >
+                              {task.isCompleted ? (
+                                <CheckSquare className="h-5 w-5" />
+                              ) : (
+                                <Square className="h-5 w-5" />
+                              )}
+                            </button>
+                            <span
+                              className={`text-gray-700 ${
+                                task.isCompleted
+                                  ? "line-through text-gray-400"
+                                  : ""
+                              }`}
+                            >
+                              {task.text}
+                            </span>
+                          </div>
                           <button
                             onClick={() => deleteTask(task._id)}
-                            className="text-red-500 hover:text-red-700 p-1 transition-colors"
+                            className="text-red-500 hover:text-red-700 p-1 transition-colors opacity-0 group-hover:opacity-100"
                           >
                             <Trash2 size={20} />
                           </button>

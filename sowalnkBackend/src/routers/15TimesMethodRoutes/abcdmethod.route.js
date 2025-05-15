@@ -4,6 +4,7 @@ import {
   getTasks,
   deleteTask,
   updateTaskStatus,
+  getUserPoints,
 } from "../../controllers/15TimeMethodControllers/abcdmethod.controller.js";
 import { verifyJWT } from "../../middleware/auth.middleware.js";
 
@@ -17,6 +18,9 @@ router.post("/", createTask);
 
 // Get all tasks for the authenticated user
 router.get("/", getTasks);
+
+// Get user points
+router.get("/points", getUserPoints);
 
 // Delete a task
 router.delete("/:taskId", deleteTask);

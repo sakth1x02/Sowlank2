@@ -42,9 +42,20 @@ const groupCollaboration = {
   // Get all task
   getTask: async (req, res) => {
     try {
-      const tasks = await Task.find()
+      const userId = req.user._id;
+      const userEmail = req.user.email;
+
+      // Find tasks where the user is either the creator, an assignee, or an email assignee
+      const tasks = await Task.find({
+        $or: [
+          { createdBy: userId },
+          { assignees: userId },
+          { emailAssignees: userEmail },
+        ],
+      })
         .populate("assignees", "name email")
         .populate("createdBy", "name email");
+
       res.json(tasks);
     } catch (error) {
       res.status(500).json({ message: error.message });

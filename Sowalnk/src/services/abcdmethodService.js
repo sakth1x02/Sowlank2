@@ -128,6 +128,36 @@ const abcdmethodService = {
       };
     }
   },
+
+  // Get user points
+  getUserPoints: async () => {
+    const token = getAuthToken();
+    try {
+      const response = await fetch(`/api/v1/abcdmethod/points`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const res = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: res.message || "Failed to fetch user points",
+        };
+      }
+
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("Error fetching user points:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to fetch user points",
+      };
+    }
+  },
 };
 
 export default abcdmethodService;

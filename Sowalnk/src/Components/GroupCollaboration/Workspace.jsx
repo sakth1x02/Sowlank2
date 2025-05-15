@@ -158,7 +158,12 @@ export default function Workspace() {
 
         const data = await response.json();
 
-        setTasks(data);
+        // Sort tasks by due date
+        const sortedTasks = data.sort((a, b) => {
+          return new Date(a.dueDate) - new Date(b.dueDate);
+        });
+
+        setTasks(sortedTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
       } finally {
@@ -168,6 +173,15 @@ export default function Workspace() {
     dispatch(fetchUsers());
     fetchTasks();
   }, []);
+
+  // Add helper function to determine task relationship
+  const getTaskRelationship = (task) => {
+    if (task.createdBy._id === auth._id) return "Created by you";
+    if (task.assignees.some((assignee) => assignee._id === auth._id))
+      return "Assigned to you";
+    if (task.emailAssignees?.includes(auth.email)) return "Invited via email";
+    return "";
+  };
 
   useEffect(() => {
     const fetchComment = async () => {
@@ -650,6 +664,10 @@ export default function Workspace() {
                   <div className="flex justify-center items-center h-40">
                     <Loader className="w-8 h-8 sm:w-10 sm:h-10 text-purple-700 animate-spin" />
                   </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-gray-500">No tasks available</p>
+                  </div>
                 ) : (
                   tasks.map((task) => (
                     <div
@@ -707,9 +725,19 @@ export default function Workspace() {
                                   {task.dueDate.split("T")[0]}
                                 </span>
                               </div>
+                              <span className="text-xs text-blue-600">
+                                {getTaskRelationship(task)}
+                              </span>
                             </div>
 
-                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-300 flex-shrink-0" />
+                            <div className="flex items-center space-x-2">
+                              {task.createdBy._id === auth._id && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                  Owner
+                                </span>
+                              )}
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-300 flex-shrink-0" />
+                            </div>
                           </div>
                         </div>
                       </div>

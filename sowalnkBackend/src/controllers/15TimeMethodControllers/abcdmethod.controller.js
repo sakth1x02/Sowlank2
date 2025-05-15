@@ -1,4 +1,7 @@
-import { ABCDETask } from "../../models/15TimeMethods/abcdmethod.model.js";
+import {
+  ABCDETask,
+  UserPoints,
+} from "../../models/15TimeMethods/abcdmethod.model.js";
 
 // Create a new task
 const createTask = async (req, res) => {
@@ -91,6 +94,34 @@ const deleteTask = async (req, res) => {
   }
 };
 
+// Get user points
+const getUserPoints = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    let userPoints = await UserPoints.findOne({ user: userId });
+
+    if (!userPoints) {
+      userPoints = await UserPoints.create({
+        user: userId,
+        points: 0,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: userPoints,
+      message: "User points retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching user points:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching user points",
+      error: error.message,
+    });
+  }
+};
+
 // Update task completion status
 const updateTaskStatus = async (req, res) => {
   try {
@@ -111,9 +142,25 @@ const updateTaskStatus = async (req, res) => {
       });
     }
 
+    // Update user points if task is completed
+    let userPoints = await UserPoints.findOne({ user: userId });
+
+    if (!userPoints) {
+      userPoints = await UserPoints.create({
+        user: userId,
+        points: isCompleted ? 10 : 0,
+      });
+    } else if (isCompleted) {
+      userPoints = await UserPoints.findOneAndUpdate(
+        { user: userId },
+        { $inc: { points: 10 } },
+        { new: true }
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      data: task,
+      data: { task, points: userPoints.points },
       message: "Task status updated successfully",
     });
   } catch (error) {
@@ -126,4 +173,4 @@ const updateTaskStatus = async (req, res) => {
   }
 };
 
-export { createTask, getTasks, deleteTask, updateTaskStatus };
+export { createTask, getTasks, deleteTask, updateTaskStatus, getUserPoints };

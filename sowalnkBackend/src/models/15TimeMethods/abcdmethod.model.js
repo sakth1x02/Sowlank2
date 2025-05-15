@@ -26,4 +26,23 @@ const abcdeTaskSchema = new mongoose.Schema(
   }
 );
 
+const userPointsSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
+    points: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 export const ABCDETask = mongoose.model("ABCDETask", abcdeTaskSchema);
+export const UserPoints = mongoose.model("UserPoints", userPointsSchema);
