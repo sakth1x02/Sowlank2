@@ -52,7 +52,7 @@ from .grouper import get_task_groupings
 from .time_cost_calculator import estimate_task_time_and_cost
 from .template_generator import call_groq_and_generate_template
 from .recurrence import generate_recurrent_tasks
-
+from .methods import get_llama_suggestions_methods
 
 app = FastAPI()
 
@@ -194,3 +194,21 @@ async def generate_recurring_tasks(tasks: List[Task]):
     task_dicts = [task.dict() for task in tasks]
     recurring = generate_recurrent_tasks(task_dicts)
     return {"recurring_tasks": recurring} 
+
+@app.get("/recommend-productivity-method/by-category")
+async def ai_suggestions(
+    category: str = Query(..., description="Category like productivity methods, fitness, etc."),
+    current_situation: str = Query(..., description="User's current situation"),
+    importance: str = Query(..., description="Task importance level (e.g., high, medium, low)"),
+    urgency: str = Query(..., description="Task urgency level (e.g., high, medium, low)"),
+    additional_details: str = Query("", description="Any additional information the user provides")
+):
+    try:
+        # Call the function that fetches the Llama suggestions
+        suggestions = await get_llama_suggestions_methods(current_situation, importance, urgency, additional_details)
+        return {
+            "category": category,
+            "suggestions": suggestions
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
