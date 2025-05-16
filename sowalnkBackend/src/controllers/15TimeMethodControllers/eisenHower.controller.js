@@ -151,29 +151,68 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// Update task completion status
 const updateTaskStatus = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { isCompleted } = req.body;
     const userId = req.user._id;
 
-    const task = await EisenhowerTask.findOneAndUpdate(
-      { _id: taskId, user: userId },
-      { isCompleted },
-      { new: true }
-    );
+    // Find the task before updating to check current status
+    const taskBeforeUpdate = await EisenhowerTask.findOne({
+      _id: taskId,
+      user: userId,
+    });
 
-    if (!task) {
+    if (!taskBeforeUpdate) {
       return res.status(404).json({
         success: false,
         message: "Task not found",
       });
     }
 
+    // Add points only if completing the task and it wasn't already completed
+    let pointsEarned = 0;
+    if (isCompleted && !taskBeforeUpdate.isCompleted) {
+      pointsEarned = 5; // Points for completing a task
+    }
+
+    const task = await EisenhowerTask.findOneAndUpdate(
+      { _id: taskId, user: userId },
+      { isCompleted, $inc: { points: pointsEarned } }, // Increment points only if earned
+      { new: true }
+    );
+
+    if (!task) {
+      // Should not happen if taskBeforeUpdate was found, but good practice
+      return res.status(404).json({
+        success: false,
+        message: "Task not found after attempted update",
+      });
+    }
+
+    // Recalculate total points, level, and badges for the user
+    const userTasks = await EisenhowerTask.find({ user: userId });
+    const totalPoints = userTasks.reduce((sum, t) => sum + (t.points || 0), 0);
+    const calculatedLevel = Math.floor(totalPoints / 100) + 1;
+
+    // Recalculate badges based on current task state (optional, depending on badge logic)
+    // For now, let's just include all existing badges from all tasks
+    const allBadges = userTasks.reduce((acc, t) => {
+      if (t.badges && Array.isArray(t.badges)) {
+        return [...acc, ...t.badges];
+      }
+      return acc;
+    }, []);
+    const uniqueBadges = [...new Set(allBadges)];
+
     return res.status(200).json({
       success: true,
-      data: task,
+      data: {
+        task, // Return the updated task details
+        points: totalPoints, // Return the updated total points
+        level: calculatedLevel, // Return the updated level
+        badges: uniqueBadges, // Return the updated badges
+      },
       message: "Task status updated successfully",
     });
   } catch (error) {

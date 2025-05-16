@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Trash2, Info, X } from "lucide-react";
+import { PlusCircle, Trash2, Info, X, Award, BarChart2 } from "lucide-react";
 import Confetti from "react-confetti";
 import { toast } from "react-toastify";
 import eisenhowerService from "../../services/eisenhowerService";
@@ -13,6 +13,24 @@ const EisenhowerMethod = () => {
   const [level, setLevel] = useState(1);
   const [badges, setBadges] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [windowDimension, setWindowDimension] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  const detectWindowSize = () => {
+    setWindowDimension({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", detectWindowSize);
+    return () => {
+      window.removeEventListener("resize", detectWindowSize);
+    };
+  }, []);
 
   // Load tasks from backend on mount
   useEffect(() => {
@@ -87,15 +105,17 @@ const EisenhowerMethod = () => {
         level: newLevel,
       } = response.data;
 
+      const oldLevel = level;
+
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
 
       // Update points, badges, and level from response
-      if (newPoints) setPoints(newPoints);
+      if (newPoints !== undefined) setPoints(newPoints);
       if (newBadges && Array.isArray(newBadges)) setBadges(newBadges);
-      if (newLevel) setLevel(newLevel);
+      if (newLevel !== undefined) setLevel(newLevel);
 
-      // Show confetti if level up
-      if (newLevel > level) {
+      // Show confetti if level up occurred due to deletion
+      if (newLevel > oldLevel) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
@@ -113,11 +133,30 @@ const EisenhowerMethod = () => {
     );
 
     if (response.success) {
+      const {
+        task: updatedTask,
+        points: newPoints,
+        level: newLevel,
+        badges: newBadges,
+      } = response.data;
+
+      const oldLevel = level;
+
       setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task._id === taskId ? { ...task, isCompleted } : task
-        )
+        prevTasks.map((task) => (task._id === taskId ? updatedTask : task))
       );
+
+      // Update points, badges, and level from response
+      if (newPoints !== undefined) setPoints(newPoints);
+      if (newBadges && Array.isArray(newBadges)) setBadges(newBadges);
+      if (newLevel !== undefined) setLevel(newLevel);
+
+      // Show confetti if level up occurred due to completion
+      if (newLevel > oldLevel) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+
       toast.success("Task status updated");
     } else {
       toast.error(response.error || "Error updating task status");
@@ -220,7 +259,7 @@ const EisenhowerMethod = () => {
                 type="checkbox"
                 checked={task.isCompleted}
                 onChange={(e) => updateTaskStatus(task._id, e.target.checked)}
-                className="h-4 w-4 text-blue-600"
+                className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <span
                 className={task.isCompleted ? "line-through text-gray-500" : ""}
@@ -230,7 +269,7 @@ const EisenhowerMethod = () => {
             </div>
             <button
               onClick={() => deleteTask(task._id)}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-500 hover:text-red-700 transition-colors"
             >
               <Trash2 size={18} />
             </button>
@@ -241,49 +280,67 @@ const EisenhowerMethod = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 place-items-center p-4">
-      {showConfetti && <Confetti />}
+    <div className="min-h-screen place-items-center">
+      {showConfetti && (
+        <Confetti
+          width={windowDimension.width}
+          height={windowDimension.height}
+          recycle={false}
+        />
+      )}
       {/* Sidebar for Gamification */}
-      <aside className="w-64 bg-white p-4 shadow-lg">
-        <h2 className="text-xl font-semibold text-blue-600 mb-4">
+      <aside className="w-full bg-gradient-to-br my-6 from-blue-500 to-purple-600 text-white  p-6 shadow-xl flex-shrink-0">
+        <h2 className="text-2xl font-extrabold mb-6 text-center tracking-wide">
           Your Progress
         </h2>
-        <div className="space-y-4">
-          <div>
-            <p className="text-lg">Level: {level}</p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="space-y-5 md:space-y-0 md:flex md:justify-between md:items-center">
+          <div className="bg-white bg-opacity-20 rounded-lg p-4 shadow-inner">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-lg font-semibold flex items-center">
+                <BarChart2 size={20} className="mr-2" /> Level:
+              </p>
+              <span className="text-xl font-bold">{level}</span>
+            </div>
+            <div className="w-full bg-white bg-opacity-30 rounded-full h-2.5">
               <div
-                className="bg-blue-500 h-2 rounded-full"
+                className="bg-green-400 h-2.5 rounded-full transition-all duration-500 ease-in-out"
                 style={{ width: `${points % 100}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-100 mt-1">
               {points % 100}/100 to next level
             </p>
           </div>
-          <p className="text-lg">Points: {points}</p>
-          <div>
-            <h3 className="text-lg font-semibold">Badges</h3>
+          <div className="bg-white bg-opacity-20 rounded-lg p-4 shadow-inner">
+            <p className="text-lg font-semibold flex items-center">
+              <Award size={20} className="mr-2" /> Points:
+            </p>
+            <p className="text-xl font-bold mt-2">{points}</p>
+          </div>
+          <div className="bg-white bg-opacity-20 rounded-lg p-4 shadow-inner">
+            <h3 className="text-lg font-semibold flex items-center mb-3">
+              <Award size={20} className="mr-2" /> Badges
+            </h3>
             {badges.length > 0 ? (
-              <ul className="mt-2 space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {badges.map((badge, index) => (
-                  <li
+                  <span
                     key={index}
-                    className="bg-yellow-400 text-white p-2 rounded-lg text-sm"
+                    className="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-md"
                   >
                     {badge}
-                  </li>
+                  </span>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p className="text-gray-500">No badges yet!</p>
+              <p className="text-gray-200 text-sm">No badges yet!</p>
             )}
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Eisenhower Matrix</h1>
@@ -298,20 +355,20 @@ const EisenhowerMethod = () => {
 
           <form
             onSubmit={addTask}
-            className="mb-8 bg-white p-4 rounded-lg shadow-md"
+            className="mb-8 bg-white p-6 rounded-lg shadow-md"
           >
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <input
                 type="text"
                 value={newTask}
                 onChange={(e) => setNewTask(e.target.value)}
                 placeholder="Enter a new task"
-                className="flex-1 p-2 border rounded"
+                className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
                 value={selectedQuadrant}
                 onChange={(e) => setSelectedQuadrant(e.target.value)}
-                className="p-2 border rounded"
+                className="p-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="do">Urgent & Important</option>
                 <option value="decide">Not Urgent & Important</option>
@@ -320,7 +377,7 @@ const EisenhowerMethod = () => {
               </select>
               <button
                 type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold"
               >
                 <PlusCircle size={20} />
                 Add Task
@@ -328,7 +385,7 @@ const EisenhowerMethod = () => {
             </div>
           </form>
 
-          <div className="md:grid space-y-6 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <QuadrantSection
               title="Do First"
               type="do"
