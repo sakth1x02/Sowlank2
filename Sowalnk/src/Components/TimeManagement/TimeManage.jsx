@@ -44,7 +44,7 @@ const TimeManage = () => {
       id: 4,
       name: "3-3-3 Method",
       description: "Balance deep work, shorter tasks, and maintenance tasks.",
-      // hidden: true,
+      hidden: true,
     },
     {
       id: 5,

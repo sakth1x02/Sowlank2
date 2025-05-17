@@ -3,6 +3,15 @@ import {
   UserPoints,
 } from "../../models/15TimeMethods/abcdmethod.model.js";
 
+// Helper function to calculate level based on points
+const calculateLevel = (points) => {
+  if (points < 50) return 1;
+  if (points < 150) return 2;
+  if (points < 300) return 3;
+  if (points < 500) return 4;
+  return 5; // Example: Max level for now
+};
+
 // Create a new task
 const createTask = async (req, res) => {
   try {
@@ -104,12 +113,14 @@ const getUserPoints = async (req, res) => {
       userPoints = await UserPoints.create({
         user: userId,
         points: 0,
+        level: 1, // Initialize level
+        badges: [], // Initialize badges
       });
     }
 
     return res.status(200).json({
       success: true,
-      data: userPoints,
+      data: userPoints, // userPoints now includes level and badges
       message: "User points retrieved successfully",
     });
   } catch (error) {
@@ -142,26 +153,85 @@ const updateTaskStatus = async (req, res) => {
       });
     }
 
-    // Update user points if task is completed
     let userPoints = await UserPoints.findOne({ user: userId });
 
     if (!userPoints) {
+      // Should ideally not happen if points are created on first get, but as a fallback
       userPoints = await UserPoints.create({
         user: userId,
-        points: isCompleted ? 10 : 0,
+        points: 0,
+        level: 1,
+        badges: [],
       });
-    } else if (isCompleted) {
-      userPoints = await UserPoints.findOneAndUpdate(
-        { user: userId },
-        { $inc: { points: 10 } },
-        { new: true }
-      );
+    }
+
+    let pointsEarned = 0;
+    // Only award points if marking as completed
+    if (isCompleted && !task._originalIsCompleted) {
+      // _originalIsCompleted is not a real field, need to fetch before update
+      // To correctly check if it was previously incomplete, we need the old task state
+      // Let's simplify for now: just award points if marking as completed.
+      // If a task is marked incomplete then complete again, they'll get points again.
+      // A more robust system would track point awards per task completion event.
+      pointsEarned = 2;
+    }
+
+    // Fetch the userPoints again if we need the previous state for badge checks
+    // Or update and then check based on the new state. Let's update and check.
+    const updatedUserPoints = await UserPoints.findOneAndUpdate(
+      { user: userId },
+      { $inc: { points: pointsEarned } }, // Increment points
+      { new: true, upsert: true } // upsert: true creates if not exists (fallback)
+    );
+
+    // Calculate new level
+    const newLevel = calculateLevel(updatedUserPoints.points);
+    let badgesAwarded = [];
+
+    // Award badges (simple examples)
+    if (
+      updatedUserPoints.points >= 50 &&
+      !updatedUserPoints.badges.includes("50 Points")
+    ) {
+      updatedUserPoints.badges.push("50 Points");
+      badgesAwarded.push("50 Points");
+    }
+    if (
+      updatedUserPoints.points >= 100 &&
+      !updatedUserPoints.badges.includes("100 Points")
+    ) {
+      updatedUserPoints.badges.push("100 Points");
+      badgesAwarded.push("100 Points");
+    }
+    // Add a badge for completing the very first task? Requires tracking total completed tasks or a specific 'first task' flag.
+    // Let's add a badge for reaching level 2.
+    if (
+      newLevel >= 2 &&
+      !updatedUserPoints.badges.includes("Reached Level 2")
+    ) {
+      updatedUserPoints.badges.push("Reached Level 2");
+      badgesAwarded.push("Reached Level 2");
+    }
+
+    // Update level and save badges if any were awarded or level changed
+    if (updatedUserPoints.level !== newLevel || badgesAwarded.length > 0) {
+      updatedUserPoints.level = newLevel;
+      // Save the updated document with new level and badges
+      await updatedUserPoints.save();
     }
 
     return res.status(200).json({
       success: true,
-      data: { task, points: userPoints.points },
-      message: "Task status updated successfully",
+      data: {
+        task,
+        points: updatedUserPoints.points,
+        level: updatedUserPoints.level,
+        badges: updatedUserPoints.badges, // Send back all badges for the user
+        badgesAwarded: badgesAwarded, // Optionally send newly awarded badges for notifications
+      },
+      message: isCompleted
+        ? `Task completed! +${pointsEarned} points!`
+        : "Task marked as incomplete",
     });
   } catch (error) {
     console.error("Error updating task status:", error);

@@ -19,13 +19,13 @@ router.post("/", createTask);
 // Get all tasks for the authenticated user
 router.get("/", getTasks);
 
-// Get user points
+// Get user points (will now return points, level, and badges)
 router.get("/points", getUserPoints);
 
 // Delete a task
 router.delete("/:taskId", deleteTask);
 
-// Update task completion status
+// Update task completion status (will now return task, points, level, and badges)
 router.patch("/:taskId/status", updateTaskStatus);
 
 export default router;

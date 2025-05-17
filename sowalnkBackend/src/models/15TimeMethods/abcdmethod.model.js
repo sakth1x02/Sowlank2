@@ -38,6 +38,14 @@ const userPointsSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    level: {
+      type: Number,
+      default: 1,
+    },
+    badges: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

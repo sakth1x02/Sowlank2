@@ -11,6 +11,8 @@ import {
   X,
   CheckSquare,
   Square,
+  Star,
+  Award,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import abcdmethodService from "../../services/abcdmethodService";
@@ -21,10 +23,13 @@ const ABCDEMethod = () => {
   const [selectedPriority, setSelectedPriority] = useState("A");
   const [showInfo, setShowInfo] = useState(false);
   const [userPoints, setUserPoints] = useState(0);
+  const [userLevel, setUserLevel] = useState(1);
+  const [userBadges, setUserBadges] = useState([]);
+  const [showBadges, setShowBadges] = useState(false);
 
   useEffect(() => {
     fetchTasks();
-    fetchUserPoints();
+    fetchUserPointsAndGamification();
   }, []);
 
   const fetchTasks = async () => {
@@ -36,10 +41,12 @@ const ABCDEMethod = () => {
     }
   };
 
-  const fetchUserPoints = async () => {
+  const fetchUserPointsAndGamification = async () => {
     const response = await abcdmethodService.getUserPoints();
     if (response.success) {
       setUserPoints(response.data.points);
+      setUserLevel(response.data.level);
+      setUserBadges(response.data.badges || []);
     } else {
       toast.error(response.error || "Error fetching points");
     }
@@ -85,11 +92,23 @@ const ABCDEMethod = () => {
         )
       );
       setUserPoints(response.data.points);
-      toast.success(
-        isCompleted
-          ? "Task completed! +10 points! 🎉"
-          : "Task marked as incomplete"
-      );
+      setUserLevel(response.data.level);
+      setUserBadges(response.data.badges || []);
+
+      let toastMessage = isCompleted
+        ? `Task completed! +2 points! 🎉`
+        : "Task marked as incomplete";
+
+      if (
+        response.data.badgesAwarded &&
+        response.data.badgesAwarded.length > 0
+      ) {
+        toastMessage += ` You earned new badges: ${response.data.badgesAwarded.join(
+          ", "
+        )}! 🏅`;
+      }
+
+      toast.success(toastMessage);
     } else {
       toast.error(response.error || "Error updating task status");
     }
@@ -225,6 +244,41 @@ const ABCDEMethod = () => {
     </div>
   );
 
+  const BadgeDisplay = ({ badges, onClose }) => (
+    <div className="fixed inset-0 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Earned Badges
+        </h2>
+        {badges.length === 0 ? (
+          <p className="text-gray-600 text-center italic">
+            No badges earned yet!
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {badges.map((badgeName, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center p-4 bg-green-50 rounded-lg border border-green-100 text-center"
+              >
+                <Award size={32} className="text-green-600 mb-2" />
+                <span className="text-green-800 font-semibold text-sm">
+                  {badgeName}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
@@ -234,11 +288,23 @@ const ABCDEMethod = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ABCDE Method Task Manager
               </h1>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Your Points:</span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-semibold">
-                  {userPoints} 🏆
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full font-semibold shadow-sm">
+                  <Star size={20} className="text-yellow-600" />
+                  <span>Level: {userLevel}</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-full font-semibold shadow-sm">
+                  <span className="text-sm text-gray-600">Points:</span>
+                  <span>{userPoints}</span>
+                </div>
+                <button
+                  onClick={() => setShowBadges(true)}
+                  className="flex items-center gap-1 px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold shadow-sm hover:bg-green-200 transition-colors"
+                  title="View Earned Badges"
+                >
+                  <Award size={20} className="text-green-600" />
+                  Badges ({userBadges.length})
+                </button>
               </div>
             </div>
             <button
@@ -346,6 +412,12 @@ const ABCDEMethod = () => {
         </div>
       </div>
       {showInfo && <InfoModal />}
+      {showBadges && (
+        <BadgeDisplay
+          badges={userBadges}
+          onClose={() => setShowBadges(false)}
+        />
+      )}
     </div>
   );
 };

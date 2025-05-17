@@ -119,7 +119,10 @@ const abcdmethodService = {
         };
       }
 
-      return { success: true, data: res.data };
+      return {
+        success: true,
+        data: res.data,
+      };
     } catch (error) {
       console.error("Error updating task status:", error);
       return {
@@ -129,7 +132,7 @@ const abcdmethodService = {
     }
   },
 
-  // Get user points
+  // Get user points (now also gets level and badges)
   getUserPoints: async () => {
     const token = getAuthToken();
     try {
@@ -149,7 +152,10 @@ const abcdmethodService = {
         };
       }
 
-      return { success: true, data: res.data };
+      return {
+        success: true,
+        data: res.data,
+      };
     } catch (error) {
       console.error("Error fetching user points:", error);
       return {
