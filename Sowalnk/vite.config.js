@@ -10,13 +10,13 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       "sowalnk.com",
-      "application-tier-alb-52084640.ap-south-1.elb.amazonaws.com",
+      "presentation-574063402.ap-south-1.elb.amazonaws.com",
       "www.sowalnk.com",
     ],
     proxy: {
       "/api": {
         target:
-          "http://internal-application-tier-alb-221203325.ap-south-1.elb.amazonaws.com",
+          "http://internal-application-1025494592.ap-south-1.elb.amazonaws.com",
         // target: "http://localhost:2000",
         changeOrigin: true,
         secure: false,
