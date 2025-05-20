@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { Info } from "lucide-react";
 import Confetti from "react-confetti";
+import threeThreeThreeService from "../../../services/333methodService";
 
 // Helper to generate unique IDs
 const generateId = () =>
@@ -30,7 +31,7 @@ function HelpModal({ onClose }) {
               workday into three focused segments:
               <strong>3 hours of deep work</strong>,{" "}
               <strong>3 short tasks</strong>, and{" "}
-              <strong>3 maintenance tasks</strong>. It’s designed to maximize
+              <strong>3 maintenance tasks</strong>. It's designed to maximize
               focus, efficiency, and balance.
             </p>
           </div>
@@ -113,6 +114,41 @@ function DeepWorkTimer() {
   const [showConfetti, setShowConfetti] = useState(false);
   const pointsToNextLevel = level * 100;
 
+  // Add state for error message
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Load tasks from backend when component mounts
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const result = await threeThreeThreeService.getTasks();
+        console.log("Fetched tasks result:", result); // Debug log
+        if (result.success) {
+          const tasks = result.data.tasks || result.data || [];
+          console.log("Tasks to process:", tasks); // Debug log
+
+          // Ensure we only set valid tasks
+          const validTasks = Array.isArray(tasks)
+            ? tasks.filter((t) => t && t.text && t._id)
+            : [];
+          console.log("Valid tasks:", validTasks); // Debug log
+
+          setDeepWorkTasks(validTasks.filter((t) => t.category === "deep"));
+          setShortTasks(validTasks.filter((t) => t.category === "short"));
+          setMaintenanceTasks(
+            validTasks.filter((t) => t.category === "maintenance")
+          );
+        } else {
+          console.error("Failed to fetch tasks:", result.error);
+        }
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   // Timer logic
   useEffect(() => {
     let interval = null;
@@ -158,14 +194,49 @@ function DeepWorkTimer() {
 
   const getProgress = () => ((3 * 60 * 60 - timeLeft) / (3 * 60 * 60)) * 100;
 
-  // Task management
-  const addTask = (category, text) => {
-    const newTask = { id: generateId(), text, completed: false };
-    if (category === "deep") setDeepWorkTasks((prev) => [...prev, newTask]);
-    else if (category === "short") setShortTasks((prev) => [...prev, newTask]);
-    else if (category === "maintenance")
-      setMaintenanceTasks((prev) => [...prev, newTask]);
-    setPoints((prev) => prev + 5);
+  // Modified addTask function with better error handling and user feedback
+  const addTask = async (category, text) => {
+    if (!text?.trim()) {
+      setErrorMessage("Task text is required");
+      return;
+    }
+
+    try {
+      const result = await threeThreeThreeService.createTask({
+        text,
+        category,
+      });
+      console.log("Add task result:", result); // Debug log
+
+      if (result.success && result.data) {
+        const newTask = result.data;
+        console.log("New task to add:", newTask); // Debug log
+
+        // Clear any previous error
+        setErrorMessage("");
+
+        if (category === "deep") {
+          setDeepWorkTasks((prev) => [...(prev || []), newTask]);
+        } else if (category === "short") {
+          setShortTasks((prev) => [...(prev || []), newTask]);
+        } else if (category === "maintenance") {
+          setMaintenanceTasks((prev) => [...(prev || []), newTask]);
+        }
+        setPoints((prev) => prev + 5);
+
+        // Clear the input field after successful addition
+        const form = document.querySelector("form");
+        if (form) {
+          form.reset();
+        }
+      } else {
+        console.error("Failed to add task:", result.error);
+        setErrorMessage(result.error || "Failed to add task");
+      }
+    } catch (error) {
+      console.error("Error adding task:", error);
+      setErrorMessage("An error occurred while adding the task");
+    }
   };
 
   const toggleTaskTimer = (category, taskId) => {
@@ -177,72 +248,151 @@ function DeepWorkTimer() {
     }
   };
 
-  const deleteTask = (category, taskId) => {
-    if (category === "deep")
-      setDeepWorkTasks((prev) => prev.filter((t) => t.id !== taskId));
-    else if (category === "short")
-      setShortTasks((prev) => prev.filter((t) => t.id !== taskId));
-    else if (category === "maintenance")
-      setMaintenanceTasks((prev) => prev.filter((t) => t.id !== taskId));
-    if (activeTask?.id === taskId) setActiveTask(null);
-    if (editingTask?.id === taskId) setEditingTask(null);
-    setTaskTimers((prev) => ({ ...prev, [taskId]: undefined }));
+  // Modified deleteTask function
+  const deleteTask = async (category, taskId) => {
+    if (!taskId) {
+      console.error("Invalid task ID");
+      return;
+    }
+
+    try {
+      const result = await threeThreeThreeService.deleteTask(taskId);
+      if (result.success) {
+        if (category === "deep")
+          setDeepWorkTasks((prev) => prev.filter((t) => t && t._id !== taskId));
+        else if (category === "short")
+          setShortTasks((prev) => prev.filter((t) => t && t._id !== taskId));
+        else if (category === "maintenance")
+          setMaintenanceTasks((prev) =>
+            prev.filter((t) => t && t._id !== taskId)
+          );
+
+        if (activeTask?.id === taskId) setActiveTask(null);
+        if (editingTask?.id === taskId) setEditingTask(null);
+        setTaskTimers((prev) => {
+          const newTimers = { ...prev };
+          delete newTimers[taskId];
+          return newTimers;
+        });
+      } else {
+        console.error("Failed to delete task:", result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
-  const startEditingTask = (category, task) =>
-    setEditingTask({ category, id: task.id, text: task.text });
-  const saveEditedTask = (category, taskId) => {
-    const updatedText = editingTask.text.trim();
+  // Modified startEditingTask with better error handling
+  const startEditingTask = (category, task) => {
+    if (!task || !task._id || !task.text) {
+      console.error("Invalid task for editing:", task);
+      return;
+    }
+    setEditingTask({
+      category,
+      id: task._id,
+      text: task.text,
+    });
+  };
+
+  // Modified saveEditedTask function
+  const saveEditedTask = async (category, taskId) => {
+    if (!taskId || !editingTask) {
+      console.error("Invalid task ID or no task being edited");
+      return;
+    }
+
+    const updatedText = editingTask.text?.trim();
     if (updatedText) {
-      if (category === "deep") {
-        setDeepWorkTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, text: updatedText } : t))
-        );
-      } else if (category === "short") {
-        setShortTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, text: updatedText } : t))
-        );
-      } else if (category === "maintenance") {
-        setMaintenanceTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, text: updatedText } : t))
-        );
+      try {
+        const result = await threeThreeThreeService.updateTask(taskId, {
+          text: updatedText,
+        });
+
+        if (result.success && result.data) {
+          const updatedTask = result.data;
+          if (category === "deep") {
+            setDeepWorkTasks((prev) =>
+              prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+            );
+          } else if (category === "short") {
+            setShortTasks((prev) =>
+              prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+            );
+          } else if (category === "maintenance") {
+            setMaintenanceTasks((prev) =>
+              prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+            );
+          }
+        } else {
+          console.error("Failed to update task:", result.error);
+        }
+      } catch (error) {
+        console.error("Error updating task:", error);
       }
     }
     setEditingTask(null);
   };
 
-  // Gamification logic
-  const handleSessionComplete = () => {
-    const newRecord = {
-      date: new Date().toLocaleString(),
-      deepCount: deepWorkTasks.length,
-      shortCount: shortTasks.length,
-      maintenanceCount: maintenanceTasks.length,
-      taskTimes: { ...taskTimers },
-    };
-    setHistory((prev) => [newRecord, ...prev]);
-    const sessionPoints =
-      deepWorkTasks.length * 20 +
-      shortTasks.length * 10 +
-      maintenanceTasks.length * 5 +
-      50; // Bonus for completion
-    setPoints((prev) => {
-      const newPoints = prev + sessionPoints;
-      const newLevel = Math.floor(newPoints / 100) + 1;
-      if (newLevel > level) {
-        setLevel(newLevel);
-        setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 4000);
+  // Modified handleSessionComplete function to use backend service
+  const handleSessionComplete = async () => {
+    try {
+      const sessionData = {
+        deepCount: deepWorkTasks.length,
+        shortCount: shortTasks.length,
+        maintenanceCount: maintenanceTasks.length,
+        totalTimeSpent: Object.values(taskTimers).reduce((a, b) => a + b, 0),
+        points: points,
+        completedTasks: [
+          ...deepWorkTasks,
+          ...shortTasks,
+          ...maintenanceTasks,
+        ].map((t) => t._id),
+      };
+
+      const result = await threeThreeThreeService.createSession(sessionData);
+      if (result.success) {
+        const newRecord = {
+          date: new Date().toLocaleString(),
+          deepCount: deepWorkTasks.length,
+          shortCount: shortTasks.length,
+          maintenanceCount: maintenanceTasks.length,
+          taskTimes: { ...taskTimers },
+        };
+        setHistory((prev) => [newRecord, ...prev]);
+
+        const sessionPoints =
+          deepWorkTasks.length * 20 +
+          shortTasks.length * 10 +
+          maintenanceTasks.length * 5 +
+          50;
+
+        setPoints((prev) => {
+          const newPoints = prev + sessionPoints;
+          const newLevel = Math.floor(newPoints / 100) + 1;
+          if (newLevel > level) {
+            setLevel(newLevel);
+            setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }
+          return newPoints;
+        });
+
+        if (deepWorkTasks.length >= 3)
+          setBadges((prev) => [...prev, "Deep Work Master"]);
+        if (shortTasks.length >= 3)
+          setBadges((prev) => [...prev, "Task Sprinter"]);
+        if (maintenanceTasks.length >= 3)
+          setBadges((prev) => [...prev, "Maintenance Pro"]);
+
+        resetSession();
+      } else {
+        console.error("Failed to save session:", result.error);
       }
-      return newPoints;
-    });
-    if (deepWorkTasks.length >= 3)
-      setBadges((prev) => [...prev, "Deep Work Master"]);
-    if (shortTasks.length >= 3) setBadges((prev) => [...prev, "Task Sprinter"]);
-    if (maintenanceTasks.length >= 3)
-      setBadges((prev) => [...prev, "Maintenance Pro"]);
-    resetSession();
+    } catch (error) {
+      console.error("Error saving session:", error);
+    }
   };
 
   const resetSession = () => {
@@ -277,7 +427,6 @@ function DeepWorkTimer() {
     const text = e.target.elements[inputName].value.trim();
     if (text) {
       addTask(selectedCategory, text);
-      e.target.reset();
     }
   };
 
@@ -287,6 +436,148 @@ function DeepWorkTimer() {
       : selectedCategory === "short"
       ? "Add a short task..."
       : "Add a maintenance task...";
+
+  // Update task timer logic to save to backend
+  useEffect(() => {
+    let interval = null;
+    if (activeTask && isTimerActive) {
+      interval = setInterval(async () => {
+        const newTime = (taskTimers[activeTask.id] || 0) + 1;
+        setTaskTimers((prev) => ({
+          ...prev,
+          [activeTask.id]: newTime,
+        }));
+
+        // Update task time in backend every 30 seconds
+        if (newTime % 30 === 0) {
+          try {
+            await threeThreeThreeService.updateTask(activeTask.id, {
+              timeSpent: newTime,
+            });
+          } catch (error) {
+            console.error("Error updating task time:", error);
+          }
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [activeTask, isTimerActive]);
+
+  // Modified renderTask function with better error handling
+  const renderTask = (task, category) => {
+    // Debug log
+    console.log("Rendering task:", { task, category });
+
+    if (!task || typeof task !== "object") {
+      console.error("Invalid task object:", task);
+      return null;
+    }
+
+    if (!task._id || !task.text) {
+      console.error("Task missing required fields:", task);
+      return null;
+    }
+
+    return (
+      <div
+        key={task._id}
+        className="bg-white p-5 rounded-lg mb-5 shadow-md hover:shadow-lg transition-all duration-200"
+      >
+        {editingTask?.id === task._id ? (
+          <div className="space-y-4">
+            <input
+              type="text"
+              value={editingTask.text || ""}
+              onChange={(e) =>
+                setEditingTask({
+                  ...editingTask,
+                  text: e.target.value,
+                })
+              }
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 font-[Inter] text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
+            />
+            <div className="flex space-x-4">
+              <button
+                onClick={() => saveEditedTask(category, task._id)}
+                className="bg-purple-500 text-white px-5 py-2 rounded-lg hover:bg-purple-600 font-[Inter] transition-all duration-300"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditingTask(null)}
+                className="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 font-[Inter] transition-all duration-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-800 font-[Inter] text-lg break-words max-w-[65%]">
+                {task.text || "Untitled Task"}
+              </span>
+              <div className="flex items-center space-x-4">
+                {activeTask?.id === task._id && isTimerActive && (
+                  <span className="text-gray-600 font-mono text-base">
+                    {formatTaskTime(taskTimers[task._id] || 0)}
+                  </span>
+                )}
+                <button
+                  onClick={() => toggleTaskTimer(category, task._id)}
+                  className={`px-5 py-2 rounded-lg text-white font-[Inter] text-base font-semibold transition-all duration-300 shadow-sm ${
+                    activeTask?.id === task._id && isTimerActive
+                      ? "bg-yellow-500 hover:bg-yellow-600"
+                      : "bg-purple-500 hover:bg-purple-600"
+                  }`}
+                >
+                  {activeTask?.id === task._id && isTimerActive
+                    ? "Pause"
+                    : "Start"}
+                </button>
+                <button
+                  onClick={() => startEditingTask(category, task)}
+                  className="text-gray-600 hover:text-purple-500 text-xl transition-colors duration-200"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => deleteTask(category, task._id)}
+                  className="text-red-500 hover:text-red-600 text-xl transition-colors duration-200"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Modified renderTaskSection with better error handling
+  const renderTaskSection = (title, icon, tasks, category) => {
+    // Debug log
+    console.log("Rendering section:", { title, tasks, category });
+
+    return (
+      <div className="bg-gray-100 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center space-x-4 mb-6">
+          {icon}
+          <h4 className="font-semibold text-gray-900 font-[Inter]">{title}</h4>
+        </div>
+        {!Array.isArray(tasks) || tasks.length === 0 ? (
+          <p className="text-gray-500 font-[Inter] text-base">
+            No tasks added yet.
+          </p>
+        ) : (
+          tasks
+            .filter((task) => task && task._id && task.text)
+            .map((task) => renderTask(task, category))
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -470,6 +761,25 @@ function DeepWorkTimer() {
                 <h3 className="text-3xl font-bold text-gray-900 font-[Inter] mb-6 md:mb-0">
                   Tasks
                 </h3>
+                {errorMessage && (
+                  <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                    <span className="block sm:inline">{errorMessage}</span>
+                    <span
+                      className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+                      onClick={() => setErrorMessage("")}
+                    >
+                      <svg
+                        className="fill-current h-6 w-6 text-red-500"
+                        role="button"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <title>Close</title>
+                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
+                      </svg>
+                    </span>
+                  </div>
+                )}
                 <form
                   onSubmit={handleAddTaskForm}
                   className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto"
@@ -504,131 +814,24 @@ function DeepWorkTimer() {
                 </form>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {[
-                  {
-                    title: "Deep Work",
-                    icon: <FaClock className="text-purple-500 text-2xl" />,
-                    tasks: deepWorkTasks,
-                    category: "deep",
-                  },
-                  {
-                    title: "Short Tasks",
-                    icon: <FaTasks className="text-purple-500 text-2xl" />,
-                    tasks: shortTasks,
-                    category: "short",
-                  },
-                  {
-                    title: "Maintenance",
-                    icon: <FaCogs className="text-purple-500 text-2xl" />,
-                    tasks: maintenanceTasks,
-                    category: "maintenance",
-                  },
-                ].map(({ title, icon, tasks, category }) => (
-                  <div
-                    key={title}
-                    className="bg-gray-100 rounded-xl p-6 shadow-sm"
-                  >
-                    <div className="flex items-center space-x-4 mb-6">
-                      {icon}
-                      <h4 className="font-semibold text-gray-900 font-[Inter]">
-                        {title}
-                      </h4>
-                    </div>
-                    {tasks.length === 0 ? (
-                      <p className="text-gray-500 font-[Inter] text-base">
-                        No tasks added yet.
-                      </p>
-                    ) : (
-                      tasks.map((task) => (
-                        <div
-                          key={task.id}
-                          className="bg-white p-5 rounded-lg mb-5 shadow-md hover:shadow-lg transition-all duration-200"
-                        >
-                          {editingTask?.id === task.id ? (
-                            <div className="space-y-4">
-                              <input
-                                type="text"
-                                value={editingTask.text}
-                                onChange={(e) =>
-                                  setEditingTask({
-                                    ...editingTask,
-                                    text: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 font-[Inter] text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
-                              />
-                              <div className="flex space-x-4">
-                                <button
-                                  onClick={() =>
-                                    saveEditedTask(category, task.id)
-                                  }
-                                  className="bg-purple-500 text-white px-5 py-2 rounded-lg hover:bg-purple-600 font-[Inter] transition-all duration-300"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={() => setEditingTask(null)}
-                                  className="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 font-[Inter] transition-all duration-300"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col space-y-4">
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-800 font-[Inter] text-lg break-words max-w-[65%]">
-                                  {task.text}
-                                </span>
-                                <div className="flex items-center space-x-4">
-                                  {activeTask?.id === task.id &&
-                                    isTimerActive && (
-                                      <span className="text-gray-600 font-mono text-base">
-                                        {formatTaskTime(
-                                          taskTimers[task.id] || 0
-                                        )}
-                                      </span>
-                                    )}
-                                  <button
-                                    onClick={() =>
-                                      toggleTaskTimer(category, task.id)
-                                    }
-                                    className={`px-5 py-2 rounded-lg text-white font-[Inter] text-base font-semibold transition-all duration-300 shadow-sm ${
-                                      activeTask?.id === task.id &&
-                                      isTimerActive
-                                        ? "bg-yellow-500 hover:bg-yellow-600"
-                                        : "bg-purple-500 hover:bg-purple-600"
-                                    }`}
-                                  >
-                                    {activeTask?.id === task.id && isTimerActive
-                                      ? "Pause"
-                                      : "Start"}
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      startEditingTask(category, task)
-                                    }
-                                    className="text-gray-600 hover:text-purple-500 text-xl transition-colors duration-200"
-                                  >
-                                    ✏️
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      deleteTask(category, task.id)
-                                    }
-                                    className="text-red-500 hover:text-red-600 text-xl transition-colors duration-200"
-                                  >
-                                    🗑️
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                ))}
+                {renderTaskSection(
+                  "Deep Work",
+                  <FaClock className="text-purple-500 text-2xl" />,
+                  deepWorkTasks || [],
+                  "deep"
+                )}
+                {renderTaskSection(
+                  "Short Tasks",
+                  <FaTasks className="text-purple-500 text-2xl" />,
+                  shortTasks || [],
+                  "short"
+                )}
+                {renderTaskSection(
+                  "Maintenance",
+                  <FaCogs className="text-purple-500 text-2xl" />,
+                  maintenanceTasks || [],
+                  "maintenance"
+                )}
               </div>
             </section>
           </div>
