@@ -82,9 +82,10 @@ const updateTask = async (req, res) => {
         .json({ success: false, message: "Task not found" });
     }
 
-    if (text) task.text = text;
-    if (typeof completed !== "undefined") task.completed = completed;
-    if (typeof timeSpent !== "undefined") task.timeSpent = timeSpent;
+    // Update task fields if they are provided
+    if (text !== undefined) task.text = text;
+    if (completed !== undefined) task.completed = completed;
+    if (timeSpent !== undefined) task.timeSpent = timeSpent;
 
     await task.save();
 

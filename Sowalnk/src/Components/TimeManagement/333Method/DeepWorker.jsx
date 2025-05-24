@@ -94,8 +94,38 @@ function DeepWorkTimer() {
   const [showHelp, setShowHelp] = useState(false);
 
   // Timer states
-  const [timeLeft, setTimeLeft] = useState(3 * 60 * 60);
-  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(() => {
+    // Initialize from localStorage if available
+    const savedTimer = localStorage.getItem("deepWorkTimer");
+    if (savedTimer) {
+      const {
+        timeLeft: savedTimeLeft,
+        isActive,
+        lastUpdated,
+      } = JSON.parse(savedTimer);
+      if (isActive) {
+        // Calculate elapsed time since last update
+        const elapsedSeconds = Math.floor((Date.now() - lastUpdated) / 1000);
+        return Math.max(0, savedTimeLeft - elapsedSeconds);
+      }
+      return savedTimeLeft;
+    }
+    return 3 * 60 * 60; // Default 3 hours
+  });
+  const [isTimerActive, setIsTimerActive] = useState(() => {
+    // Initialize from localStorage if available
+    const savedTimer = localStorage.getItem("deepWorkTimer");
+    if (savedTimer) {
+      const { isActive, lastUpdated } = JSON.parse(savedTimer);
+      if (isActive) {
+        // Check if timer should still be active based on elapsed time
+        const elapsedSeconds = Math.floor((Date.now() - lastUpdated) / 1000);
+        return elapsedSeconds < timeLeft;
+      }
+      return false;
+    }
+    return false;
+  });
 
   // Task states
   const [selectedCategory, setSelectedCategory] = useState("deep");
@@ -122,16 +152,13 @@ function DeepWorkTimer() {
     const fetchTasks = async () => {
       try {
         const result = await threeThreeThreeService.getTasks();
-        console.log("Fetched tasks result:", result); // Debug log
         if (result.success) {
           const tasks = result.data.tasks || result.data || [];
-          console.log("Tasks to process:", tasks); // Debug log
 
           // Ensure we only set valid tasks
           const validTasks = Array.isArray(tasks)
             ? tasks.filter((t) => t && t.text && t._id)
             : [];
-          console.log("Valid tasks:", validTasks); // Debug log
 
           setDeepWorkTasks(validTasks.filter((t) => t.category === "deep"));
           setShortTasks(validTasks.filter((t) => t.category === "short"));
@@ -153,13 +180,43 @@ function DeepWorkTimer() {
   useEffect(() => {
     let interval = null;
     if (isTimerActive && timeLeft > 0) {
-      interval = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          const newTimeLeft = prev - 1;
+          // Save to localStorage on each update
+          localStorage.setItem(
+            "deepWorkTimer",
+            JSON.stringify({
+              timeLeft: newTimeLeft,
+              isActive: true,
+              lastUpdated: Date.now(),
+            })
+          );
+          return newTimeLeft;
+        });
+      }, 1000);
     } else if (timeLeft === 0 && isTimerActive) {
       clearInterval(interval);
       setIsTimerActive(false);
       handleSessionComplete();
+      // Clear timer from localStorage when complete
+      localStorage.removeItem("deepWorkTimer");
     }
     return () => clearInterval(interval);
+  }, [isTimerActive, timeLeft]);
+
+  // Add effect to save timer state when isTimerActive changes
+  useEffect(() => {
+    if (!isTimerActive) {
+      localStorage.setItem(
+        "deepWorkTimer",
+        JSON.stringify({
+          timeLeft,
+          isActive: false,
+          lastUpdated: Date.now(),
+        })
+      );
+    }
   }, [isTimerActive, timeLeft]);
 
   // Task timer logic
@@ -206,11 +263,9 @@ function DeepWorkTimer() {
         text,
         category,
       });
-      console.log("Add task result:", result); // Debug log
 
       if (result.success && result.data) {
         const newTask = result.data;
-        console.log("New task to add:", newTask); // Debug log
 
         // Clear any previous error
         setErrorMessage("");
@@ -404,6 +459,8 @@ function DeepWorkTimer() {
     setActiveTask(null);
     setTaskTimers({});
     setEditingTask(null);
+    // Clear timer from localStorage
+    localStorage.removeItem("deepWorkTimer");
   };
 
   const allTasks = [
@@ -463,11 +520,38 @@ function DeepWorkTimer() {
     return () => clearInterval(interval);
   }, [activeTask, isTimerActive]);
 
+  // Add handleTaskCompletion function
+  const handleTaskCompletion = async (category, taskId, completed) => {
+    try {
+      const result = await threeThreeThreeService.updateTask(taskId, {
+        completed: completed,
+      });
+
+      if (result.success) {
+        const updatedTask = result.data;
+        if (category === "deep") {
+          setDeepWorkTasks((prev) =>
+            prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+          );
+        } else if (category === "short") {
+          setShortTasks((prev) =>
+            prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+          );
+        } else if (category === "maintenance") {
+          setMaintenanceTasks((prev) =>
+            prev.map((t) => (t && t._id === taskId ? updatedTask : t))
+          );
+        }
+      } else {
+        console.error("Failed to update task completion:", result.error);
+      }
+    } catch (error) {
+      console.error("Error updating task completion:", error);
+    }
+  };
+
   // Modified renderTask function with better error handling
   const renderTask = (task, category) => {
-    // Debug log
-    console.log("Rendering task:", { task, category });
-
     if (!task || typeof task !== "object") {
       console.error("Invalid task object:", task);
       return null;
@@ -481,7 +565,7 @@ function DeepWorkTimer() {
     return (
       <div
         key={task._id}
-        className="bg-white p-5 rounded-lg mb-5 shadow-md hover:shadow-lg transition-all duration-200"
+        className="bg-white max-w-3xl  p-5 rounded-lg mb-5 shadow-md hover:shadow-lg transition-all duration-200"
       >
         {editingTask?.id === task._id ? (
           <div className="space-y-4">
@@ -496,7 +580,7 @@ function DeepWorkTimer() {
               }
               className="w-full border border-gray-300 rounded-lg px-4 py-3 font-[Inter] text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
             />
-            <div className="flex space-x-4">
+            <div className=" space-x-4">
               <button
                 onClick={() => saveEditedTask(category, task._id)}
                 className="bg-purple-500 text-white px-5 py-2 rounded-lg hover:bg-purple-600 font-[Inter] transition-all duration-300"
@@ -513,16 +597,32 @@ function DeepWorkTimer() {
           </div>
         ) : (
           <div className="flex flex-col space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-800 font-[Inter] text-lg break-words max-w-[65%]">
-                {task.text || "Untitled Task"}
-              </span>
-              <div className="flex items-center space-x-4">
-                {activeTask?.id === task._id && isTimerActive && (
+            <div className="space-y-2 lg:place-items-start">
+              <div className="flex w-full justify-between items-center ">
+                <span
+                  className={`text-gray-800 font-[Inter] text-lg break-words max-w-[65%] ${
+                    task.completed ? "line-through" : ""
+                  }`}
+                >
+                  {task.text || "Untitled Task"}
+                </span>
+                {/* For toggling the task as complete*/}
+                <input
+                  type="checkbox"
+                  className="w-5 h-5"
+                  checked={task.completed || false}
+                  onChange={(e) =>
+                    handleTaskCompletion(category, task._id, e.target.checked)
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between w-full space-x-4">
+                {/* {activeTask?.id === task._id && isTimerActive && (
                   <span className="text-gray-600 font-mono text-base">
                     {formatTaskTime(taskTimers[task._id] || 0)}
                   </span>
-                )}
+                )} */}
                 <button
                   onClick={() => toggleTaskTimer(category, task._id)}
                   className={`px-5 py-2 rounded-lg text-white font-[Inter] text-base font-semibold transition-all duration-300 shadow-sm ${
@@ -557,11 +657,8 @@ function DeepWorkTimer() {
 
   // Modified renderTaskSection with better error handling
   const renderTaskSection = (title, icon, tasks, category) => {
-    // Debug log
-    console.log("Rendering section:", { title, tasks, category });
-
     return (
-      <div className="bg-gray-100 rounded-xl p-6 shadow-sm">
+      <div className="bg-gray-100 rounded-xl overflow-auto p-6 shadow-sm">
         <div className="flex items-center space-x-4 mb-6">
           {icon}
           <h4 className="font-semibold text-gray-900 font-[Inter]">{title}</h4>
@@ -813,7 +910,7 @@ function DeepWorkTimer() {
                   </button>
                 </form>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {renderTaskSection(
                   "Deep Work",
                   <FaClock className="text-purple-500 text-2xl" />,

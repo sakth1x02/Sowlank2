@@ -103,7 +103,16 @@ const threeThreeThreeService = {
         };
       }
 
-      return { success: true, data: res.data };
+      // Ensure we return the updated task data
+      const updatedTask = res.data;
+      if (!updatedTask || !updatedTask._id) {
+        return {
+          success: false,
+          error: "Invalid task data received from server",
+        };
+      }
+
+      return { success: true, data: updatedTask };
     } catch (error) {
       console.error("Error updating task:", error);
       return {
