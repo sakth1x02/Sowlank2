@@ -50,7 +50,7 @@ const TimeManage = () => {
       id: 5,
       name: "2 Minute Rule",
       description: "Complete quick tasks immediately to avoid procrastination.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 6,

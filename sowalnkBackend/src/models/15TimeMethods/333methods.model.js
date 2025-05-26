@@ -61,6 +61,10 @@ const sessionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    totalPoints: {
+      type: Number,
+      default: 0,
+    },
     completedTasks: [
       {
         type: mongoose.Schema.Types.ObjectId,

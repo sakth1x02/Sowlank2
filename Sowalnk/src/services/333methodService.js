@@ -85,6 +85,8 @@ const threeThreeThreeService = {
   updateTask: async (taskId, taskData) => {
     const token = getAuthToken();
     try {
+      console.log("Sending task update request:", { taskId, taskData });
+
       const response = await fetch(`/api/v1/333method/tasks/${taskId}`, {
         method: "PUT",
         headers: {
@@ -95,6 +97,7 @@ const threeThreeThreeService = {
       });
 
       const res = await response.json();
+      console.log("Task update response:", res);
 
       if (!response.ok) {
         return {
@@ -103,8 +106,17 @@ const threeThreeThreeService = {
         };
       }
 
-      // Ensure we return the updated task data
-      const updatedTask = res.data;
+      // Ensure we return the updated task data and points if they exist
+      const updatedTask = res.data?.task;
+      const points = res.data?.points;
+      const totalPoints = res.data?.totalPoints;
+
+      console.log("Processed response data:", {
+        updatedTask,
+        points,
+        totalPoints,
+      });
+
       if (!updatedTask || !updatedTask._id) {
         return {
           success: false,
@@ -112,7 +124,12 @@ const threeThreeThreeService = {
         };
       }
 
-      return { success: true, data: updatedTask };
+      return {
+        success: true,
+        data: updatedTask,
+        points: points,
+        totalPoints: totalPoints,
+      };
     } catch (error) {
       console.error("Error updating task:", error);
       return {
@@ -202,7 +219,11 @@ const threeThreeThreeService = {
         };
       }
 
-      return { success: true, data: res.data };
+      return {
+        success: true,
+        data: res.data?.sessions || [],
+        totalPoints: res.data?.totalPoints || 0,
+      };
     } catch (error) {
       console.error("Error fetching sessions:", error);
       return {

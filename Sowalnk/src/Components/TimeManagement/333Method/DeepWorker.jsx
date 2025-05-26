@@ -147,15 +147,20 @@ function DeepWorkTimer() {
   // Add state for error message
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Load tasks from backend when component mounts
+  // Load tasks and points from backend when component mounts
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchData = async () => {
       try {
-        const result = await threeThreeThreeService.getTasks();
-        if (result.success) {
-          const tasks = result.data.tasks || result.data || [];
+        console.log("Fetching initial data...");
+        const [tasksResult, sessionsResult] = await Promise.all([
+          threeThreeThreeService.getTasks(),
+          threeThreeThreeService.getSessions(),
+        ]);
 
-          // Ensure we only set valid tasks
+        console.log("Sessions result:", sessionsResult);
+
+        if (tasksResult.success) {
+          const tasks = tasksResult.data.tasks || tasksResult.data || [];
           const validTasks = Array.isArray(tasks)
             ? tasks.filter((t) => t && t.text && t._id)
             : [];
@@ -165,15 +170,18 @@ function DeepWorkTimer() {
           setMaintenanceTasks(
             validTasks.filter((t) => t.category === "maintenance")
           );
-        } else {
-          console.error("Failed to fetch tasks:", result.error);
+        }
+
+        if (sessionsResult.success) {
+          console.log("Setting initial points:", sessionsResult.totalPoints);
+          setPoints(sessionsResult.totalPoints || 0);
         }
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchTasks();
+    fetchData();
   }, []);
 
   // Timer logic
@@ -277,6 +285,8 @@ function DeepWorkTimer() {
         } else if (category === "maintenance") {
           setMaintenanceTasks((prev) => [...(prev || []), newTask]);
         }
+
+        // Update points for adding a task
         setPoints((prev) => prev + 5);
 
         // Clear the input field after successful addition
@@ -523,12 +533,24 @@ function DeepWorkTimer() {
   // Add handleTaskCompletion function
   const handleTaskCompletion = async (category, taskId, completed) => {
     try {
+      console.log("Updating task completion:", { category, taskId, completed });
+
       const result = await threeThreeThreeService.updateTask(taskId, {
         completed: completed,
       });
 
+      console.log("Update task result:", result);
+
       if (result.success) {
         const updatedTask = result.data;
+
+        // Update points if they were returned
+        if (result.totalPoints !== undefined) {
+          console.log("Updating points to:", result.totalPoints);
+          setPoints(result.totalPoints);
+        }
+
+        // Update the task in the appropriate category
         if (category === "deep") {
           setDeepWorkTasks((prev) =>
             prev.map((t) => (t && t._id === taskId ? updatedTask : t))
@@ -549,6 +571,11 @@ function DeepWorkTimer() {
       console.error("Error updating task completion:", error);
     }
   };
+
+  // Add a useEffect to monitor points changes
+  useEffect(() => {
+    console.log("Points updated:", points);
+  }, [points]);
 
   // Modified renderTask function with better error handling
   const renderTask = (task, category) => {
@@ -725,7 +752,7 @@ function DeepWorkTimer() {
             </button>
           ))}
         </nav>
-
+        {/*Gamification */}
         <div className="mt-10 space-y-6">
           <div className="bg-purple-500 text-white p-6 rounded-xl shadow-lg">
             <h3 className="text-2xl font-semibold font-[Inter]">

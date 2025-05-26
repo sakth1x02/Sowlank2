@@ -82,6 +82,33 @@ const updateTask = async (req, res) => {
         .json({ success: false, message: "Task not found" });
     }
 
+    let points = 0;
+    // If task is being marked as completed and wasn't completed before
+    if (completed && !task.completed) {
+      points = 2; // Add 2 points for task completion
+
+      // Get or create a session for today
+      let latestSession = await ThreeThreeThreeSession.findOne({
+        user: userId,
+        createdAt: {
+          $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+      }).sort({ createdAt: -1 });
+
+      if (!latestSession) {
+        // Create a new session if none exists for today
+        latestSession = await ThreeThreeThreeSession.create({
+          user: userId,
+          totalPoints: points,
+        });
+      } else {
+        // Update existing session
+        latestSession.totalPoints += points;
+        await latestSession.save();
+      }
+    }
+
     // Update task fields if they are provided
     if (text !== undefined) task.text = text;
     if (completed !== undefined) task.completed = completed;
@@ -89,9 +116,22 @@ const updateTask = async (req, res) => {
 
     await task.save();
 
+    // Get the latest session to return updated total points
+    const currentSession = await ThreeThreeThreeSession.findOne({
+      user: userId,
+      createdAt: {
+        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        $lt: new Date(new Date().setHours(23, 59, 59, 999)),
+      },
+    }).sort({ createdAt: -1 });
+
     return res.status(200).json({
       success: true,
-      data: task,
+      data: {
+        task,
+        points,
+        totalPoints: currentSession ? currentSession.totalPoints : points,
+      },
       message: "Task updated successfully",
     });
   } catch (error) {
@@ -161,13 +201,27 @@ const createSession = async (req, res) => {
 const getSessions = async (req, res) => {
   try {
     const userId = req.user._id;
+
+    // Get today's session
+    const todaySession = await ThreeThreeThreeSession.findOne({
+      user: userId,
+      createdAt: {
+        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        $lt: new Date(new Date().setHours(23, 59, 59, 999)),
+      },
+    }).sort({ createdAt: -1 });
+
+    // Get all sessions for history
     const sessions = await ThreeThreeThreeSession.find({ user: userId })
       .sort({ createdAt: -1 })
       .populate("completedTasks");
 
     return res.status(200).json({
       success: true,
-      data: sessions,
+      data: {
+        sessions,
+        totalPoints: todaySession ? todaySession.totalPoints : 0,
+      },
       message: "Sessions fetched successfully",
     });
   } catch (error) {

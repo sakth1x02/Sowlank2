@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Clock,
   CheckCircle2,
@@ -8,7 +8,14 @@ import {
   Timer,
   Info,
   X,
+  Trophy,
+  Star,
+  Award,
+  Sparkles,
+  Zap,
+  Target,
 } from "lucide-react";
+import Confetti from "react-confetti";
 
 const TwoMinuteRule = () => {
   const [tasks, setTasks] = useState([]);
@@ -16,22 +23,55 @@ const TwoMinuteRule = () => {
   const [estimatedTime, setEstimatedTime] = useState(1);
   const [showInfo, setShowInfo] = useState(false);
 
+  // Enhanced gamification states
+  const [points, setPoints] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [badges, setBadges] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+  const [pointsToAdd, setPointsToAdd] = useState(0);
+  const pointsToNextLevel = level * 50; // Reduced points needed for level up
+
+  // Animation for points
+  useEffect(() => {
+    if (showPointsAnimation) {
+      const timer = setTimeout(() => {
+        setShowPointsAnimation(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showPointsAnimation]);
+
   const addTask = (e) => {
     e.preventDefault();
     if (newTask.trim()) {
-      setTasks([
-        ...tasks,
-        {
-          id: crypto.randomUUID(),
-          text: newTask.trim(),
-          minutes: estimatedTime,
-          status: estimatedTime <= 2 ? "do-now" : "deferred",
-          completed: false,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+      const newTaskObj = {
+        id: crypto.randomUUID(),
+        text: newTask.trim(),
+        minutes: estimatedTime,
+        status: estimatedTime <= 2 ? "do-now" : "deferred",
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      setTasks([...tasks, newTaskObj]);
       setNewTask("");
       setEstimatedTime(1);
+
+      // Add points for creating a task
+      const newPoints = points + 1;
+      setPoints(newPoints);
+      setPointsToAdd(1);
+      setShowPointsAnimation(true);
+
+      // Check for level up
+      const newLevel = Math.floor(newPoints / 50) + 1;
+      if (newLevel > level) {
+        setLevel(newLevel);
+        setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 4000);
+      }
     }
   };
 
@@ -41,9 +81,48 @@ const TwoMinuteRule = () => {
 
   const toggleTaskStatus = (taskId) => {
     setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
+      tasks.map((task) => {
+        if (task.id === taskId) {
+          const newCompleted = !task.completed;
+
+          // Add points for completing a task
+          if (newCompleted) {
+            const newPoints = points + 2;
+            setPoints(newPoints);
+            setPointsToAdd(2);
+            setShowPointsAnimation(true);
+
+            // Check for level up
+            const newLevel = Math.floor(newPoints / 50) + 1;
+            if (newLevel > level) {
+              setLevel(newLevel);
+              setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+              setShowConfetti(true);
+              setTimeout(() => setShowConfetti(false), 4000);
+            }
+
+            // Add badges for completing tasks
+            if (task.status === "do-now") {
+              setBadges((prev) => {
+                if (!prev.includes("Quick Task Master")) {
+                  return [...prev, "Quick Task Master"];
+                }
+                return prev;
+              });
+            } else {
+              setBadges((prev) => {
+                if (!prev.includes("Task Completionist")) {
+                  return [...prev, "Task Completionist"];
+                }
+                return prev;
+              });
+            }
+          }
+
+          return { ...task, completed: newCompleted };
+        }
+        return task;
+      })
     );
   };
 
@@ -59,6 +138,7 @@ const TwoMinuteRule = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
+      {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -112,6 +192,77 @@ const TwoMinuteRule = () => {
               Add Task
             </button>
           </form>
+
+          {/* Enhanced Gamification Section */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-100">
+            <h2 className="text-2xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-yellow-500" />
+              Your Progress
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-purple-100 transform hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      Level {level}
+                    </h3>
+                    <p className="text-sm text-gray-500">Keep going!</p>
+                  </div>
+                  <div className="relative">
+                    <Trophy className="w-10 h-10 text-yellow-500 animate-bounce" />
+                    {showPointsAnimation && (
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce text-green-500 font-bold">
+                        +{pointsToAdd}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-2 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-yellow-500" />
+                  Points: {points}
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-4 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${((points % 50) / 50) * 100}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2 flex items-center gap-1">
+                  <Target className="w-4 h-4 text-purple-500" />
+                  {points % 50}/{50} to Level {level + 1}
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-lg shadow-md border border-purple-100">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Award className="w-6 h-6 text-yellow-500" />
+                  Achievements
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {badges.length > 0 ? (
+                    badges.map((badge, index) => (
+                      <span
+                        key={index}
+                        className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow duration-300"
+                      >
+                        <Award className="w-4 h-4 text-yellow-500" />
+                        {badge}
+                      </span>
+                    ))
+                  ) : (
+                    <div className="w-full text-center py-4">
+                      <p className="text-gray-500 italic">
+                        Complete tasks to earn badges!
+                      </p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Each task completed gives you 2 points!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="space-y-6">
             {/* Do Now Section */}
