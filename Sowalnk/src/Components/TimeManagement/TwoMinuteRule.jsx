@@ -16,6 +16,7 @@ import {
   Target,
 } from "lucide-react";
 import Confetti from "react-confetti";
+import twoMinuteService from "../../services/twoMinuteService";
 
 const TwoMinuteRule = () => {
   const [tasks, setTasks] = useState([]);
@@ -30,7 +31,12 @@ const TwoMinuteRule = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const [pointsToAdd, setPointsToAdd] = useState(0);
-  const pointsToNextLevel = level * 50; // Reduced points needed for level up
+  const pointsToNextLevel = level * 50;
+
+  // Fetch tasks on component mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   // Animation for points
   useEffect(() => {
@@ -42,88 +48,113 @@ const TwoMinuteRule = () => {
     }
   }, [showPointsAnimation]);
 
-  const addTask = (e) => {
+  const fetchTasks = async () => {
+    try {
+      const result = await twoMinuteService.getTasks();
+      if (result.success) {
+        setTasks(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const addTask = async (e) => {
     e.preventDefault();
     if (newTask.trim()) {
-      const newTaskObj = {
-        id: crypto.randomUUID(),
-        text: newTask.trim(),
-        minutes: estimatedTime,
-        status: estimatedTime <= 2 ? "do-now" : "deferred",
-        completed: false,
-        createdAt: new Date().toISOString(),
-      };
+      try {
+        const taskData = {
+          text: newTask.trim(),
+          minutes: estimatedTime,
+        };
 
-      setTasks([...tasks, newTaskObj]);
-      setNewTask("");
-      setEstimatedTime(1);
+        const result = await twoMinuteService.createTask(taskData);
+        if (result.success) {
+          setTasks([...tasks, result.data]);
+          setNewTask("");
+          setEstimatedTime(1);
 
-      // Add points for creating a task
-      const newPoints = points + 1;
-      setPoints(newPoints);
-      setPointsToAdd(1);
-      setShowPointsAnimation(true);
+          // Add points for creating a task
+          const newPoints = points + 1;
+          setPoints(newPoints);
+          setPointsToAdd(1);
+          setShowPointsAnimation(true);
 
-      // Check for level up
-      const newLevel = Math.floor(newPoints / 50) + 1;
-      if (newLevel > level) {
-        setLevel(newLevel);
-        setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 4000);
+          // Check for level up
+          const newLevel = Math.floor(newPoints / 50) + 1;
+          if (newLevel > level) {
+            setLevel(newLevel);
+            setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }
+        }
+      } catch (error) {
+        console.error("Error adding task:", error);
       }
     }
   };
 
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+  const deleteTask = async (taskId) => {
+    try {
+      const result = await twoMinuteService.deleteTask(taskId);
+      if (result.success) {
+        setTasks(tasks.filter((task) => task._id !== taskId));
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
-  const toggleTaskStatus = (taskId) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id === taskId) {
-          const newCompleted = !task.completed;
+  const toggleTaskStatus = async (taskId) => {
+    try {
+      const task = tasks.find((t) => t._id === taskId);
+      if (!task) return;
 
-          // Add points for completing a task
-          if (newCompleted) {
-            const newPoints = points + 2;
-            setPoints(newPoints);
-            setPointsToAdd(2);
-            setShowPointsAnimation(true);
+      const result = await twoMinuteService.updateTask(taskId, {
+        completed: !task.completed,
+      });
 
-            // Check for level up
-            const newLevel = Math.floor(newPoints / 50) + 1;
-            if (newLevel > level) {
-              setLevel(newLevel);
-              setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 4000);
-            }
+      if (result.success) {
+        setTasks(tasks.map((t) => (t._id === taskId ? result.data : t)));
 
-            // Add badges for completing tasks
-            if (task.status === "do-now") {
-              setBadges((prev) => {
-                if (!prev.includes("Quick Task Master")) {
-                  return [...prev, "Quick Task Master"];
-                }
-                return prev;
-              });
-            } else {
-              setBadges((prev) => {
-                if (!prev.includes("Task Completionist")) {
-                  return [...prev, "Task Completionist"];
-                }
-                return prev;
-              });
-            }
+        // Handle points and badges
+        if (result.points) {
+          const newPoints = result.totalPoints;
+          setPoints(newPoints);
+          setPointsToAdd(result.points);
+          setShowPointsAnimation(true);
+
+          // Check for level up
+          const newLevel = Math.floor(newPoints / 50) + 1;
+          if (newLevel > level) {
+            setLevel(newLevel);
+            setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
           }
 
-          return { ...task, completed: newCompleted };
+          // Add badges for completing tasks
+          if (result.data.status === "do-now") {
+            setBadges((prev) => {
+              if (!prev.includes("Quick Task Master")) {
+                return [...prev, "Quick Task Master"];
+              }
+              return prev;
+            });
+          } else {
+            setBadges((prev) => {
+              if (!prev.includes("Task Completionist")) {
+                return [...prev, "Task Completionist"];
+              }
+              return prev;
+            });
+          }
         }
-        return task;
-      })
-    );
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
 
   const taskGroups = {
@@ -279,12 +310,12 @@ const TwoMinuteRule = () => {
                 <ul className="space-y-2">
                   {taskGroups["do-now"].map((task) => (
                     <li
-                      key={task.id}
+                      key={task._id}
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-100"
                     >
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => toggleTaskStatus(task.id)}
+                          onClick={() => toggleTaskStatus(task._id)}
                           className="text-green-600 hover:text-green-800"
                         >
                           <CheckCircle2 size={20} />
@@ -295,7 +326,7 @@ const TwoMinuteRule = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => deleteTask(task.id)}
+                        onClick={() => deleteTask(task._id)}
                         className="text-red-500 hover:text-red-700 p-1"
                       >
                         <Trash2 size={20} />
@@ -320,12 +351,12 @@ const TwoMinuteRule = () => {
                 <ul className="space-y-2">
                   {taskGroups["deferred"].map((task) => (
                     <li
-                      key={task.id}
+                      key={task._id}
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-100"
                     >
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => toggleTaskStatus(task.id)}
+                          onClick={() => toggleTaskStatus(task._id)}
                           className="text-orange-600 hover:text-orange-800"
                         >
                           <CheckCircle2 size={20} />
@@ -336,7 +367,7 @@ const TwoMinuteRule = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => deleteTask(task.id)}
+                        onClick={() => deleteTask(task._id)}
                         className="text-red-500 hover:text-red-700 p-1"
                       >
                         <Trash2 size={20} />
@@ -361,12 +392,12 @@ const TwoMinuteRule = () => {
                 <ul className="space-y-2">
                   {taskGroups["completed"].map((task) => (
                     <li
-                      key={task.id}
+                      key={task._id}
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100"
                     >
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => toggleTaskStatus(task.id)}
+                          onClick={() => toggleTaskStatus(task._id)}
                           className="text-gray-400 hover:text-gray-600"
                         >
                           <CheckCircle2 size={20} />
@@ -379,7 +410,7 @@ const TwoMinuteRule = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => deleteTask(task.id)}
+                        onClick={() => deleteTask(task._id)}
                         className="text-red-500 hover:text-red-700 p-1"
                       >
                         <Trash2 size={20} />
