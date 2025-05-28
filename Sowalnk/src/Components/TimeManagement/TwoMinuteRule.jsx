@@ -51,11 +51,22 @@ const TwoMinuteRule = () => {
   const fetchTasks = async () => {
     try {
       const result = await twoMinuteService.getTasks();
-      if (result.success) {
-        setTasks(result.data);
+      console.log("Fetch tasks result:", result); // Debug log
+      if (result.success && result.data) {
+        setTasks(result.data.tasks || []);
+        const initialPoints = result.data.totalPoints || 0;
+        console.log("Initial points:", initialPoints); // Debug log
+        setPoints(initialPoints);
+        // Calculate level based on total points
+        const newLevel = Math.floor(initialPoints / 50) + 1;
+        console.log("Initial level:", newLevel); // Debug log
+        setLevel(newLevel);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      setTasks([]);
+      setPoints(0);
+      setLevel(1);
     }
   };
 
@@ -69,25 +80,10 @@ const TwoMinuteRule = () => {
         };
 
         const result = await twoMinuteService.createTask(taskData);
-        if (result.success) {
-          setTasks([...tasks, result.data]);
+        if (result.success && result.data && result.data.task) {
+          setTasks((prevTasks) => [...prevTasks, result.data.task]);
           setNewTask("");
           setEstimatedTime(1);
-
-          // Add points for creating a task
-          const newPoints = points + 1;
-          setPoints(newPoints);
-          setPointsToAdd(1);
-          setShowPointsAnimation(true);
-
-          // Check for level up
-          const newLevel = Math.floor(newPoints / 50) + 1;
-          if (newLevel > level) {
-            setLevel(newLevel);
-            setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 4000);
-          }
         }
       } catch (error) {
         console.error("Error adding task:", error);
@@ -99,7 +95,9 @@ const TwoMinuteRule = () => {
     try {
       const result = await twoMinuteService.deleteTask(taskId);
       if (result.success) {
-        setTasks(tasks.filter((task) => task._id !== taskId));
+        setTasks((prevTasks) =>
+          prevTasks.filter((task) => task._id !== taskId)
+        );
       }
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -111,22 +109,38 @@ const TwoMinuteRule = () => {
       const task = tasks.find((t) => t._id === taskId);
       if (!task) return;
 
+      console.log("Toggling task status for task:", task); // Debug log
+
       const result = await twoMinuteService.updateTask(taskId, {
         completed: !task.completed,
       });
 
-      if (result.success) {
-        setTasks(tasks.map((t) => (t._id === taskId ? result.data : t)));
+      console.log("Update task result:", result); // Debug log
+
+      if (result.success && result.data) {
+        // Update tasks list
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t._id === taskId ? result.data.task : t))
+        );
 
         // Handle points and badges
-        if (result.points) {
-          const newPoints = result.totalPoints;
-          setPoints(newPoints);
-          setPointsToAdd(result.points);
-          setShowPointsAnimation(true);
+        if (result.data.points !== undefined) {
+          const newTotalPoints = result.data.totalPoints || 0;
+          console.log("New total points:", newTotalPoints); // Debug log
+
+          // Update points state
+          setPoints(newTotalPoints);
+
+          // Show points animation
+          if (result.data.points > 0) {
+            setPointsToAdd(result.data.points);
+            setShowPointsAnimation(true);
+          }
 
           // Check for level up
-          const newLevel = Math.floor(newPoints / 50) + 1;
+          const newLevel = Math.floor(newTotalPoints / 50) + 1;
+          console.log("New level:", newLevel); // Debug log
+
           if (newLevel > level) {
             setLevel(newLevel);
             setBadges((prev) => [...prev, `Level ${newLevel} Achieved`]);
@@ -135,7 +149,7 @@ const TwoMinuteRule = () => {
           }
 
           // Add badges for completing tasks
-          if (result.data.status === "do-now") {
+          if (result.data.task && result.data.task.status === "do-now") {
             setBadges((prev) => {
               if (!prev.includes("Quick Task Master")) {
                 return [...prev, "Quick Task Master"];
@@ -158,13 +172,13 @@ const TwoMinuteRule = () => {
   };
 
   const taskGroups = {
-    "do-now": tasks.filter(
+    "do-now": (tasks || []).filter(
       (task) => task.status === "do-now" && !task.completed
     ),
-    deferred: tasks.filter(
+    deferred: (tasks || []).filter(
       (task) => task.status === "deferred" && !task.completed
     ),
-    completed: tasks.filter((task) => task.completed),
+    completed: (tasks || []).filter((task) => task.completed),
   };
 
   return (

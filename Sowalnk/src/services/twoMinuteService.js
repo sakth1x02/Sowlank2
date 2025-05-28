@@ -20,6 +20,7 @@ const twoMinuteService = {
       const res = await response.json();
 
       if (!response.ok) {
+        console.error("Failed to create task:", res);
         return {
           success: false,
           error: res.message || "Failed to create task",
@@ -28,7 +29,10 @@ const twoMinuteService = {
 
       return {
         success: true,
-        data: res.data?.task,
+        data: {
+          task: res.data?.task,
+          totalPoints: res.data?.totalPoints || 0,
+        },
       };
     } catch (error) {
       console.error("Error creating task:", error);
@@ -52,6 +56,7 @@ const twoMinuteService = {
       const res = await response.json();
 
       if (!response.ok) {
+        console.error("Failed to fetch tasks:", res);
         return {
           success: false,
           error: res.message || "Failed to fetch tasks",
@@ -60,14 +65,20 @@ const twoMinuteService = {
 
       return {
         success: true,
-        data: res.data?.tasks || [],
+        data: {
+          tasks: res.data?.tasks || [],
+          totalPoints: res.data?.totalPoints || 0,
+        },
       };
     } catch (error) {
       console.error("Error fetching tasks:", error);
       return {
         success: false,
         error: error.message || "Failed to fetch tasks",
-        data: [],
+        data: {
+          tasks: [],
+          totalPoints: 0,
+        },
       };
     }
   },
@@ -87,17 +98,22 @@ const twoMinuteService = {
       const res = await response.json();
 
       if (!response.ok) {
+        console.error("Failed to update task:", res);
         return {
           success: false,
           error: res.message || "Failed to update task",
         };
       }
 
+      console.log("Task update response:", res); // Debug log
+
       return {
         success: true,
-        data: res.data?.task,
-        points: res.data?.points,
-        totalPoints: res.data?.totalPoints,
+        data: {
+          task: res.data?.task,
+          points: res.data?.points || 0,
+          totalPoints: res.data?.totalPoints || 0,
+        },
       };
     } catch (error) {
       console.error("Error updating task:", error);

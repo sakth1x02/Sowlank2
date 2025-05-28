@@ -17,10 +17,17 @@ export const createTask = async (req, res) => {
       status,
     });
 
+    // Get user's current points
+    const user = await User.findById(userId);
+    const totalPoints = user ? user.totalPoints || 0 : 0;
+
     res.status(201).json({
       success: true,
       message: "Task created successfully",
-      data: { task },
+      data: {
+        task,
+        totalPoints,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -38,9 +45,16 @@ export const getTasks = async (req, res) => {
       createdAt: -1,
     });
 
+    // Get user's total points
+    const user = await User.findById(userId);
+    const totalPoints = user ? user.totalPoints || 0 : 0;
+
     res.status(200).json({
       success: true,
-      data: { tasks },
+      data: {
+        tasks,
+        totalPoints,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -70,19 +84,67 @@ export const updateTask = async (req, res) => {
     if (completed && !task.completed) {
       // Update user points
       const user = await User.findById(userId);
-      user.points = (user.points || 0) + 2;
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const pointsToAdd = 2;
+      // Update positivePoints instead of totalPoints
+      user.positivePoints = (user.positivePoints || 0) + pointsToAdd;
       await user.save();
 
+      // Update task points and completion status
       task.completed = true;
+      task.points = pointsToAdd;
       await task.save();
+
+      console.log("Updated user points:", user.totalPoints); // Debug log
 
       return res.status(200).json({
         success: true,
         message: "Task completed successfully",
         data: {
           task,
-          points: 2,
-          totalPoints: user.points,
+          points: pointsToAdd,
+          totalPoints: user.totalPoints,
+        },
+      });
+    } else if (!completed && task.completed) {
+      // If task is being unmarked as completed
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Remove points when uncompleting a task
+      const pointsToRemove = 2;
+      // Update positivePoints instead of totalPoints
+      user.positivePoints = Math.max(
+        0,
+        (user.positivePoints || 0) - pointsToRemove
+      );
+      await user.save();
+
+      // Update task status
+      task.completed = false;
+      task.points = 0;
+      await task.save();
+
+      console.log("Updated user points after uncomplete:", user.totalPoints); // Debug log
+
+      return res.status(200).json({
+        success: true,
+        message: "Task uncompleted successfully",
+        data: {
+          task,
+          points: -pointsToRemove,
+          totalPoints: user.totalPoints,
         },
       });
     }
@@ -94,12 +156,22 @@ export const updateTask = async (req, res) => {
       { new: true }
     );
 
+    // Get updated user points
+    const user = await User.findById(userId);
+    const totalPoints = user ? user.totalPoints || 0 : 0;
+
+    console.log("Final total points:", totalPoints); // Debug log
+
     res.status(200).json({
       success: true,
       message: "Task updated successfully",
-      data: { task: updatedTask },
+      data: {
+        task: updatedTask,
+        totalPoints,
+      },
     });
   } catch (error) {
+    console.error("Error updating task:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Error updating task",

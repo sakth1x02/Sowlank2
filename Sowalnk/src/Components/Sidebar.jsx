@@ -37,32 +37,32 @@ const Sidebar = () => {
       label: "Daily Task",
       icon: <CalendarDays className="h-5 w-5" />,
     },
-    {
-      path: "/weekly",
-      label: "Weekly Task",
-      icon: <CalendarCheck className="h-5 w-5" />,
-      className: advanceMember
-        ? ""
-        : "hidden" && intermediateMember
-        ? ""
-        : "hidden",
-    },
-    {
-      path: "/monthly",
-      label: "Monthly Task",
-      icon: <Calendar className="h-5 w-5" />,
-      className: advanceMember
-        ? ""
-        : "hidden" && intermediateMember
-        ? ""
-        : "hidden",
-    },
-    {
-      path: "/yearly",
-      label: "Yearly Task",
-      icon: <Calendar className="h-5 w-5" />,
-      className: advanceMember === true ? "" : "hidden",
-    },
+    // {
+    //   path: "/weekly",
+    //   label: "Weekly Task",
+    //   icon: <CalendarCheck className="h-5 w-5" />,
+    //   className: advanceMember
+    //     ? ""
+    //     : "hidden" && intermediateMember
+    //     ? ""
+    //     : "hidden",
+    // },
+    // {
+    //   path: "/monthly",
+    //   label: "Monthly Task",
+    //   icon: <Calendar className="h-5 w-5" />,
+    //   className: advanceMember
+    //     ? ""
+    //     : "hidden" && intermediateMember
+    //     ? ""
+    //     : "hidden",
+    // },
+    // {
+    //   path: "/yearly",
+    //   label: "Yearly Task",
+    //   icon: <Calendar className="h-5 w-5" />,
+    //   className: advanceMember === true ? "" : "hidden",
+    // },
     {
       path: "/workspace",
       label: "Workspace",
@@ -175,14 +175,12 @@ const Sidebar = () => {
                           ? "bg-gray-700 text-white font-medium"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"
                       } ${
-                        item.label === "Sticky Notes"
-                          ? "cursor-not-allowed"
-                          : ""
+                        item.label === "Sticky Note" ? "cursor-not-allowed" : ""
                       }`
                     }
                     onClick={(e) => {
                       // return setIsOpen(false);
-                      if (item.label === "Sticky Notes") {
+                      if (item.label === "Sticky Note") {
                         e.preventDefault();
                       } else {
                         setIsOpen(false);
