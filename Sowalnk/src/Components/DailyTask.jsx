@@ -267,24 +267,36 @@ function DailyTask() {
   const Dashboard = ({ tasks }) => {
     return (
       <div className="p-5 rounded-lg">
-        <h2 className="text-2xl font-semibold mb-4">Daily Task Information</h2>
-        <div>
-          <p>Total Tasks: {tasks.length}</p>
-          <p>
-            Completed Tasks: {tasks.filter((task) => task?.isCompleted).length}
-          </p>
-          <p>
-            Pending Tasks:{" "}
-            {
-              tasks.filter(
-                (task) => !task?.isCompleted && !task?.hasExceededTime
-              ).length
-            }
-          </p>
-          <p>
-            Incompleted Tasks:{" "}
-            {tasks.filter((task) => task?.hasExceededTime).length}
-          </p>
+        <h2 className="text-2xl font-semibold mb-4 text-purple-400">
+          Daily Task Information
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-700/50 p-4 rounded-lg border border-purple-500/20">
+            <p className="text-gray-400">Total Tasks</p>
+            <p className="text-2xl font-bold text-blue-400">{tasks.length}</p>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg border border-purple-500/20">
+            <p className="text-gray-400">Completed Tasks</p>
+            <p className="text-2xl font-bold text-green-400">
+              {tasks.filter((task) => task?.isCompleted).length}
+            </p>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg border border-purple-500/20">
+            <p className="text-gray-400">Pending Tasks</p>
+            <p className="text-2xl font-bold text-yellow-400">
+              {
+                tasks.filter(
+                  (task) => !task?.isCompleted && !task?.hasExceededTime
+                ).length
+              }
+            </p>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg border border-purple-500/20">
+            <p className="text-gray-400">Incompleted Tasks</p>
+            <p className="text-2xl font-bold text-red-400">
+              {tasks.filter((task) => task?.hasExceededTime).length}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -327,26 +339,18 @@ function DailyTask() {
   }, [dailyTask, dispatch]);
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-md md:max-w-[90%]  md:mx-auto lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
-        <div className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0 bg-[#F0C1E1]">
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
+        <div className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0 bg-gray-800 border border-purple-500/20">
           <div className="flex items-center justify-between">
-            <h1
-              className="text-2xl font-semibold text-left mb-6"
-              style={{ color: "#2e2e2e" }}
-            >
+            <h1 className="text-2xl font-semibold text-left mb-6 text-purple-400">
               ✨ Daily Checklist
             </h1>
             <div className="flex items-center">
-              <h1
-                className="text-2xl font-semibold text-right pr-3 mb-6"
-                style={{ color: "#2e2e2e" }}
-              >
+              <h1 className="text-2xl font-semibold text-right pr-3 mb-6 text-purple-400">
                 Date:
               </h1>
-              <h1 className="text-xl mb-5" style={{ color: "#2e2e2e" }}>
-                {formattedDate}
-              </h1>
+              <h1 className="text-xl mb-5 text-blue-400">{formattedDate}</h1>
             </div>
           </div>
 
@@ -355,16 +359,16 @@ function DailyTask() {
               type="text"
               value={taskName || ""}
               onChange={(e) => setTaskName(e.target.value)}
-              className="w-full p-3 border rounded-md border-gray-300"
+              className="w-full p-3 rounded-md bg-gray-700 border border-purple-500/30 text-gray-100 placeholder-gray-400 focus:outline-none focus:border-purple-500"
               placeholder="Task Name"
             />
             <div className="flex flex-col lg:flex-row lg:space-x-4">
               <div className="w-full lg:w-1/3">
-                <label className="block text-black">Priority</label>
+                <label className="block text-purple-400 mb-2">Priority</label>
                 <select
                   value={priority || ""}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md"
+                  className="w-full p-3 rounded-md bg-gray-700 border border-purple-500/30 text-gray-100 focus:outline-none focus:border-purple-500"
                 >
                   <option value="">None</option>
                   <option value="High">High</option>
@@ -373,33 +377,33 @@ function DailyTask() {
                 </select>
               </div>
               <div className="w-full lg:w-1/3">
-                <label className="block text-black">Start Time</label>
+                <label className="block text-purple-400 mb-2">Start Time</label>
                 <input
                   type="time"
                   value={startTime || ""}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md"
+                  className="w-full p-3 rounded-md bg-gray-700 border border-purple-500/30 text-gray-100 focus:outline-none focus:border-purple-500"
                 />
               </div>
               <div className="w-full lg:w-1/3">
-                <label className="block text-black">End Time</label>
+                <label className="block text-purple-400 mb-2">End Time</label>
                 <input
                   type="time"
                   value={endTime || ""}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md"
+                  className="w-full p-3 rounded-md bg-gray-700 border border-purple-500/30 text-gray-100 focus:outline-none focus:border-purple-500"
                 />
               </div>
             </div>
             <button
               onClick={handleAddTask}
-              className={`w-full py-3 rounded-md bg-[#674188] text-white ${
+              className={`w-full py-3 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 ${
                 (
                   intermediateMember
                     ? todaysTasks.length >= 20
                     : todaysTasks.length >= 10
                 )
-                  ? "cursor-not-allowed"
+                  ? "opacity-50 cursor-not-allowed"
                   : ""
               }`}
               disabled={
@@ -414,46 +418,38 @@ function DailyTask() {
         </div>
       </div>
 
-      <div
-        className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto mb-6 p-6 rounded-lg"
-        style={{ backgroundColor: "#F0C1E1" }}
-      >
-        <div className=" flex gap-6 justify-between items-start">
-          <h2
-            className="text-2xl font-semibold text-left"
-            style={{ color: "#2e2e2e" }}
-          >
+      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto mb-6 p-6 rounded-lg bg-gray-800 border border-purple-500/20">
+        <div className="flex gap-6 justify-between items-start">
+          <h2 className="text-2xl font-semibold text-left text-purple-400">
             Today's Tasks
           </h2>
           <div className="flex gap-4">
-            {
-              <div className="mt-2 text-xl font-bold italic">
-                {selectedDate === "" ? (
-                  <p className="text-sm not-italic mt-1 hidden md:block">
-                    Select Date For Particular Task's Data
-                  </p>
-                ) : (
-                  new Date(selectedDate).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })
-                )}
-              </div>
-            }
+            <div className="mt-2 text-xl font-bold italic text-blue-400">
+              {selectedDate === "" ? (
+                <p className="text-sm not-italic mt-1 hidden md:block">
+                  Select Date For Particular Task's Data
+                </p>
+              ) : (
+                new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              )}
+            </div>
             <input
               name="forfilter"
               type="date"
-              className="rounded-lg mb-6 p-2"
+              className="rounded-lg mb-6 p-2 bg-gray-700 border border-purple-500/30 text-gray-100 focus:outline-none focus:border-purple-500"
               onChange={handleDateChange}
             />
           </div>
         </div>
         <div className="overflow-x-auto max-h-96 overflow-scroll">
-          <table className="w-full table-auto ">
+          <table className="w-full table-auto">
             <thead>
-              <tr className="bg-[#674188] text-white">
+              <tr className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
                 <th className="px-4 py-3">Task Name</th>
                 <th className="px-4 py-3">Priority</th>
                 <th className="px-4 py-3">Start Time</th>
@@ -464,32 +460,38 @@ function DailyTask() {
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-[#F0C1E1] ">
+            <tbody>
               {filteredTasks?.map((task) => (
                 <tr
                   key={task?._id}
-                  className={`border-t overflow-scroll ${
-                    task?.isCompleted ? "bg-green-100" : "bg-white"
-                  }`}
+                  className={`border-t border-purple-500/20 ${
+                    task?.isCompleted ? "bg-green-900/30" : "bg-gray-700/50"
+                  } hover:bg-gray-700/70 transition-colors duration-200`}
                 >
-                  <td className="px-4  overflow-auto  py-2 text-center text-black">
+                  <td className="px-4 overflow-auto py-2 text-center">
                     <div className="w-30 h-12 overflow-auto flex justify-center items-center">
                       {task?.taskName}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task?.priority}
+                  <td className="px-4 py-2 text-center">
+                    <span
+                      className={`px-2 py-1 rounded-full text-sm ${
+                        task?.priority === "High"
+                          ? "bg-red-500/20 text-red-400"
+                          : task?.priority === "Medium"
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-green-500/20 text-green-400"
+                      }`}
+                    >
+                      {task?.priority}
+                    </span>
                   </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task?.startTime}
-                  </td>
-                  <td className="px-4 py-2 text-center text-black">
-                    {task?.endTime}
-                  </td>
+                  <td className="px-4 py-2 text-center">{task?.startTime}</td>
+                  <td className="px-4 py-2 text-center">{task?.endTime}</td>
                   <td className="px-4 py-2">
-                    <div className="relative w-[120%] h-6 rounded-full bg-gray-300 text-center">
+                    <div className="relative w-[120%] h-6 rounded-full bg-gray-600 text-center">
                       <div
-                        className="h-full rounded-full"
+                        className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${task?.progress}%`,
                           backgroundColor: getProgressColor(
@@ -521,13 +523,12 @@ function DailyTask() {
                       }
                       className={`${
                         task?.proofOfWork ? "" : "cursor-not-allowed"
-                      }`}
+                      } accent-purple-500`}
                       style={{
                         transform: "scale(1.5)",
                       }}
                     />
                   </td>
-
                   <td className="px-4 py-2 text-center">
                     {!task.proofOfWork && (
                       <input
@@ -537,8 +538,10 @@ function DailyTask() {
                           handleFileChange(task?._id, e.target.files[0])
                         }
                         disabled={task?.hasExceededTime}
-                        className={`text-sm w-[90px] overflow-auto ${
-                          task?.hasExceededTime ? "cursor-not-allowed" : ""
+                        className={`text-sm w-[90px] overflow-auto bg-gray-700 rounded-md p-1 ${
+                          task?.hasExceededTime
+                            ? "cursor-not-allowed opacity-50"
+                            : ""
                         }`}
                         required
                       />
@@ -548,19 +551,18 @@ function DailyTask() {
                         href={task?.proofOfWork || ""}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 underline text-sm"
+                        className="text-blue-400 hover:text-blue-300 underline text-sm transition-colors duration-200"
                       >
                         View Proof
                       </a>
                     )}
                   </td>
-
                   <td className="px-4 py-2 text-center">
                     <button
                       onClick={() => handleDelete(task?._id)}
-                      className={`py-1 px-2 rounded-md bg-red-500 text-white ${
+                      className={`py-1 px-2 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors duration-200 ${
                         task?.hasExceededTime || task?.isCompleted
-                          ? "cursor-not-allowed"
+                          ? "cursor-not-allowed opacity-50"
                           : ""
                       }`}
                       disabled={task?.hasExceededTime || task?.isCompleted}
@@ -573,16 +575,13 @@ function DailyTask() {
             </tbody>
           </table>
           {filteredTasks.length === 0 && (
-            <div className="w-full text-center my-7">
+            <div className="w-full text-center my-7 text-gray-400">
               No Task Data is Present on this Date
             </div>
           )}
         </div>
       </div>
-      <div
-        className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto mb-6"
-        style={{ backgroundColor: "#F0C1E1" }}
-      >
+      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto mb-6 p-6 rounded-lg bg-gray-800 border border-purple-500/20">
         <Dashboard tasks={filteredTasks} />
       </div>
     </div>
