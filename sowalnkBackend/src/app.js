@@ -60,6 +60,7 @@ import eisenhowerRouter from "./routers/15TimesMethodRoutes/eisenHower.route.js"
 import abcdmethodRouter from "./routers/15TimesMethodRoutes/abcdmethod.route.js";
 import threeThreeThreeRouter from "./routers/15TimesMethodRoutes/333methods.route.js";
 import twoMinuteRuleRouter from "./routers/twoMinuteRule.route.js";
+import paretoMethodRouter from "./routers/15TimesMethodRoutes/20method.route.js";
 //Route Declaration
 app.use("/api/v1/task", dailyTaskRouter);
 app.use("/api/v1/user", userAuth);
@@ -74,6 +75,7 @@ app.use("/api/v1/eisenhower", eisenhowerRouter);
 app.use("/api/v1/abcdmethod", abcdmethodRouter);
 app.use("/api/v1/333method", threeThreeThreeRouter);
 app.use("/api/v1/twominuterule", twoMinuteRuleRouter);
+app.use("/api/v1/paretomethod", paretoMethodRouter);
 
 //Socket.io
 const activeUsers = new Map(); // userId -> socketId mapping

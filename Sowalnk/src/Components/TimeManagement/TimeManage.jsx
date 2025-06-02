@@ -56,7 +56,7 @@ const TimeManage = () => {
       id: 6,
       name: "80/20 Method",
       description: "Focus on the vital 20% that produces 80% of results.",
-      hidden: true,
+      // hidden: true,
     },
     {
       id: 7,
