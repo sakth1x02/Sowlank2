@@ -5,7 +5,7 @@ import {
   getTasks,
   updateTask,
   deleteTask,
-} from "../controllers/15TimeMethodControllers/TwoMinuteRule.controller.js";
+} from "../controllers/15TimeMethodControllers/twoMinuteRule.controller.js";
 
 const router = express.Router();
 
