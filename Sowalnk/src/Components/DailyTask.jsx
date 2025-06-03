@@ -339,9 +339,9 @@ function DailyTask() {
   }, [dailyTask, dispatch]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
-        <div className="w-full rounded-lg shadow-lg p-5 mb-4 lg:mb-0 bg-gray-800 border border-purple-500/20">
+    <div className="min-h-screen bg-gray-900 py-4 text-gray-100">
+      <div className="max-w-md md:max-w-[90%] md:mx-auto  overflow-scroll lg:mx-auto flex flex-col lg:flex-row lg:space-x-4 mb-6">
+        <div className="w-full rounded-lg shadow-lg p-5 mb-4  lg:mb-0 bg-gray-800 border border-purple-500/20">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-left mb-6 text-purple-400">
               ✨ Daily Checklist
@@ -581,7 +581,7 @@ function DailyTask() {
           )}
         </div>
       </div>
-      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto mb-6 p-6 rounded-lg bg-gray-800 border border-purple-500/20">
+      <div className="max-w-md md:max-w-[90%] md:mx-auto lg:mx-auto  p-6 rounded-lg bg-gray-800 border border-purple-500/20">
         <Dashboard tasks={filteredTasks} />
       </div>
     </div>

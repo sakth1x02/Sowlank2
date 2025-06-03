@@ -175,12 +175,14 @@ const Sidebar = () => {
                           ? "bg-gray-700 text-white font-medium"
                           : "text-gray-300 hover:bg-gray-700 hover:text-white"
                       } ${
-                        item.label === "Sticky Note" ? "cursor-not-allowed" : ""
+                        item.label === "Sticky Notes"
+                          ? "cursor-not-allowed"
+                          : ""
                       }`
                     }
                     onClick={(e) => {
                       // return setIsOpen(false);
-                      if (item.label === "Sticky Note") {
+                      if (item.label === "Sticky Notes") {
                         e.preventDefault();
                       } else {
                         setIsOpen(false);
